@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
-import FeaturesSection from './components/FeaturesSection';
 import LiveDemoSection from './components/LiveDemoSection';
 import CategoriesSection from './components/CategoriesSection';
 import PricingSection from './components/PricingSection';
+import FeatureSteps from './components/FeatureSteps';
 import Footer from './components/Footer';
 import ContactPage from './components/ContactPage';
 
@@ -12,7 +12,7 @@ const HomePage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
   return (
     <main>
       <HeroSection navigate={navigate} />
-      <FeaturesSection />
+      <FeatureSteps />
       <LiveDemoSection />
       <CategoriesSection />
       <PricingSection />
