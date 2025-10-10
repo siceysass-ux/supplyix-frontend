@@ -10,27 +10,45 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     
-    // NOTE: This form simulates sending an email. In a real application,
-    // you would send this data to a backend server or a third-party service
-    // (like Formspree, Netlify Forms) to handle the email sending process to supplyix@supplyix.com.
-    const handleSubmit = (e: React.FormEvent) => {
+    // The form now sends data to the provided Formspree endpoint.
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting || isSubmitted) return;
 
         setIsSubmitting(true);
-        
-        // Simulate network request
-        setTimeout(() => {
-            console.log('Form Submitted:', { name, email, message });
+        setError(null);
+
+        try {
+            const response = await fetch('https://formspree.io/f/mrbyyejr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ name, email, message }),
+            });
+
+            if (response.ok) {
+                setIsSubmitted(true);
+                // Redirect after 3 seconds
+                setTimeout(() => {
+                    navigate('/');
+                }, 3000);
+            } else {
+                const data = await response.json();
+                if (data.errors) {
+                    setError(data.errors.map((err: { message: string }) => err.message).join(', '));
+                } else {
+                    setError('An unexpected error occurred. Please try again.');
+                }
+            }
+        } catch (err) {
+            setError('Failed to send message. Please check your internet connection and try again.');
+        } finally {
             setIsSubmitting(false);
-            setIsSubmitted(true);
-            
-            // Redirect after 3 seconds
-            setTimeout(() => {
-                navigate('/');
-            }, 3000);
-        }, 1500);
+        }
     };
 
     return (
@@ -56,12 +74,19 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                                 <h2 className="text-3xl font-bold text-dark-blue">İletişime Geçin</h2>
                                 <p className="text-gray-500 mt-1">Sorularınız için buradayız!</p>
                             </div>
+                             {error && (
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert">
+                                    <strong className="font-bold">Hata! </strong>
+                                    <span className="block sm:inline">{error}</span>
+                                </div>
+                            )}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
                                     <label htmlFor="name" className="block text-dark-blue font-bold mb-2">Ad Soyad</label>
                                     <input
                                         type="text"
                                         id="name"
+                                        name="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className="w-full bg-gray-50 text-gray-800 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -74,6 +99,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                                     <input
                                         type="email"
                                         id="email"
+                                        name="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full bg-gray-50 text-gray-800 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -85,6 +111,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                                     <label htmlFor="message" className="block text-dark-blue font-bold mb-2">Mesajınız</label>
                                     <textarea
                                         id="message"
+                                        name="message"
                                         rows={5}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
