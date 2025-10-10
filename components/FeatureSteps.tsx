@@ -5,27 +5,27 @@ const featureStepsData = [
   {
     title: 'Ürünü Seçin',
     description: 'Dropshipping için en çok satan ürünleri tek tıkla seçin. E-ticaret mağazanız için ürün araştırmasını biz yaptık.',
-    imgSrc: '/boxes.png',
+    imgSrc: '/boxes.webp',
   },
   {
     title: 'Mağazanıza Ekleyin',
     description: 'Ürünleri online mağazanıza ekleyin. Stoksuz satış modeliyle sermaye ve stok derdi olmadan dropshipping işinizi kolayca büyütün.',
-    imgSrc: '/shop.png',
+    imgSrc: '/shop.webp',
   },
   {
     title: 'Sipariş Alın',
     description: 'Satış sonrası tedarik sürecini başlatın, satış yaptıkça sipariş verin.',
-    imgSrc: '/shopping.png',
+    imgSrc: '/shopping.webp',
   },
   {
     title: 'Kargo Sürecini Başlatın',
     description: 'Gönderim süreci şeffaf ilerler, takip numaranızı e-ticaret mağazanıza yükleyin.',
-    imgSrc: '/map.png',
+    imgSrc: '/map.webp',
   },
   {
     title: 'Kazancınızı Alın',
     description: 'Gelir doğrudan cebinize girer. İster 1, ister 1000 ürün satın.',
-    imgSrc: '/graph.png',
+    imgSrc: '/graph.webp',
   },
 ];
 

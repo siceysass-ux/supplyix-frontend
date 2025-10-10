@@ -4,22 +4,22 @@ const featuresData = [
   {
     title: 'Yüksek Hızda Performans',
     description: 'Optimize edilmiş altyapı ve hafif kod yapısı, uygulamalarınızın en yüksek hızda çalışmasını sağlar.',
-    imgSrc: '/boxes.png',
+    imgSrc: '/boxes.webp',
   },
   {
     title: 'Kurumsal Düzeyde Güvenlik',
     description: 'Verilerinizi çok katmanlı güvenlik, uzun şifreleme ve düzenli denetimlerle koruyoruz.',
-    imgSrc: '/shop.png',
+    imgSrc: '/shop.webp',
   },
   {
     title: 'Sorunsuz Ölçeklenebilirlik',
     description: 'Kaynaklarınızı talebe göre kesintisiz bir şekilde zahmetsizce artırın veya azaltın.',
-    imgSrc: '/map.png',
+    imgSrc: '/map.webp',
   },
   {
     title: 'Geliştirici Dostu API',
     description: 'Özel çözümler ve iş akışları oluşturmak için güçlü ve iyi belgelenmiş API’mizle entegre olun.',
-    imgSrc: '/graph.png',
+    imgSrc: '/graph.webp',
   },
 ];
 
