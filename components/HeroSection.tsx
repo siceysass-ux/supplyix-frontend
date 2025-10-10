@@ -1,6 +1,10 @@
 import React from 'react';
 
-const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+    navigate: (path: string) => void;
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
     // Product data for the animated showcase - UPDATED with dollar prices
     const products = [
         { imageUrl: 'https://picsum.photos/seed/p1/200/200', price: '$29.99' },
@@ -26,6 +30,11 @@ const HeroSection: React.FC = () => {
             pricingSection.scrollIntoView({ behavior: 'smooth' });
         }
     };
+    
+    const handleContactClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        navigate('/contact');
+    };
 
     return (
         <section className="relative bg-white overflow-hidden">
@@ -46,9 +55,12 @@ const HeroSection: React.FC = () => {
                         <p className="text-lg md:text-xl text-dark-blue mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                             Ürünlerini seç, listele, satış yaptıkça biz gönderelim. Sen sadece kazancına odaklan.
                         </p>
-                        <div className="animate-fade-in-up" style={{ animationDelay: '1s' }}>
-                            <a href="#pricing" onClick={handleScrollToPricing} className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30 inline-block">
+                        <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 animate-fade-in-up" style={{ animationDelay: '1s' }}>
+                            <a href="#pricing" onClick={handleScrollToPricing} className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30 inline-block w-full sm:w-auto text-center">
                                 Şimdi Başla!
+                            </a>
+                            <a href="#/contact" onClick={handleContactClick} className="bg-white text-primary border-2 border-primary font-bold py-4 px-10 rounded-lg hover:bg-primary/10 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/10 inline-block w-full sm:w-auto text-center">
+                                İletişime Geç
                             </a>
                         </div>
                     </div>
