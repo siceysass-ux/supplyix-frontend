@@ -44,30 +44,29 @@ const FeatureSteps: React.FC = () => {
         </div>
 
         {/* Steps Grid */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {featureStepsData.map((step, index) => (
             <div
               key={index}
-              className="flex flex-col items-center text-center p-5 md:p-6 bg-white/90 dark:bg-neutral-900/90 border border-gray-200 dark:border-neutral-800 rounded-xl shadow-sm transition-all duration-300 hover:bg-white dark:hover:bg-neutral-900 hover:shadow-md hover:-translate-y-0.5"
-              aria-label={`Step ${index + 1}: ${step.title}`}
+              className="flex flex-col text-center p-6 bg-neutral/60 dark:bg-neutral-900/90 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 border-primary"
+              aria-label={`${index + 1}. ${step.title}`}
             >
-              <figure>
-                {/* Image Container */}
-                <img
-                  src={step.imgSrc}
-                  alt={`${step.title} illustration`}
-                  className="h-48 w-full object-contain mb-4"
-                />
+                {/* Icon Container */}
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-neutral-800 mb-6 shadow-inner">
+                    <img
+                        src={step.imgSrc}
+                        alt={`${step.title} ikonu`}
+                        className="h-8 w-8 object-contain"
+                    />
+                </div>
+                
                 {/* Text Content */}
-                <figcaption>
-                  <h3 className="text-lg font-bold text-primary">
+                <h3 className="text-lg font-bold text-dark-blue dark:text-white uppercase tracking-wider">
                     {`${index + 1}. ${step.title}`}
-                  </h3>
-                  <p className="mt-2 text-sm text-dark-blue dark:text-neutral-300">
+                </h3>
+                <p className="mt-2 text-sm text-gray-600 dark:text-neutral-400">
                     {step.description}
-                  </p>
-                </figcaption>
-              </figure>
+                </p>
             </div>
           ))}
         </div>
@@ -77,5 +76,3 @@ const FeatureSteps: React.FC = () => {
 };
 
 export default FeatureSteps;
-
-// Usage: import FeatureSteps from './components/FeatureSteps'; and then use <FeatureSteps /> in your layout.
