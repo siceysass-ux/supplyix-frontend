@@ -53,17 +53,15 @@ const FeatureSteps: React.FC = () => {
             >
               <figure className="flex flex-col flex-grow items-center">
                 {/* Image Container */}
-                <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 dark:bg-neutral-800">
-                  <img
-                    src={step.imgSrc}
-                    alt={`${step.title} illustration`}
-                    className="h-7 w-7 object-contain"
-                  />
-                </div>
+                <img
+                  src={step.imgSrc}
+                  alt={`${step.title} illustration`}
+                  className="h-16 w-16 object-contain mb-5"
+                />
                 {/* Text Content */}
-                <figcaption className="mt-5 flex flex-col flex-grow">
+                <figcaption className="flex flex-col flex-grow">
                   <h3 className="text-lg font-bold text-primary">
-                    {step.title}
+                    {`${index + 1}. ${step.title}`}
                   </h3>
                   <p className="mt-2 text-sm text-dark-blue dark:text-neutral-300 flex-grow">
                     {step.description}
