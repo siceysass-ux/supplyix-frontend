@@ -42,8 +42,8 @@ const LiveDemoSection: React.FC = () => {
     <section id="demo" className="py-20 bg-white overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-dark-blue mb-4">Supplyix'i Çalışırken Görün</h2>
-          <p className="text-lg text-gray-600">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Supplyix'i Çalışırken Görün</h2>
+          <p className="text-lg text-dark-blue">
             Platformumuzun sezgisel arayüzünü ve güçlü özelliklerini keşfedin. Kayıt olmanıza gerek yok.
           </p>
         </div>

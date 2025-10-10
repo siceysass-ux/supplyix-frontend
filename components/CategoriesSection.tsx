@@ -104,7 +104,7 @@ const CategoriesSection: React.FC = () => {
   return (
     <section id="categories" className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <div className="flex flex-wrap justify-center border-b border-gray-200">
+        <div className="flex overflow-x-auto justify-start md:justify-center border-b border-gray-200 scrollbar-hide">
           {categoriesData.map((category, index) => (
             <button
               key={index}
@@ -123,7 +123,6 @@ const CategoriesSection: React.FC = () => {
         <div className="mt-8">
           {categoriesData.map((category, index) => (
             <div key={index} className={activeTab === index ? 'block' : 'hidden'}>
-              <h2 className="text-2xl md:text-3xl font-bold text-dark-blue mb-6">{category.name}</h2>
               <div className="bg-neutral p-4 sm:p-6 md:p-8 rounded-lg">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {category.products.map((product, pIndex) => (
@@ -152,6 +151,15 @@ const CategoriesSection: React.FC = () => {
           ))}
         </div>
       </div>
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 };

@@ -29,10 +29,10 @@ const FeaturesSection: React.FC = () => {
       <div className="container mx-auto max-w-7xl px-4 md:px-6">
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-semibold text-dark-blue dark:text-white">
+          <h2 className="text-3xl md:text-4xl font-semibold text-primary dark:text-primary">
             Neden Supplyix’i Seçmelisiniz?
           </h2>
-          <p className="mt-3 text-gray-600 dark:text-neutral-400">
+          <p className="mt-3 text-dark-blue dark:text-neutral-300">
             Karmaşıklık olmadan, yenilik yapmanız ve büyümeniz için gereken araçları sağlıyoruz.
           </p>
         </div>

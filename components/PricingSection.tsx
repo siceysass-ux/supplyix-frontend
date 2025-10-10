@@ -34,8 +34,11 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, price, duration, popula
     );
 };
 
+interface PricingSectionProps {
+  navigate: (path: string) => void;
+}
 
-const PricingSection: React.FC = () => {
+const PricingSection: React.FC<PricingSectionProps> = ({ navigate }) => {
     const [selectedPlan, setSelectedPlan] = useState<number | null>(1); // Default to popular plan
 
     const plans = [
@@ -61,13 +64,22 @@ const PricingSection: React.FC = () => {
             duration: 'yıl',
         },
     ];
+    
+    const handleProceed = () => {
+        if (selectedPlan !== null) {
+            const plan = plans[selectedPlan];
+            const planName = encodeURIComponent(plan.plan);
+            const planPrice = encodeURIComponent(plan.price);
+            navigate(`/signup?plan=${planName}&price=${planPrice}`);
+        }
+    };
 
     return (
         <section id="pricing" className="py-20 bg-neutral">
             <div className="container mx-auto px-6">
                 <div className="max-w-2xl mx-auto text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-dark-blue mb-4">Planınızı Seçin</h2>
-                    <p className="text-lg text-gray-600">
+                    <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Planınızı Seçin</h2>
+                    <p className="text-lg text-dark-blue">
                         Basit, şeffaf fiyatlandırma. Dakikalar içinde başlayın.
                     </p>
                 </div>
@@ -88,7 +100,9 @@ const PricingSection: React.FC = () => {
 
                 <div className="mt-16 text-center">
                     {selectedPlan !== null && (
-                        <button className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
+                        <button 
+                            onClick={handleProceed}
+                            className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
                             İlerle
                         </button>
                     )}
