@@ -104,12 +104,12 @@ const CategoriesSection: React.FC = () => {
   return (
     <section id="categories" className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9 border-b border-gray-200">
+        <div className="flex flex-wrap justify-center border-b border-gray-200">
           {categoriesData.map((category, index) => (
             <button
               key={index}
               onClick={() => setActiveTab(index)}
-              className={`w-full text-center px-2 py-3 text-xs sm:text-sm font-medium transition-colors duration-300 focus:outline-none ${
+              className={`px-4 py-3 text-sm font-medium transition-colors duration-300 focus:outline-none whitespace-nowrap ${
                 activeTab === index
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-gray-500 hover:text-gray-800'
