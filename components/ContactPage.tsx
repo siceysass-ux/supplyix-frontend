@@ -66,7 +66,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
     };
 
     return (
-        <main className="bg-neutral flex items-center justify-center py-12 md:py-20 px-4">
+        <main className="bg-white flex items-center justify-center py-12 md:py-20 px-4">
              {showBurstAnimation && (
                 <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
                     <div className="animate-burst bg-white p-8 rounded-lg shadow-2xl">

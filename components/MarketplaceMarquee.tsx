@@ -16,7 +16,7 @@ const MarketplaceMarquee: React.FC = () => {
     const extendedLogos = [...marketplaces, ...marketplaces];
 
     return (
-        <section className="bg-gradient-to-b from-white to-neutral py-16 md:py-20">
+        <section className="bg-white py-16 md:py-20">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-primary">
@@ -31,9 +31,9 @@ const MarketplaceMarquee: React.FC = () => {
                     className="group relative w-full overflow-hidden"
                     style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}
                 >
-                    <div className="flex animate-scroll-left group-hover:pause">
+                    <div className="inline-flex flex-nowrap animate-scroll-left group-hover:pause">
                         {extendedLogos.map((market, index) => (
-                            <div key={index} className="flex-shrink-0 mx-8 flex items-center justify-center" style={{ width: '200px' }}>
+                            <div key={index} className="flex-shrink-0 w-48 mx-2 md:mx-8 flex items-center justify-center">
                                 <img
                                     src={market.logo}
                                     alt={`${market.name} Logo`}
@@ -50,7 +50,12 @@ const MarketplaceMarquee: React.FC = () => {
                     to { transform: translateX(-50%); }
                 }
                 .animate-scroll-left {
-                    animation: scroll-left 40s linear infinite;
+                    animation: scroll-left 7s linear infinite;
+                }
+                @media (min-width: 768px) {
+                  .animate-scroll-left {
+                    animation-duration: 40s;
+                  }
                 }
                 .group-hover\\:pause:hover .animate-scroll-left,
                 .group-hover\\:pause .animate-scroll-left {

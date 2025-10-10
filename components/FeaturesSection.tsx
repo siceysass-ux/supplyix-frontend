@@ -25,7 +25,7 @@ const featuresData = [
 
 const FeaturesSection: React.FC = () => {
   return (
-    <section id="features" className="bg-neutral dark:bg-dark-blue/20 py-16 md:py-20">
+    <section id="features" className="bg-white dark:bg-dark-blue/20 py-16 md:py-20">
       <div className="container mx-auto max-w-7xl px-4 md:px-6">
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">

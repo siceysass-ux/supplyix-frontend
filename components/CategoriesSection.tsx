@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Icon } from './Icon';
 
 interface Category {
@@ -92,6 +92,9 @@ const categoriesData: Category[] = [
 
 const CategoriesSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftButton, setShowLeftButton] = useState(false);
+  const [showRightButton, setShowRightButton] = useState(false);
 
   const handleScrollToPricing = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -101,23 +104,78 @@ const CategoriesSection: React.FC = () => {
     }
   };
 
+  const checkScrollButtons = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setShowLeftButton(scrollLeft > 0);
+      setShowRightButton(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      checkScrollButtons();
+      scrollContainer.addEventListener('scroll', checkScrollButtons);
+      window.addEventListener('resize', checkScrollButtons);
+
+      return () => {
+        scrollContainer.removeEventListener('scroll', checkScrollButtons);
+        window.removeEventListener('resize', checkScrollButtons);
+      };
+    }
+  }, [checkScrollButtons]);
+  
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+        const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+        scrollContainerRef.current.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth',
+        });
+    }
+  };
+
   return (
     <section id="categories" className="py-12 bg-white">
       <div className="container mx-auto px-6">
-        <div className="flex overflow-x-auto justify-start md:justify-center border-b border-gray-200 scrollbar-hide">
-          {categoriesData.map((category, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveTab(index)}
-              className={`px-4 py-3 text-sm font-medium transition-colors duration-300 focus:outline-none whitespace-nowrap ${
-                activeTab === index
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-800'
-              }`}
+        <div className="relative">
+            {showLeftButton && (
+                <button 
+                    onClick={() => handleScroll('left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-dark-blue rounded-full p-1 shadow-md hover:bg-dark-blue/90 md:hidden"
+                    aria-label="Geri Kaydır"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+            )}
+            <div 
+                ref={scrollContainerRef}
+                className="flex overflow-x-auto justify-start md:justify-center border-b border-gray-200 scrollbar-hide"
             >
-              {category.name}
-            </button>
-          ))}
+              {categoriesData.map((category, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveTab(index)}
+                  className={`px-4 py-3 text-sm font-medium transition-colors duration-300 focus:outline-none whitespace-nowrap ${
+                    activeTab === index
+                      ? 'border-b-2 border-primary text-primary'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+             {showRightButton && (
+                <button 
+                    onClick={() => handleScroll('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-dark-blue rounded-full p-1 shadow-md hover:bg-dark-blue/90 md:hidden"
+                    aria-label="İleri Kaydır"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+            )}
         </div>
 
         <div className="mt-8">

@@ -56,7 +56,7 @@ const FeatureSteps: React.FC = () => {
                     <img
                         src={step.imgSrc}
                         alt={`${step.title} ikonu`}
-                        className="h-6 w-6 md:h-8 md:w-8 object-contain"
+                        className="h-10 w-10 md:h-14 md:h-14 object-contain"
                     />
                 </div>
                 

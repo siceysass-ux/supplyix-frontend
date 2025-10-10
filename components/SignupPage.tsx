@@ -138,7 +138,7 @@ const RegistrationSuccess: React.FC = () => {
     });
 
     return (
-        <main className="min-h-screen bg-neutral flex flex-col items-center justify-center p-4 text-center overflow-hidden relative">
+        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-center overflow-hidden relative">
             <div className="absolute inset-0 pointer-events-none z-0">{confettiPieces}</div>
             <div className="relative bg-white p-8 md:p-12 rounded-xl shadow-2xl animate-scale-in z-10">
                 <img src="/logo.png" alt="Supplyix Logo" className="h-20 w-auto mx-auto mb-6" />
@@ -355,7 +355,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
     const steps = ['Kişisel Bilgiler', 'Platformlar', 'Ödeme'];
 
     return (
-        <main className="min-h-screen bg-neutral flex flex-col items-center justify-center p-4">
+        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
             {modalContent && <LegalModal title={modalContent.title} content={modalContent.content} onClose={() => setModalContent(null)} />}
             <div className="w-full max-w-2xl">
                 <div className="text-center mb-8">

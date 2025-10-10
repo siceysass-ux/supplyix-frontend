@@ -82,7 +82,7 @@ const FAQSection: React.FC = () => {
     const rightColumnFaqs = faqData.slice(half);
 
     return (
-        <section id="faq" className="py-16 md:py-20 bg-neutral dark:bg-dark-blue/10">
+        <section id="faq" className="py-16 md:py-20 bg-white dark:bg-dark-blue/10">
             <div className="container mx-auto max-w-7xl px-4 md:px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-primary">

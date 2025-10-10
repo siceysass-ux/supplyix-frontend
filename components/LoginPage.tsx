@@ -7,6 +7,7 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -22,7 +23,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
         setIsLoading(true);
         // Simulate API call
         setTimeout(() => {
-            if (email === 'user@supplyix.com' && password === 'password123') {
+            if (email === 'supplyix@supplyix.com' && password === '12345678') {
                 navigate('/dashboard');
             } else {
                 setError('Geçersiz e-posta adresi veya şifre.');
@@ -32,7 +33,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
     };
 
     return (
-        <main className="min-h-screen bg-neutral flex flex-col items-center justify-center p-4">
+        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
@@ -51,7 +52,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} noValidate>
+                    <form onSubmit={handleSubmit} noValidate autoComplete="off">
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-dark-blue font-bold mb-2">E-posta Adresi</label>
                             <input
@@ -74,9 +75,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
                                 className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                                 disabled={isLoading}
+                                autoComplete="new-password"
                             />
                         </div>
-                        <div className="text-right mb-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <label className="flex items-center text-sm text-gray-600 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary" 
+                                />
+                                <span className="ml-2">Beni Hatırla</span>
+                            </label>
                             <a href="#/forgot-password" onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }} className="text-sm text-primary hover:underline">
                                 Şifremi Unuttum?
                             </a>

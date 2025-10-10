@@ -36,7 +36,11 @@ const demoFeatures: DemoFeature[] = [
 ];
 
 const LiveDemoSection: React.FC = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+
+  const toggleAccordion = (index: number) => {
+    setActiveIndex(activeIndex === index ? null : index);
+  };
 
   return (
     <section id="demo" className="py-20 bg-white overflow-hidden">
@@ -48,7 +52,8 @@ const LiveDemoSection: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
+        {/* Desktop Layout */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-1 flex flex-col space-y-4">
             {demoFeatures.map((feature, index) => (
               <button
@@ -79,15 +84,53 @@ const LiveDemoSection: React.FC = () => {
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
                 <div className="aspect-video bg-neutral rounded-b-lg p-4">
-                    <img
-                        key={activeIndex}
-                        src={demoFeatures[activeIndex].imageUrl}
-                        alt={demoFeatures[activeIndex].title}
-                        className="w-full h-full object-cover rounded-md animate-fade-in"
-                    />
+                    {activeIndex !== null && (
+                      <img
+                          key={activeIndex}
+                          src={demoFeatures[activeIndex].imageUrl}
+                          alt={demoFeatures[activeIndex].title}
+                          className="w-full h-full object-cover rounded-md animate-fade-in"
+                      />
+                    )}
                 </div>
              </div>
           </div>
+        </div>
+
+        {/* Mobile Accordion Layout */}
+        <div className="block lg:hidden space-y-4">
+          {demoFeatures.map((feature, index) => {
+            const isActive = activeIndex === index;
+            return (
+              <div key={index} className={`rounded-lg border-2 transition-all duration-300 ${isActive ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}>
+                <button
+                  onClick={() => toggleAccordion(index)}
+                  className="w-full p-6 text-left"
+                  aria-expanded={isActive}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center pr-4">
+                      <Icon iconName={feature.iconName} className={`w-6 h-6 mr-3 flex-shrink-0 ${isActive ? 'text-primary' : 'text-dark-blue/60'}`} />
+                      <h3 className="text-lg font-bold text-dark-blue">{feature.title}</h3>
+                    </div>
+                    <Icon iconName="chevron-down" className={`w-5 h-5 text-gray-500 transition-transform duration-300 flex-shrink-0 ${isActive ? 'transform rotate-180' : ''}`} />
+                  </div>
+                </button>
+                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive ? 'max-h-[1000px]' : 'max-h-0'}`}>
+                  <div className="px-6 pb-6">
+                    <p className="text-gray-600 text-sm mb-4">{feature.description}</p>
+                    <div className="aspect-video bg-neutral rounded-lg p-2 border border-gray-200">
+                      <img
+                          src={feature.imageUrl}
+                          alt={feature.title}
+                          className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       <style>{`

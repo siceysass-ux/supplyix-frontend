@@ -10,7 +10,7 @@ import ContactPage from './components/ContactPage';
 import LoginPage from './components/LoginPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import SignupPage from './components/SignupPage';
-import DashboardPage from './components/DashboardPage';
+import DashboardPage from './components/dashboard/DashboardPage'; // Updated import
 import YouTubeSection from './components/YouTubeSection';
 import MarketplaceMarquee from './components/MarketplaceMarquee';
 import FAQSection from './components/FAQSection';
@@ -22,9 +22,9 @@ const HomePage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
       <FeatureSteps />
       <LiveDemoSection />
       <CategoriesSection />
+      <MarketplaceMarquee />
       <PricingSection navigate={navigate} />
       <YouTubeSection />
-      <MarketplaceMarquee />
       <FAQSection />
     </main>
   );
@@ -36,6 +36,7 @@ const App: React.FC = () => {
 
   const navigate = useCallback((path: string) => {
     window.location.hash = path;
+    setCurrentPage(path); // Immediately update state on navigation
   }, []);
 
   useEffect(() => {
@@ -44,6 +45,8 @@ const App: React.FC = () => {
       window.scrollTo(0, 0);
     };
     window.addEventListener('hashchange', handleHashChange);
+    // Set initial page on load
+    handleHashChange();
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
@@ -55,6 +58,10 @@ const App: React.FC = () => {
     const plan = urlParams.get('plan');
     const price = urlParams.get('price');
 
+    if (route.startsWith('/dashboard')) {
+        return <DashboardPage />;
+    }
+
     switch (route) {
       case '/contact':
         return <ContactPage navigate={navigate} />;
@@ -64,14 +71,13 @@ const App: React.FC = () => {
         return <SignupPage navigate={navigate} plan={plan} price={price} />;
       case '/forgot-password':
         return <ForgotPasswordPage navigate={navigate} />;
-      case '/dashboard':
-        return <DashboardPage navigate={navigate} />;
       default:
         return <HomePage navigate={navigate} />;
     }
   };
   
-  const showHeaderFooter = !['/login', '/signup', '/forgot-password', '/dashboard'].includes(currentPage.split('?')[0]);
+  const isDashboard = currentPage.startsWith('/dashboard');
+  const showHeaderFooter = !['/login', '/signup', '/forgot-password'].includes(currentPage.split('?')[0]) && !isDashboard;
   
   return (
     <div className="min-h-screen bg-base-100 font-sans leading-normal tracking-normal flex flex-col">
