@@ -11,11 +11,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showBurstAnimation, setShowBurstAnimation] = useState(false);
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // New: Client-side validation
         if (!name.trim() || !email.trim() || !message.trim()) {
             setError('Lütfen tüm zorunlu alanları doldurun.');
             return;
@@ -25,43 +25,55 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
 
         setIsSubmitting(true);
         setError(null);
+        setShowBurstAnimation(true);
 
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('email', email);
-        formData.append('message', message);
+        setTimeout(async () => {
+            setShowBurstAnimation(false);
+            
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('message', message);
 
-        try {
-            const response = await fetch('https://formspree.io/f/mrbyyejr', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
+            try {
+                const response = await fetch('https://formspree.io/f/mrbyyejr', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
 
-            if (response.ok) {
-                setIsSubmitted(true);
-                setTimeout(() => {
-                    navigate('/');
-                }, 3000);
-            } else {
-                const data = await response.json();
-                if (data.errors) {
-                    setError(data.errors.map((err: { message: string }) => err.message).join(', '));
+                if (response.ok) {
+                    setIsSubmitted(true);
+                    setTimeout(() => {
+                        navigate('/');
+                    }, 3000);
                 } else {
-                    setError('Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
+                    const data = await response.json();
+                    if (data.errors) {
+                        setError(data.errors.map((err: { message: string }) => err.message).join(', '));
+                    } else {
+                        setError('Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
+                    }
+                    setIsSubmitting(false); // Re-enable on error
                 }
+            } catch (err) {
+                setError('Mesaj gönderilemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
+                setIsSubmitting(false); // Re-enable on error
             }
-        } catch (err) {
-            setError('Mesaj gönderilemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
-        } finally {
-            setIsSubmitting(false);
-        }
+        }, 800); // Duration of the animation + buffer
     };
 
     return (
         <main className="bg-neutral flex items-center justify-center py-12 md:py-20 px-4">
+             {showBurstAnimation && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                    <div className="animate-burst bg-white p-8 rounded-lg shadow-2xl">
+                        <img src="/logo.png" alt="Supplyix Logo" className="h-16 w-auto" />
+                    </div>
+                </div>
+            )}
              <div className="relative w-full max-w-lg animate-fade-in-up mt-8">
                 <button
                     onClick={(e) => { e.preventDefault(); navigate('/'); }}
@@ -144,12 +156,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                                         className="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-focus transition-all duration-300 w-full disabled:bg-primary/50 disabled:cursor-not-allowed flex items-center justify-center"
                                         disabled={isSubmitting}
                                     >
-                                        {isSubmitting ? (
-                                            <>
-                                                <img src="/logo.png" alt="Supplyix Logo" className="h-6 w-auto mr-3 animate-pulse" />
-                                                Gönderiliyor...
-                                            </>
-                                        ) : 'Gönder'}
+                                        Gönder
                                     </button>
                                 </div>
                             </form>
@@ -172,6 +179,13 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                 }
                 .animate-scale-in {
                     animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                }
+                @keyframes burst {
+                    0% { transform: scale(0.5); opacity: 1; }
+                    100% { transform: scale(2.5); opacity: 0; }
+                }
+                .animate-burst {
+                    animation: burst 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
                 }
             `}</style>
         </main>
