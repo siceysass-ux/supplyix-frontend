@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ navigate }) => {
         <div className="flex items-center justify-between">
           <a href="#" onClick={handleLogoClick} className="flex items-center">
             <img
-              src="https://i.imgur.com/NqnodCe.png"
+              src="/logo.png"
               alt="Supplyix Logo"
               className="h-14 w-auto"
               aria-label="Supplyix Logo"

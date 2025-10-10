@@ -12,9 +12,15 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
-    // The form now sends data to the provided Formspree endpoint.
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // New: Client-side validation
+        if (!name.trim() || !email.trim() || !message.trim()) {
+            setError('Lütfen tüm zorunlu alanları doldurun.');
+            return;
+        }
+
         if (isSubmitting || isSubmitted) return;
 
         setIsSubmitting(true);
@@ -32,7 +38,6 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
 
             if (response.ok) {
                 setIsSubmitted(true);
-                // Redirect after 3 seconds
                 setTimeout(() => {
                     navigate('/');
                 }, 3000);
@@ -41,11 +46,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                 if (data.errors) {
                     setError(data.errors.map((err: { message: string }) => err.message).join(', '));
                 } else {
-                    setError('An unexpected error occurred. Please try again.');
+                    setError('Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
                 }
             }
         } catch (err) {
-            setError('Failed to send message. Please check your internet connection and try again.');
+            setError('Mesaj gönderilemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
         } finally {
             setIsSubmitting(false);
         }
@@ -53,18 +58,18 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
 
     return (
         <main className="bg-neutral flex items-center justify-center py-12 md:py-20 px-4">
-             <div className="w-full max-w-lg">
+             <div className="w-full max-w-lg animate-fade-in-up">
                 <div className="bg-white p-8 md:p-10 rounded-xl border border-gray-200 shadow-xl shadow-gray-500/10">
                     {isSubmitted ? (
                         <div className="text-center">
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-green-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-green-500 mx-auto mb-4 animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h2 className="text-2xl font-bold text-dark-blue mb-2">Mesajınız Gönderildi!</h2>
-                            <p className="text-gray-600">
+                            <h2 className="text-2xl font-bold text-dark-blue mb-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>Mesajınız Gönderildi!</h2>
+                            <p className="text-gray-600 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                                 Başarıyla e-postanız iletildi. En kısa sürede yanıtlanacaktır.
                             </p>
-                            <p className="text-sm text-gray-500 mt-4">
+                            <p className="text-sm text-gray-500 mt-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                                 Ana sayfaya yönlendiriliyorsunuz...
                             </p>
                         </div>
@@ -80,7 +85,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                                     <span className="block sm:inline">{error}</span>
                                 </div>
                             )}
-                            <form onSubmit={handleSubmit}>
+                            <form onSubmit={handleSubmit} noValidate>
                                 <div className="mb-4">
                                     <label htmlFor="name" className="block text-dark-blue font-bold mb-2">Ad Soyad</label>
                                     <input
@@ -142,6 +147,23 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                     )}
                 </div>
              </div>
+             <style>{`
+                @keyframes fade-in-up {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in-up {
+                    opacity: 0;
+                    animation: fade-in-up 0.6s ease-out forwards;
+                }
+                @keyframes scale-in {
+                    from { transform: scale(0.5); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
+                .animate-scale-in {
+                    animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                }
+            `}</style>
         </main>
     );
 };
