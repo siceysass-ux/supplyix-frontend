@@ -26,14 +26,18 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
         setIsSubmitting(true);
         setError(null);
 
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('message', message);
+
         try {
             const response = await fetch('https://formspree.io/f/mrbyyejr', {
                 method: 'POST',
+                body: formData,
                 headers: {
-                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ name, email, message }),
             });
 
             if (response.ok) {
