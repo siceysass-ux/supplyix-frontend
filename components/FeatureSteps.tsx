@@ -51,19 +51,19 @@ const FeatureSteps: React.FC = () => {
               className="flex flex-col items-center text-center p-5 md:p-6 bg-white/90 dark:bg-neutral-900/90 border border-gray-200 dark:border-neutral-800 rounded-xl shadow-sm transition-all duration-300 hover:bg-white dark:hover:bg-neutral-900 hover:shadow-md hover:-translate-y-0.5"
               aria-label={`Step ${index + 1}: ${step.title}`}
             >
-              <figure className="flex flex-col flex-grow items-center">
+              <figure>
                 {/* Image Container */}
                 <img
                   src={step.imgSrc}
                   alt={`${step.title} illustration`}
-                  className="h-64 w-64 object-contain mb-4"
+                  className="h-48 w-full object-contain mb-4"
                 />
                 {/* Text Content */}
-                <figcaption className="flex flex-col flex-grow">
+                <figcaption>
                   <h3 className="text-lg font-bold text-primary">
                     {`${index + 1}. ${step.title}`}
                   </h3>
-                  <p className="mt-2 text-sm text-dark-blue dark:text-neutral-300 flex-grow">
+                  <p className="mt-2 text-sm text-dark-blue dark:text-neutral-300">
                     {step.description}
                   </p>
                 </figcaption>
