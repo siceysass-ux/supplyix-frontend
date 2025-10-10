@@ -6,9 +6,9 @@ import { CurrencyDollarIcon } from '../icons/outline';
 
 
 const fees = [
-    { item: 'Özel Paketleme', description: 'Kırılacak ürünler için ek koruma', amount: '₺150.00', date: '08.10.2025', relatedId: '#S002', status: 'Ödendi' },
-    { item: 'Acil Tedarik', description: 'Tedarik süresinin hızlandırılması', amount: '₺400.00', date: '05.10.2025', relatedId: '#T003', status: 'Ödendi' },
-    { item: 'Logo Baskı', description: 'T-shirt ürünlerine logo basımı', amount: '₺750.00', date: '10.10.2025', relatedId: '#T001', status: 'Beklemede' },
+    { item: 'Özel Paketleme', description: 'Kırılacak ürünler için ek koruma', amount: '$15.00', date: '08.10.2025', relatedId: '#S002', status: 'Ödendi' },
+    { item: 'Acil Tedarik', description: 'Tedarik süresinin hızlandırılması', amount: '$40.00', date: '05.10.2025', relatedId: '#T003', status: 'Ödendi' },
+    { item: 'Logo Baskı', description: 'T-shirt ürünlerine logo basımı', amount: '$75.00', date: '10.10.2025', relatedId: '#T001', status: 'Beklemede' },
 ];
 
 const ExtraFeesPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
@@ -22,37 +22,37 @@ const ExtraFeesPage: React.FC<{ navigate: (path: string) => void }> = ({ navigat
             />
             
             {hasFees ? (
-                <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="w-full text-sm text-left text-slate-500">
+                            <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kalem</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İlişkili #</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                                    <th scope="col" className="px-6 py-3">Kalem</th>
+                                    <th scope="col" className="px-6 py-3">Tutar</th>
+                                    <th scope="col" className="px-6 py-3">Tarih</th>
+                                    <th scope="col" className="px-6 py-3">İlişkili #</th>
+                                    <th scope="col" className="px-6 py-3">Durum</th>
                                     <th scope="col" className="relative px-6 py-3"><span className="sr-only">İşlemler</span></th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-slate-200">
                                 {fees.map(fee => (
-                                    <tr key={fee.item}>
+                                    <tr key={fee.item} className="hover:bg-slate-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-dark-blue">{fee.item}</div>
-                                            <div className="text-sm text-gray-500">{fee.description}</div>
+                                            <div className="font-medium text-dark-blue">{fee.item}</div>
+                                            <div className="text-slate-500">{fee.description}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-dark-blue">{fee.amount}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fee.date}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary font-semibold">{fee.relatedId}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td className="px-6 py-4 whitespace-nowrap font-bold text-dark-blue">{fee.amount}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{fee.date}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap font-semibold text-primary">{fee.relatedId}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <StatusBadge status={fee.status as any} />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             {fee.status === 'Beklemede' ? (
-                                                <a href="#" className="text-primary hover:text-primary-focus">Ödeme Yap</a>
+                                                <a href="#" className="text-primary hover:text-primary-focus font-semibold">Ödeme Yap</a>
                                             ) : (
-                                                <a href="#" className="text-primary hover:text-primary-focus">Detay</a>
+                                                <a href="#" className="text-primary hover:text-primary-focus font-semibold">Detay</a>
                                             )}
                                         </td>
                                     </tr>
@@ -63,7 +63,7 @@ const ExtraFeesPage: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 </div>
             ) : (
                 <EmptyState
-                    icon={<CurrencyDollarIcon className="h-12 w-12 text-gray-400" />}
+                    icon={<CurrencyDollarIcon />}
                     title="Ek ücret kaydınız bulunmuyor"
                     message="Paket dışı bir işlem yaptığınızda oluşan masraflar burada listelenir."
                 />

@@ -1,14 +1,29 @@
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
-import { ShoppingCartIcon, StarIcon, DocumentTextIcon } from '../icons/outline';
+import { StarIcon, TrashIcon } from '../icons/outline';
 import EmptyState from '../shared/EmptyState';
+import { Product, Price } from '../types';
 
-const favoriteProducts = [
-    { name: 'Kablosuz Bluetooth Kulaklık', sku: 'KB-K-002', price: '₺750', stock: 500, shipping: '2-4 gün', image: 'https://picsum.photos/seed/headphone/400' },
-    { name: 'Paslanmaz Çelik Termos', sku: 'PC-T-005', price: '₺280', stock: 1200, shipping: '2-4 gün', image: 'https://picsum.photos/seed/thermos/400' },
-];
+interface FavoritesPageProps {
+    navigate: (path: string) => void;
+    products: Product[];
+    toggleFavorite: (productName: string) => void;
+}
 
-const FavoritesPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+const formatPrice = (price: Price): string => {
+    if (typeof price === 'number') {
+        return `$${price.toLocaleString('en-US')}`;
+    }
+    return `$${price.min.toLocaleString('en-US')} - $${price.max.toLocaleString('en-US')}`;
+};
+
+const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggleFavorite }) => {
+    const favoriteProducts = products.filter(p => p.isFavorite);
+
+    const handleRemoveFavorite = (productName: string) => {
+        toggleFavorite(productName);
+    };
+    
     const hasFavorites = favoriteProducts.length > 0;
     
     return (
@@ -16,57 +31,36 @@ const FavoritesPage: React.FC<{ navigate: (path: string) => void }> = ({ navigat
             <PageHeader
                 title="Favorilerim"
                 subtitle="Beğendiğiniz ürünleri burada bulabilir ve hızlıca mağazanıza ekleyebilirsiniz."
-            >
-                 <div className="flex space-x-3">
-                     <button className="bg-dark-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-dark-blue/90 transition-colors text-sm">Tümünü Listele</button>
-                     <button className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors text-sm">Tümünü Kaldır</button>
-                 </div>
-            </PageHeader>
+            />
             
             {hasFavorites ? (
-                 <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kargo</th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">İşlemler</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {favoriteProducts.map(product => (
-                                    <tr key={product.sku}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <img className="h-10 w-10 rounded-md object-cover" src={product.image} alt={product.name} />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-dark-blue">{product.name}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-dark-blue">{product.price}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">{product.stock}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.shipping}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                            <button className="text-primary hover:text-primary-focus">Listele</button>
-                                            <button className="text-red-600 hover:text-red-800">Kaldır</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {favoriteProducts.map(product => (
+                        <div key={product.name} className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                            {/* FIX: The Product type uses an `images` array. Display the first image. */}
+                            <img className="h-48 w-full object-cover rounded-t-xl" src={product.images[0]} alt={product.name} />
+                            <div className="p-4 flex flex-col flex-grow">
+                                <h3 className="font-semibold text-dark-blue truncate group-hover:text-primary transition-colors duration-200">{product.name}</h3>
+                                <p className="text-sm text-slate-500 mb-3">{product.category}</p>
+                                
+                                <div className="mt-auto flex justify-between items-center pt-2 border-t border-slate-100">
+                                    <p className="text-lg font-bold text-dark-blue">{formatPrice(product.price)}</p>
+                                    <button 
+                                        onClick={() => handleRemoveFavorite(product.name)}
+                                        className="inline-flex items-center justify-center text-sm font-semibold text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-colors duration-200 px-3 py-1.5 border border-red-200 hover:border-red-500"
+                                        aria-label={`${product.name} ürününü favorilerden kaldır`}
+                                    >
+                                        <TrashIcon className="w-4 h-4 mr-1.5" />
+                                        Kaldır
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                  </div>
             ) : (
                 <EmptyState
-                    icon={<StarIcon className="h-12 w-12 text-gray-400" />}
+                    icon={<StarIcon />}
                     title="Henüz favori ürününüz yok"
                     message="Tedarik Havuzu'nda beğendiğiniz ürünleri favorilerinize ekleyerek başlayın."
                     actionButton={
