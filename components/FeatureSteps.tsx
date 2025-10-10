@@ -56,7 +56,7 @@ const FeatureSteps: React.FC = () => {
                 <img
                   src={step.imgSrc}
                   alt={`${step.title} illustration`}
-                  className="h-16 w-16 object-contain mb-5"
+                  className="h-48 w-48 object-contain mb-5"
                 />
                 {/* Text Content */}
                 <figcaption className="flex flex-col flex-grow">
