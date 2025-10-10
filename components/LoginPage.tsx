@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface LoginPageProps {
     navigate: (path: string) => void;
@@ -10,6 +10,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // On component mount, check for a remembered email in localStorage
+    useEffect(() => {
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            setEmail(rememberedEmail);
+            setRememberMe(true);
+        }
+    }, []);
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,6 +34,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
         // Simulate API call
         setTimeout(() => {
             if (email === 'supplyix@supplyix.com' && password === '12345678') {
+                // Handle "Remember Me" logic on successful login
+                if (rememberMe) {
+                    localStorage.setItem('rememberedEmail', email);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                }
                 navigate('/dashboard');
             } else {
                 setError('Geçersiz e-posta adresi veya şifre.');
@@ -52,17 +68,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+                    <form onSubmit={handleSubmit}>
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-dark-blue font-bold mb-2">E-posta Adresi</label>
                             <input
                                 type="email"
                                 id="email"
+                                name="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                                 disabled={isLoading}
+                                autoComplete="email"
                             />
                         </div>
                         <div className="mb-6">
@@ -70,12 +88,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
                             <input
                                 type="password"
                                 id="password"
+                                name="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                                 disabled={isLoading}
-                                autoComplete="new-password"
+                                autoComplete="current-password"
                             />
                         </div>
                         <div className="flex items-center justify-between mb-6">

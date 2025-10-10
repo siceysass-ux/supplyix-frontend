@@ -2,7 +2,7 @@ import React from 'react';
 
 type StatusType = 
   | 'Beklemede' | 'Hazırlanıyor' | 'Kargoda' | 'Teslim Edildi' | 'İptal' 
-  | 'Alındı' | 'Çalışılıyor' | 'Teklif Verildi' | 'Tamamlandı' | 'Reddedildi'
+  | 'Bekliyor' | 'Tamamlandı'
   | 'Ödendi' | 'Aktif' | 'Sona Eriyor' | 'Süresi Doldu'
   | 'Başarılı' | 'Başarısız';
 
@@ -18,11 +18,8 @@ const statusStyles: Record<StatusType, string> = {
   'Teslim Edildi': 'bg-green-100 text-green-800',
   'İptal': 'bg-red-100 text-red-800',
   // Request Statuses
-  'Alındı': 'bg-gray-100 text-gray-800',
-  'Çalışılıyor': 'bg-blue-100 text-blue-800',
-  'Teklif Verildi': 'bg-purple-100 text-purple-800',
+  'Bekliyor': 'bg-yellow-100 text-yellow-800',
   'Tamamlandı': 'bg-green-100 text-green-800',
-  'Reddedildi': 'bg-red-100 text-red-800',
   // Payment Statuses
   'Ödendi': 'bg-green-100 text-green-800',
   // Membership Statuses

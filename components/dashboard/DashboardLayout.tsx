@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
+import { CartItem } from './types';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -8,9 +9,12 @@ interface DashboardLayoutProps {
   isSidebarOpen: boolean;
   setSidebarOpen: (isOpen: boolean) => void;
   navigate: (path: string) => void;
+  cart: CartItem[];
+  onUpdateCartQuantity: (cartItemId: string, newQuantity: number) => void;
+  onRemoveFromCart: (cartItemId: string) => void;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, isSidebarOpen, setSidebarOpen, navigate }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, isSidebarOpen, setSidebarOpen, navigate, cart, onUpdateCartQuantity, onRemoveFromCart }) => {
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
       {/* New Mobile Menu Trigger */}
@@ -35,6 +39,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, 
         <DashboardHeader 
           pageTitle={pageTitle}
           navigate={navigate}
+          cart={cart}
+          onUpdateCartQuantity={onUpdateCartQuantity}
+          onRemoveFromCart={onRemoveFromCart}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
           {children}

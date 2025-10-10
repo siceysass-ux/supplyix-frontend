@@ -2,25 +2,22 @@ import React from 'react';
 import PageHeader from '../shared/PageHeader';
 import { CreditCardIcon, CubeIcon, StarIcon, DocumentTextIcon, AcademicCapIcon } from '../icons/outline';
 import StatusBadge from '../shared/StatusBadge';
+import { Order, Request } from '../types';
 
-const DashboardHomePage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+interface DashboardHomePageProps {
+  navigate: (path: string) => void;
+  orders: Order[];
+  requests: Request[];
+}
+
+const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders, requests }) => {
   
   const handleNavigation = (path: string) => {
     navigate(path);
   };
     
-  const recentOrders = [
-    { id: '#S001', product: 'Akıllı Saat', amount: '$85.00', status: 'Kargoda', date: '10.10.2025' },
-    { id: '#S002', product: 'Bluetooth Kulaklık', amount: '$45.50', status: 'Teslim Edildi', date: '08.10.2025' },
-    { id: '#S003', product: 'Yoga Matı', amount: '$25.00', status: 'Hazırlanıyor', date: '10.10.2025' },
-  ];
-
-  // Synced with RequestsPage data for consistency
-  const recentRequests = [
-    { type: 'Danışmanlık', subject: 'Pazaryeri Entegrasyonu', status: 'Alındı', updated: '12.10.2025' },
-    { type: 'Tedarik', subject: 'Ahşap telefon standı', status: 'Çalışılıyor', updated: '11.10.2025' },
-    { type: 'Danışmanlık', subject: 'Reklam Stratejileri', status: 'Tamamlandı', updated: '10.10.2025' },
-  ];
+  const recentOrders = orders.slice(0, 3);
+  const recentRequests = requests.slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -94,8 +91,8 @@ const DashboardHomePage: React.FC<{ navigate: (path: string) => void }> = ({ nav
                             {recentOrders.map(order => (
                                 <tr key={order.id} className="bg-white border-b last:border-b-0 border-slate-200">
                                     <td className="px-6 py-4 font-medium text-primary whitespace-nowrap">{order.id}</td>
-                                    <td className="px-6 py-4 text-slate-900">{order.product}</td>
-                                    <td className="px-6 py-4"><StatusBadge status={order.status as any} /></td>
+                                    <td className="px-6 py-4 text-slate-900">{order.products[0].name}</td>
+                                    <td className="px-6 py-4"><StatusBadge status={order.status} /></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -115,10 +112,10 @@ const DashboardHomePage: React.FC<{ navigate: (path: string) => void }> = ({ nav
                         </thead>
                         <tbody>
                             {recentRequests.map(req => (
-                                <tr key={req.subject} className="bg-white border-b last:border-b-0 border-slate-200">
+                                <tr key={req.id} className="bg-white border-b last:border-b-0 border-slate-200">
                                     <td className="px-6 py-4 text-slate-900">{req.type}</td>
-                                    <td className="px-6 py-4 text-slate-900">{req.subject}</td>
-                                    <td className="px-6 py-4"><StatusBadge status={req.status as any} /></td>
+                                    <td className="px-6 py-4 text-slate-900">{req.title}</td>
+                                    <td className="px-6 py-4"><StatusBadge status={req.status} /></td>
                                 </tr>
                             ))}
                         </tbody>

@@ -9,10 +9,11 @@ import FavoritesPage from './pages/FavoritesPage';
 import OrdersPage, { orders as initialOrders } from './pages/OrdersPage';
 import RequestsPage, { requests as initialRequests } from './pages/RequestsPage';
 import ExtraFeesPage, { fees as initialFees } from './pages/ExtraFeesPage';
-import SupportCenterPage from './pages/SupportCenterPage';
+import SupportCenterPage, { tickets as initialTickets } from './pages/SupportCenterPage';
 import ProfileSecurityPage from './pages/ProfileSecurityPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import { Product, initialProducts, CartItem, Order, Request, ExtraFee, RequestType, ChatMessage } from './types';
+import ProductDetailPage from './pages/ProductDetailPage'; // New import
+import { Product, initialProducts, CartItem, Order, Request, ExtraFee, SupportTicket, RequestType, TicketStatus } from './types';
+
 
 const pageComponents: { [key: string]: React.ComponentType<any> } = {
     '': DashboardHomePage,
@@ -36,37 +37,13 @@ const pageTitles: { [key: string]: string } = {
     'extra-fees': 'Ek Ücretler',
     'support-center': 'Destek Merkezi',
     'profile-security': 'Profil & Güvenlik',
-    'product': 'Ürün Detayı',
+    'product': 'Ürün Detayı', // New title
 };
-
-export const initialMessages: ChatMessage[] = [
-    {
-        id: 1,
-        text: 'Merhaba Ahmet Bey, Supplyix Destek Merkezi\'ne hoş geldiniz. Size nasıl yardımcı olabilirim?',
-        sender: 'consultant',
-        timestamp: '10:30',
-        avatar: '/logo.png'
-    },
-    {
-        id: 2,
-        text: 'Merhaba, #S001 numaralı siparişimle ilgili bir sorum vardı. Kargo takip numarasını ne zaman alabilirim?',
-        sender: 'user',
-        timestamp: '10:32',
-    },
-    {
-        id: 3,
-        text: 'Elbette, hemen kontrol ediyorum. Siparişiniz şu an "Hazırlanıyor" aşamasında görünüyor. Genellikle 24 saat içinde kargoya verilir ve takip numarası sisteme yansır. Anlık durumu "Siparişlerim" sayfasından da takip edebilirsiniz.',
-        sender: 'consultant',
-        timestamp: '10:33',
-        avatar: '/logo.png'
-    },
-];
-
 
 const DashboardPage: React.FC = () => {
     const getRouteInfo = () => {
-        const hash = window.location.hash.substring(1);
-        const parts = hash.split('/').filter(Boolean);
+        const hash = window.location.hash.substring(1); // Remove '#'
+        const parts = hash.split('/').filter(Boolean); // e.g., ['dashboard', 'product', 'product-name']
         
         if (parts[0] === 'dashboard') {
             if (parts[1] === 'product' && parts[2]) {
@@ -86,7 +63,8 @@ const DashboardPage: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [requests, setRequests] = useState<Request[]>(initialRequests);
     const [fees, setFees] = useState<ExtraFee[]>(initialFees);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
+    const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(initialTickets);
+
 
     const navigate = useCallback((path: string) => {
         window.location.hash = path;
@@ -155,46 +133,26 @@ const DashboardPage: React.FC = () => {
         });
     };
 
-    const handleSendMessage = (messageText: string, file?: File) => {
-        const newUserMessage: ChatMessage = {
-            id: Date.now(),
-            text: messageText,
-            sender: 'user',
-            timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-            file: file ? { name: file.name, type: file.type, size: file.size } : undefined,
-        };
-        setChatMessages(prev => [...prev, newUserMessage]);
-    
-        setTimeout(() => {
-            let replyText = 'Mesajınızı ve dosyanızı aldım, inceliyorum. Lütfen kısa bir süre bekleyin.';
-            const lowerCaseText = messageText.toLowerCase();
+    const handleAddSupportTicket = (ticket: { subject: string; priority: string; description: string; }) => {
+        return new Promise<void>((resolve) => {
+           setTimeout(() => {
+               const newTicket: SupportTicket = {
+                   subject: ticket.subject,
+                   id: `#D${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                   updated: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                   status: 'Açık',
+               };
+               setSupportTickets(prev => [newTicket, ...prev]);
+               resolve();
+           }, 1500);
+       });
+   };
 
-            if (!file) {
-                 replyText = 'Talebinizi aldım, inceliyorum. Lütfen kısa bir süre bekleyin.';
-                 if (lowerCaseText.includes('kargo') || lowerCaseText.includes('sipariş')) {
-                    replyText = 'Siparişiniz ve kargo durumuyla ilgili bilgilere "Siparişlerim" sayfasından ulaşabilirsiniz. Eğer daha detaylı bilgiye ihtiyacınız varsa sipariş numaranızı paylaşabilir misiniz?';
-                } else if (lowerCaseText.includes('iade')) {
-                    replyText = 'İade süreciyle ilgili detaylı bilgiye ve iade talebi oluşturma formuna Üyelik Sözleşmemizden ulaşabilirsiniz. Farklı bir sorunuz varsa yardımcı olmaktan memnuniyet duyarım.';
-                } else if (lowerCaseText.includes('ürün') || lowerCaseText.includes('tedarik')) {
-                    replyText = 'Ürün tedariği ile ilgili taleplerinizi "Taleplerim" sayfasından "Tedarik İste" butonunu kullanarak bize iletebilirsiniz. Ekibimiz en kısa sürede size geri dönüş yapacaktır.';
-                }
-            }
-    
-            const consultantReply: ChatMessage = {
-                id: Date.now() + 1,
-                text: replyText,
-                sender: 'consultant',
-                timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-                avatar: '/logo.png'
-            };
-            setChatMessages(prev => [...prev, consultantReply]);
-        }, 1800);
-    };
 
     useEffect(() => {
         const handleHashChange = () => {
             setRouteInfo(getRouteInfo());
-            setSidebarOpen(false);
+            setSidebarOpen(false); // Close sidebar on navigation
         };
         window.addEventListener('hashchange', handleHashChange);
         return () => window.removeEventListener('hashchange', handleHashChange);
@@ -215,6 +173,7 @@ const DashboardPage: React.FC = () => {
         
         const ActivePageComponent = pageComponents[routeInfo.page] || DashboardHomePage;
         
+        // Pass relevant state and handlers to each page
         const pageProps: { [key: string]: any } = {
             navigate,
             products,
@@ -223,8 +182,8 @@ const DashboardPage: React.FC = () => {
             requests,
             onAddRequest: handleAddRequest,
             fees,
-            chatMessages,
-            onSendMessage: handleSendMessage,
+            supportTickets,
+            onAddSupportTicket: handleAddSupportTicket,
         };
         
         return <ActivePageComponent {...pageProps} />;

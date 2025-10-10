@@ -37,7 +37,6 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {favoriteProducts.map(product => (
                         <div key={product.name} className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                            {/* FIX: The Product type uses an `images` array. Display the first image. */}
                             <img className="h-48 w-full object-cover rounded-t-xl" src={product.images[0]} alt={product.name} />
                             <div className="p-4 flex flex-col flex-grow">
                                 <h3 className="font-semibold text-dark-blue truncate group-hover:text-primary transition-colors duration-200">{product.name}</h3>

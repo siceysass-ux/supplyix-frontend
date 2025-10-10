@@ -1,6 +1,5 @@
 import React from 'react';
 
-// FIX: Replaced JSX with React.createElement to be compatible with .ts files.
 const createIcon = (path: React.ReactNode) => (props: React.SVGProps<SVGSVGElement>) => (
     React.createElement('svg', {
         xmlns: "http://www.w3.org/2000/svg",
@@ -10,8 +9,6 @@ const createIcon = (path: React.ReactNode) => (props: React.SVGProps<SVGSVGEleme
     }, path)
 );
 
-// FIX: Replaced JSX with React.createElement and wrapped multiple paths in React.Fragment
-// to be compatible with .ts files.
 export const BellIcon = createIcon(React.createElement(React.Fragment, null,
     React.createElement('path', { fillRule: "evenodd", d: "M11.58 3.53a.75.75 0 00-1.06 1.06l.75.75a3.745 3.745 0 005.992 5.992l.75.75a.75.75 0 101.06-1.06l-1.148-1.147a5.25 5.25 0 01-7.424-7.424l-1.148-1.147zM12 6a1.5 1.5 0 100 3 1.5 1.5 0 000-3z", clipRule: "evenodd" }),
     React.createElement('path', { d: "M10.5 18.75a.75.75 0 001.5 0v-2.138a3.746 3.746 0 00-1.5 0v2.138zM12 15.75a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008A.75.75 0 0112 15.75v-.008zM12 15a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75v-.008A.75.75 0 0012.008 15H12z" }),

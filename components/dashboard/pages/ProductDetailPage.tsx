@@ -3,7 +3,6 @@ import { Product, Price, VariationOption } from '../types';
 import { StarIcon as StarIconOutline, ShoppingCartIcon, ArrowDownTrayIcon, ClipboardIcon } from '../icons/outline';
 import { StarIcon as StarIconSolid } from '../icons/solid';
 
-// Declare global variables from CDN scripts for TypeScript
 declare const JSZip: any;
 declare const saveAs: any;
 
@@ -11,36 +10,39 @@ interface ProductDetailPageProps {
     product?: Product;
     toggleFavorite: (productName: string) => void;
     navigate: (path: string) => void;
+    addToCart: (product: Product, variations: Record<string, string>) => void;
 }
 
-const formatPrice = (price: Price): string => {
-    if (typeof price === 'number') {
-        return `$${price.toLocaleString('en-US')}`;
-    }
-    return `$${price.min.toLocaleString('en-US')} - $${price.max.toLocaleString('en-US')}`;
-};
-
-const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFavorite, navigate }) => {
+const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFavorite, navigate, addToCart }) => {
     const [mainImage, setMainImage] = useState(product?.images[0] || '');
     const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
     const [isDownloading, setIsDownloading] = useState(false);
     const [copySuccess, setCopySuccess] = useState('');
+    const [activeTab, setActiveTab] = useState('description');
+    const [zoomPosition, setZoomPosition] = useState('50% 50%');
+    const [addSuccess, setAddSuccess] = useState(false);
 
     useEffect(() => {
         if (product) {
             setMainImage(product.images[0]);
-            // Set default selections for variations
             const defaults: Record<string, string> = {};
             product.variations?.forEach(v => {
-                defaults[v.type] = v.options[0].name;
+                if (v.options.length > 0) defaults[v.type] = v.options[0].name;
             });
             setSelectedVariations(defaults);
         }
     }, [product]);
+    
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+        const x = ((e.pageX - left - window.scrollX) / width) * 100;
+        const y = ((e.pageY - top - window.scrollY) / height) * 100;
+        setZoomPosition(`${x}% ${y}%`);
+    };
 
     if (!product) {
         return (
-            <div className="text-center p-12">
+            <div className="text-center p-12 bg-white rounded-xl shadow-sm border border-slate-200">
                 <h2 className="text-2xl font-bold text-dark-blue">Ürün Bulunamadı</h2>
                 <p className="text-slate-600 mt-2">Aradığınız ürün mevcut değil veya kaldırılmış.</p>
                 <button
@@ -52,83 +54,37 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
             </div>
         );
     }
+
+    const handleAddToCart = () => {
+        if (product) {
+            addToCart(product, selectedVariations);
+            setAddSuccess(true);
+            setTimeout(() => setAddSuccess(false), 2000);
+        }
+    };
     
     const handleVariationSelect = (type: string, option: VariationOption) => {
         setSelectedVariations(prev => ({ ...prev, [type]: option.name }));
-        if (option.image) {
-            setMainImage(option.image);
-        }
+        if (option.image) setMainImage(option.image);
     };
     
     const handleDownloadImages = async () => {
         setIsDownloading(true);
         try {
             const zip = new JSZip();
-
-            // Helper function to fetch an image, draw it to a canvas, and return a PNG blob.
-            const convertImageToPngBlob = (imageUrl: string): Promise<Blob> => {
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await fetch(imageUrl);
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch image: ${response.statusText}`);
-                        }
-                        const blob = await response.blob();
-                        const objectUrl = URL.createObjectURL(blob);
-                        
-                        const img = new Image();
-                        img.crossOrigin = "Anonymous";
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = img.naturalWidth;
-                            canvas.height = img.naturalHeight;
-                            const ctx = canvas.getContext('2d');
-                            if (!ctx) {
-                                URL.revokeObjectURL(objectUrl);
-                                return reject(new Error('Could not get canvas context'));
-                            }
-                            ctx.drawImage(img, 0, 0);
-                            canvas.toBlob((pngBlob) => {
-                                URL.revokeObjectURL(objectUrl);
-                                if (pngBlob) {
-                                    resolve(pngBlob);
-                                } else {
-                                    reject(new Error('Canvas toBlob returned null'));
-                                }
-                            }, 'image/png');
-                        };
-                        img.onerror = () => {
-                            URL.revokeObjectURL(objectUrl);
-                            reject(new Error('Image failed to load'));
-                        };
-                        img.src = objectUrl;
-
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-            };
-
-
+            const fetchImage = (url: string) => fetch(url).then(res => res.blob());
             const imagePromises = product.images.map((imgUrl, index) => 
-                convertImageToPngBlob(imgUrl).then(blob => ({
+                fetchImage(imgUrl).then(blob => ({
                     blob,
-                    name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.png`
+                    name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.${blob.type.split('/')[1]}`
                 }))
             );
-
             const imageBlobs = await Promise.all(imagePromises);
-
-            imageBlobs.forEach(({ blob, name }) => {
-                zip.file(name, blob);
-            });
-            
+            imageBlobs.forEach(({ blob, name }) => zip.file(name, blob));
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${product.name.replace(/\s+/g, '_')}_images.zip`);
-
         } catch (error) {
             console.error("Error downloading images:", error);
-            // You might want to show an error message to the user here.
         } finally {
             setIsDownloading(false);
         }
@@ -138,103 +94,128 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
         navigator.clipboard.writeText(text).then(() => {
             setCopySuccess(text);
             setTimeout(() => setCopySuccess(''), 2000);
-        }, (err) => {
-            console.error('Could not copy text: ', err);
         });
     };
 
+    const getStockBadge = (stock: number) => {
+        if (stock > 50) return <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Stokta</span>;
+        if (stock > 0) return <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">Az Adet</span>;
+        return <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Tükendi</span>;
+    };
+
     return (
-        <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Image Gallery */}
-                <div>
-                    <div className="aspect-square w-full bg-slate-100 rounded-lg overflow-hidden mb-4 border border-slate-200">
-                        <img src={mainImage} alt={product.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="grid grid-cols-5 gap-2">
-                        {product.images.map((img, index) => (
-                            <button 
-                                key={index} 
-                                onClick={() => setMainImage(img)}
-                                className={`aspect-square rounded-md overflow-hidden border-2 transition-all ${mainImage === img ? 'border-primary' : 'border-transparent hover:border-slate-300'}`}
-                            >
-                                <img src={img} alt={`${product.name} thumbnail ${index + 1}`} className="w-full h-full object-cover" />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Product Info */}
-                <div>
-                    <h1 className="text-3xl font-bold text-dark-blue">{product.name}</h1>
-                    <div className="mt-4">
-                        <p className="text-3xl font-bold text-primary">{formatPrice(product.price)}</p>
-                    </div>
-
-                    {/* Variations */}
-                    {product.variations && product.variations.length > 0 && (
-                        <div className="mt-6 space-y-4">
-                            {product.variations.map(variation => (
-                                <div key={variation.type}>
-                                    <h3 className="text-sm font-medium text-slate-700">{variation.type}</h3>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {variation.options.map(option => (
-                                            <button 
-                                                key={option.name}
-                                                onClick={() => handleVariationSelect(variation.type, option)}
-                                                className={`px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all ${selectedVariations[variation.type] === option.name ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 bg-white hover:border-slate-400'}`}
-                                            >
-                                                {option.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+        <div className="space-y-8">
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-1 order-first lg:order-none">
+                        <div className="flex lg:flex-col gap-2">
+                            {product.images.slice(0, 5).map((img, index) => (
+                                <button key={index} onClick={() => setMainImage(img)} className={`w-full aspect-square rounded-md overflow-hidden border-2 transition-all ${mainImage === img ? 'border-primary' : 'border-transparent hover:border-slate-300'}`}>
+                                    <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                                </button>
                             ))}
                         </div>
-                    )}
+                    </div>
 
-                    {/* Actions */}
-                    <div className="mt-8 space-y-4">
-                        <button className="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-focus transition-colors inline-flex items-center justify-center">
-                           <ShoppingCartIcon className="w-5 h-5 mr-2" /> Mağazana Ekle
-                        </button>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button 
-                                onClick={handleDownloadImages}
-                                disabled={isDownloading}
-                                className="bg-dark-blue text-white font-bold py-3 px-6 rounded-lg hover:bg-dark-blue/90 transition-colors inline-flex items-center justify-center disabled:bg-slate-400"
-                            >
-                               <ArrowDownTrayIcon className="w-5 h-5 mr-2" /> 
-                               {isDownloading ? 'İndiriliyor...' : 'Görselleri İndir'}
+                    <div className="lg:col-span-6">
+                        <div onMouseMove={handleMouseMove} onMouseLeave={() => setZoomPosition('50% 50%')} className="aspect-square w-full bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-zoom-in">
+                            <img src={mainImage} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-150" style={{ transformOrigin: zoomPosition }}/>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-5">
+                        <h1 className="text-2xl lg:text-3xl font-bold text-dark-blue">{product.name}</h1>
+                        <div className="flex items-center space-x-4 text-xs text-slate-500 mt-2">
+                            <span>SKU: {product.sku}</span>
+                            <span className="h-4 border-l border-slate-300"></span>
+                            <span>{product.category} &gt; {product.subcategory}</span>
+                            <span className="h-4 border-l border-slate-300"></span>
+                            <div className="flex items-center space-x-2">
+                                {getStockBadge(product.stock)}
+                                <span className="font-medium">({product.stock} adet)</span>
+                            </div>
+                        </div>
+
+                        {product.variations?.map(variation => (
+                            <div key={variation.type} className="mt-6">
+                                <h3 className="text-sm font-semibold text-slate-700 mb-2">{variation.type}: <span className="font-normal text-slate-600">{selectedVariations[variation.type]}</span></h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {variation.options.map(option => variation.type === 'Renk' ? (
+                                        <button key={option.name} onClick={() => handleVariationSelect(variation.type, option)} title={option.name} className={`w-8 h-8 rounded-full border-2 transition-all ${selectedVariations[variation.type] === option.name ? 'border-primary' : 'border-transparent hover:border-slate-400'}`} style={{ backgroundColor: option.value }}>
+                                            <span className="sr-only">{option.name}</span>
+                                        </button>
+                                    ) : (
+                                        <button key={option.name} onClick={() => handleVariationSelect(variation.type, option)} className={`px-4 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${selectedVariations[variation.type] === option.name ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 bg-white hover:border-slate-400'}`}>
+                                            {option.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        <div className="mt-8 pt-6 border-t border-slate-200 space-y-3">
+                            <button onClick={handleAddToCart} disabled={addSuccess} className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-focus transition-colors flex items-center justify-center text-base disabled:bg-green-500 disabled:cursor-not-allowed">
+                               <ShoppingCartIcon className="w-5 h-5 mr-2" /> {addSuccess ? 'Sepete Eklendi!' : 'Sepete Ekle'}
                             </button>
-                            <button
-                                onClick={() => toggleFavorite(product.name)}
-                                className={`font-bold py-3 px-6 rounded-lg transition-colors inline-flex items-center justify-center border-2 ${
-                                    product.isFavorite
-                                        ? 'bg-primary/10 border-primary text-primary'
-                                        : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
-                                }`}
-                            >
-                                {product.isFavorite ? <StarIconSolid className="w-5 h-5 mr-2" /> : <StarIconOutline className="w-5 h-5 mr-2" />}
-                                {product.isFavorite ? 'Favorilerde' : 'Favorilere Ekle'}
-                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => toggleFavorite(product.name)} className={`font-bold py-3 rounded-lg transition-colors flex items-center justify-center border-2 ${product.isFavorite ? 'bg-primary/10 border-primary text-primary' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'}`}>
+                                    {product.isFavorite ? <StarIconSolid className="w-5 h-5 mr-2" /> : <StarIconOutline className="w-5 h-5 mr-2" />}
+                                    Favori
+                                </button>
+                                <button onClick={handleDownloadImages} disabled={isDownloading} className="font-bold py-3 rounded-lg transition-colors flex items-center justify-center border-2 bg-white border-slate-300 text-slate-700 hover:bg-slate-50 disabled:bg-slate-200">
+                                   <ArrowDownTrayIcon className="w-5 h-5 mr-2" /> 
+                                   {isDownloading ? 'İndiriliyor...' : 'Görseller'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            {/* Description */}
-            <div className="mt-12">
-                <h2 className="text-lg font-semibold text-dark-blue border-b border-slate-200 pb-2 mb-3">Ürün Açıklaması</h2>
-                <div className="relative">
-                    <button
-                        onClick={() => copyToClipboard(product.description)}
-                        className="absolute top-0 right-0 text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold py-1 px-2 rounded-md inline-flex items-center transition-colors"
-                    >
-                        <ClipboardIcon className="w-4 h-4 mr-1.5" />
-                        {copySuccess === product.description ? 'Kopyalandı!' : 'Kopyala'}
-                    </button>
-                    <p className="text-slate-600 whitespace-pre-line leading-relaxed pr-24">{product.description}</p>
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200">
+                <div className="border-b border-slate-200">
+                    <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button onClick={() => setActiveTab('description')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'description' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Ürün Açıklaması</button>
+                        <button onClick={() => setActiveTab('specs')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'specs' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Teknik Özellikler</button>
+                        <button onClick={() => setActiveTab('shipping')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'shipping' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>Kargo & Tedarik</button>
+                    </nav>
+                </div>
+                <div className="pt-6">
+                    {activeTab === 'description' && (
+                        <div className="relative">
+                            <button onClick={() => copyToClipboard(product.description)} className="absolute top-0 right-0 text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold py-1 px-2 rounded-md flex items-center transition-colors">
+                                <ClipboardIcon className="w-3 h-3 mr-1.5" />
+                                {copySuccess === product.description ? 'Kopyalandı!' : 'Kopyala'}
+                            </button>
+                            <p className="text-slate-600 whitespace-pre-line leading-relaxed pr-24">{product.description}</p>
+                        </div>
+                    )}
+                    {activeTab === 'specs' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                            {product.specifications.map(spec => (
+                                <div key={spec.key} className="flex justify-between border-b border-slate-200 pb-2">
+                                    <span className="font-medium text-slate-600">{spec.key}</span>
+                                    <span className="text-dark-blue">{spec.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {activeTab === 'shipping' && (
+                        <div className="text-sm">
+                             <div className="flex justify-between border-b border-slate-200 pb-2 mb-4">
+                                <span className="font-medium text-slate-600">Tedarik Süresi</span>
+                                <span className="text-dark-blue">{product.shippingInfo.processingTime}</span>
+                            </div>
+                             <div className="flex justify-between border-b border-slate-200 pb-2 mb-4">
+                                <span className="font-medium text-slate-600">Kargo Süresi</span>
+                                <span className="text-dark-blue">{product.shipping}</span>
+                            </div>
+                             <div className="flex justify-between border-b border-slate-200 pb-2">
+                                <span className="font-medium text-slate-600">Depo Konumu</span>
+                                <span className="text-dark-blue">{product.shippingInfo.warehouse}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

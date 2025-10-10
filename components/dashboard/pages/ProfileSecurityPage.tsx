@@ -4,13 +4,79 @@ import { CameraIcon } from '../icons/outline';
 
 const ProfileSecurityPage: React.FC = () => {
     const [avatarPreview, setAvatarPreview] = useState('https://i.pravatar.cc/150?u=supplyix');
+    
+    // State for Profile Information form
+    const [profileInfo, setProfileInfo] = useState({
+        fullName: 'Ahmet Yılmaz',
+        email: 'ahmet@sirket.com',
+        companyName: 'Yılmaz E-Ticaret',
+    });
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
+
+    // State for Change Password form
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+    });
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
+    const [savePasswordSuccess, setSavePasswordSuccess] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setAvatarPreview(URL.createObjectURL(file));
-            // In a real application, you would also upload the file to a server here.
         }
+    };
+
+    const handleProfileInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setProfileInfo(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleProfileSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingProfile(true);
+        setSaveProfileSuccess(false);
+        // Simulate API call
+        setTimeout(() => {
+            setIsSavingProfile(false);
+            setSaveProfileSuccess(true);
+            setTimeout(() => setSaveProfileSuccess(false), 2500);
+        }, 1500);
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setPasswordData(prev => ({ ...prev, [name]: value }));
+        if (passwordError) setPasswordError('');
+    };
+
+    const handlePasswordSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+
+        if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
+            setPasswordError('Lütfen tüm şifre alanlarını doldurun.');
+            return;
+        }
+        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+            setPasswordError('Yeni şifreler eşleşmiyor.');
+            return;
+        }
+        
+        setIsSavingPassword(true);
+        setSavePasswordSuccess(false);
+        // Simulate API call
+        setTimeout(() => {
+            setIsSavingPassword(false);
+            setSavePasswordSuccess(true);
+            setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+            setTimeout(() => setSavePasswordSuccess(false), 2500);
+        }, 1500);
     };
 
     return (
@@ -51,22 +117,24 @@ const ProfileSecurityPage: React.FC = () => {
                         </div>
 
                         {/* Profile Form */}
-                        <form className="flex-grow w-full">
+                        <form className="flex-grow w-full" onSubmit={handleProfileSubmit}>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="text-sm font-medium text-slate-700">Ad Soyad</label>
-                                    <input type="text" defaultValue="Ahmet Yılmaz" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                                    <input name="fullName" type="text" value={profileInfo.fullName} onChange={handleProfileInfoChange} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-slate-700">E-posta Adresi</label>
-                                    <input type="email" defaultValue="ahmet@sirket.com" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                                    <input name="email" type="email" value={profileInfo.email} onChange={handleProfileInfoChange} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-slate-700">Firma Adı</label>
-                                    <input type="text" defaultValue="Yılmaz E-Ticaret" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                                    <input name="companyName" type="text" value={profileInfo.companyName} onChange={handleProfileInfoChange} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                                 </div>
                                 <div className="md:col-span-2 text-right mt-4">
-                                    <button type="submit" className="bg-primary text-white font-bold py-2 px-5 rounded-lg hover:bg-primary-focus transition-colors">Bilgileri Güncelle</button>
+                                    <button type="submit" disabled={isSavingProfile} className={`bg-primary text-white font-bold py-2 px-5 rounded-lg transition-colors ${isSavingProfile ? 'bg-primary/70 cursor-not-allowed' : 'hover:bg-primary-focus'} ${saveProfileSuccess ? '!bg-green-500' : ''}`}>
+                                        {isSavingProfile ? 'Kaydediliyor...' : (saveProfileSuccess ? 'Kaydedildi!' : 'Bilgileri Güncelle')}
+                                    </button>
                                 </div>
                              </div>
                         </form>
@@ -76,21 +144,26 @@ const ProfileSecurityPage: React.FC = () => {
                 {/* Change Password */}
                  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <h3 className="text-lg font-semibold text-dark-blue border-b border-slate-200 pb-3 mb-4">Şifre Değiştir</h3>
-                    <form className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <form className="grid grid-cols-1 md:grid-cols-3 gap-6" onSubmit={handlePasswordSubmit}>
                          <div>
                             <label className="text-sm font-medium text-slate-700">Mevcut Şifre</label>
-                            <input type="password" placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                            <input name="currentPassword" type="password" value={passwordData.currentPassword} onChange={handlePasswordChange} placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                         </div>
                         <div>
                             <label className="text-sm font-medium text-slate-700">Yeni Şifre</label>
-                            <input type="password" placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                            <input name="newPassword" type="password" value={passwordData.newPassword} onChange={handlePasswordChange} placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                         </div>
                         <div>
                             <label className="text-sm font-medium text-slate-700">Yeni Şifre (Tekrar)</label>
-                            <input type="password" placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                            <input name="confirmNewPassword" type="password" value={passwordData.confirmNewPassword} onChange={handlePasswordChange} placeholder="••••••••" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
                         </div>
+                        {passwordError && (
+                            <div className="md:col-span-3 text-red-500 text-sm -mt-2">{passwordError}</div>
+                        )}
                          <div className="md:col-span-3 text-right">
-                            <button type="submit" className="bg-primary text-white font-bold py-2 px-5 rounded-lg hover:bg-primary-focus transition-colors">Şifreyi Değiştir</button>
+                            <button type="submit" disabled={isSavingPassword} className={`bg-primary text-white font-bold py-2 px-5 rounded-lg transition-colors ${isSavingPassword ? 'bg-primary/70 cursor-not-allowed' : 'hover:bg-primary-focus'} ${savePasswordSuccess ? '!bg-green-500' : ''}`}>
+                                {isSavingPassword ? 'Değiştiriliyor...' : (savePasswordSuccess ? 'Değiştirildi!' : 'Şifreyi Değiştir')}
+                            </button>
                         </div>
                     </form>
                 </div>
