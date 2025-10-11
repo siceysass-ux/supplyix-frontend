@@ -1,16 +1,12 @@
+
+
+
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';
 import EmptyState from '../shared/EmptyState';
 import { CurrencyDollarIcon } from '../icons/outline';
 import { ExtraFee } from '../types';
-
-
-export const fees: ExtraFee[] = [
-    { id: 'fee001', item: 'Özel Paketleme', description: 'Kırılacak ürünler için ek koruma', amount: '$15.00', date: '08.10.2025', status: 'Ödendi' },
-    { id: 'fee002', item: 'Acil Tedarik', description: 'Tedarik süresinin hızlandırılması', amount: '$40.00', date: '05.10.2025', status: 'Ödendi' },
-    { id: 'fee003', item: 'Logo Baskı', description: 'T-shirt ürünlerine logo basımı', amount: '$75.00', date: '10.10.2025', status: 'Beklemede' },
-];
 
 interface ExtraFeesPageProps {
     navigate: (path: string) => void;

@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from './DashboardLayout';
 
-// Import all the dashboard pages
 import DashboardHomePage from './pages/DashboardHomePage';
 import MembershipPage from './pages/MembershipPage';
 import SourcingPoolPage from './pages/SourcingPoolPage';
 import FavoritesPage from './pages/FavoritesPage';
-import OrdersPage, { orders as initialOrders } from './pages/OrdersPage';
-import RequestsPage, { requests as initialRequests } from './pages/RequestsPage';
-import ExtraFeesPage, { fees as initialFees } from './pages/ExtraFeesPage';
+import OrdersPage from './pages/OrdersPage';
+import RequestsPage from './pages/RequestsPage';
+import ExtraFeesPage from './pages/ExtraFeesPage';
 import SupportCenterPage from './pages/SupportCenterPage';
 import ProfileSecurityPage from './pages/ProfileSecurityPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import { Product, initialProducts, CartItem, Order, Request, ExtraFee, RequestType, ChatMessage } from './types';
+import { Product, initialProducts, CartItem, Order, initialOrders, Request, initialRequests, ExtraFee, initialFees, RequestType, ProductVariant, Conversation } from './types';
+
 
 const pageComponents: { [key: string]: React.ComponentType<any> } = {
     '': DashboardHomePage,
@@ -39,31 +39,12 @@ const pageTitles: { [key: string]: string } = {
     'product': 'Ürün Detayı',
 };
 
-export const initialMessages: ChatMessage[] = [
-    {
-        id: 1,
-        text: 'Merhaba Ahmet Bey, Supplyix Destek Merkezi\'ne hoş geldiniz. Size nasıl yardımcı olabilirim?',
-        sender: 'consultant',
-        timestamp: '10:30',
-        avatar: '/logo.png'
-    },
-    {
-        id: 2,
-        text: 'Merhaba, #S001 numaralı siparişimle ilgili bir sorum vardı. Kargo takip numarasını ne zaman alabilirim?',
-        sender: 'user',
-        timestamp: '10:32',
-    },
-    {
-        id: 3,
-        text: 'Elbette, hemen kontrol ediyorum. Siparişiniz şu an "Hazırlanıyor" aşamasında görünüyor. Genellikle 24 saat içinde kargoya verilir ve takip numarası sisteme yansır. Anlık durumu "Siparişlerim" sayfasından da takip edebilirsiniz.',
-        sender: 'consultant',
-        timestamp: '10:33',
-        avatar: '/logo.png'
-    },
-];
+interface DashboardPageProps {
+  conversations: Conversation[];
+  onSendMessage: (conversationId: string, messageText: string, sender: 'user' | 'support') => void;
+}
 
-
-const DashboardPage: React.FC = () => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ conversations, onSendMessage }) => {
     const getRouteInfo = () => {
         const hash = window.location.hash.substring(1);
         const parts = hash.split('/').filter(Boolean);
@@ -80,19 +61,19 @@ const DashboardPage: React.FC = () => {
     const [routeInfo, setRouteInfo] = useState(getRouteInfo());
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-    // --- Centralized State Management ---
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [requests, setRequests] = useState<Request[]>(initialRequests);
     const [fees, setFees] = useState<ExtraFee[]>(initialFees);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
+
+    // Find the conversation for the current user (hardcoded as 'user-1' for this example)
+    const currentUserConversation = conversations.find(c => c.id === 'user-1');
 
     const navigate = useCallback((path: string) => {
         window.location.hash = path;
     }, []);
 
-    // --- Handler Functions ---
     const toggleFavorite = (productName: string) => {
         setProducts(prevProducts =>
             prevProducts.map(p =>
@@ -101,12 +82,8 @@ const DashboardPage: React.FC = () => {
         );
     };
     
-    const handleAddToCart = (product: Product, variations: Record<string, string>, quantity: number = 1) => {
-        const variationString = Object.entries(variations)
-            .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-            .map(([, value]) => value)
-            .join('-');
-        const cartItemId = `${product.sku}-${variationString}`;
+    const handleAddToCart = (product: Product, variant: ProductVariant, destination: 'eu' | 'usa', quantity: number = 1) => {
+        const cartItemId = `${variant.sku}-${destination}`;
 
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.id === cartItemId);
@@ -117,7 +94,7 @@ const DashboardPage: React.FC = () => {
                         : item
                 );
             } else {
-                return [...prevCart, { id: cartItemId, product, quantity, selectedVariations: variations }];
+                return [...prevCart, { id: cartItemId, product, variant, quantity, destination }];
             }
         });
     };
@@ -148,47 +125,17 @@ const DashboardPage: React.FC = () => {
                     updated: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
                     status: 'Bekliyor',
                     result: null,
+                    explanation: request.explanation,
                 };
                 setRequests(prev => [newRequest, ...prev]);
                 resolve();
             }, 1500);
         });
     };
-
-    const handleSendMessage = (messageText: string, file?: File) => {
-        const newUserMessage: ChatMessage = {
-            id: Date.now(),
-            text: messageText,
-            sender: 'user',
-            timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-            file: file ? { name: file.name, type: file.type, size: file.size } : undefined,
-        };
-        setChatMessages(prev => [...prev, newUserMessage]);
     
-        setTimeout(() => {
-            let replyText = 'Mesajınızı ve dosyanızı aldım, inceliyorum. Lütfen kısa bir süre bekleyin.';
-            const lowerCaseText = messageText.toLowerCase();
-
-            if (!file) {
-                 replyText = 'Talebinizi aldım, inceliyorum. Lütfen kısa bir süre bekleyin.';
-                 if (lowerCaseText.includes('kargo') || lowerCaseText.includes('sipariş')) {
-                    replyText = 'Siparişiniz ve kargo durumuyla ilgili bilgilere "Siparişlerim" sayfasından ulaşabilirsiniz. Eğer daha detaylı bilgiye ihtiyacınız varsa sipariş numaranızı paylaşabilir misiniz?';
-                } else if (lowerCaseText.includes('iade')) {
-                    replyText = 'İade süreciyle ilgili detaylı bilgiye ve iade talebi oluşturma formuna Üyelik Sözleşmemizden ulaşabilirsiniz. Farklı bir sorunuz varsa yardımcı olmaktan memnuniyet duyarım.';
-                } else if (lowerCaseText.includes('ürün') || lowerCaseText.includes('tedarik')) {
-                    replyText = 'Ürün tedariği ile ilgili taleplerinizi "Taleplerim" sayfasından "Tedarik İste" butonunu kullanarak bize iletebilirsiniz. Ekibimiz en kısa sürede size geri dönüş yapacaktır.';
-                }
-            }
-    
-            const consultantReply: ChatMessage = {
-                id: Date.now() + 1,
-                text: replyText,
-                sender: 'consultant',
-                timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-                avatar: '/logo.png'
-            };
-            setChatMessages(prev => [...prev, consultantReply]);
-        }, 1800);
+    const handleUserSendMessage = (messageText: string) => {
+        // Always send from the perspective of user-1
+        onSendMessage('user-1', messageText, 'user');
     };
 
     useEffect(() => {
@@ -223,8 +170,8 @@ const DashboardPage: React.FC = () => {
             requests,
             onAddRequest: handleAddRequest,
             fees,
-            chatMessages,
-            onSendMessage: handleSendMessage,
+            chatHistory: currentUserConversation ? currentUserConversation.messages : [],
+            onSendMessage: handleUserSendMessage,
         };
         
         return <ActivePageComponent {...pageProps} />;

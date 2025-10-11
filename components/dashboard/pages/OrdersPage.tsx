@@ -1,78 +1,12 @@
+
+
+
 import React, { useState, useMemo } from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';
 import EmptyState from '../shared/EmptyState';
 import { ShoppingCartIcon, ChevronDownIcon, SearchIcon, CalendarDaysIcon, UserCircleIcon, MapPinIcon, TruckIcon } from '../icons/outline';
-import { initialProducts, Order, Product } from '../types';
-
-export const orders: Order[] = [
-    { 
-        id: '#S001', 
-        customer: 'Ahmet Yılmaz', 
-        total: '$85.00', 
-        status: 'Kargoda', 
-        creationDate: '2025-10-09',
-        updateDate: '10.10.2025',
-        address: 'Örnek Mah. Test Sk. No:1 D:2, 34000, Beşiktaş/İstanbul',
-        trackingNumber: 'SPX123456789TR',
-        products: [
-            { name: 'Akıllı Saat Pro X', quantity: 1, price: '$85.00' }
-        ]
-    },
-    { 
-        id: '#S002', 
-        customer: 'Ayşe Kaya', 
-        total: '$45.50', 
-        status: 'Teslim Edildi', 
-        creationDate: '2025-10-07',
-        updateDate: '08.10.2025',
-        address: 'Deneme Cd. Yazılım Apt. No:15, 06500, Çankaya/Ankara',
-        trackingNumber: 'SPX987654321TR',
-        products: [
-            { name: 'Kablosuz Bluetooth Kulaklık', quantity: 1, price: '$45.50' }
-        ]
-    },
-    { 
-        id: '#S003', 
-        customer: 'Mehmet Çelik', 
-        total: '$25.00', 
-        status: 'Hazırlanıyor', 
-        creationDate: '2025-10-10',
-        updateDate: '10.10.2025',
-        address: 'Geliştirici Sk. Kod Blok No:42, 35000, Bornova/İzmir',
-        trackingNumber: null,
-        products: [
-            { name: 'Yoga ve Pilates Matı', quantity: 1, price: '$25.00' }
-        ]
-    },
-    { 
-        id: '#S004', 
-        customer: 'Fatma Demir', 
-        total: '$120.00', 
-        status: 'Beklemede', 
-        creationDate: '2025-10-11',
-        updateDate: '11.10.2025',
-        address: 'Sanat Cd. Tasarım Apt. No:8, 16000, Osmangazi/Bursa',
-        trackingNumber: null,
-        products: [
-            { name: '4K Aksiyon Kamerası', quantity: 1, price: '$120.00' },
-            { name: 'Akıllı Saat Pro X', quantity: 2, price: '$170.00' }
-        ]
-    },
-    { 
-        id: '#S005', 
-        customer: 'Ali Vural', 
-        total: '$15.75', 
-        status: 'İptal', 
-        creationDate: '2025-10-06',
-        updateDate: '07.10.2025',
-        address: 'Ticaret Mah. İhracat Sk. No:3, 34500, Fatih/İstanbul',
-        trackingNumber: null,
-        products: [
-            { name: 'Dijital Mutfak Terazisi', quantity: 1, price: '$15.75' }
-        ]
-    },
-];
+import { Order, Product } from '../types';
 
 interface OrderCardProps {
     order: Order;
@@ -111,7 +45,8 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, isExpanded, onToggleDetail
                     )}
                     <div className="flex-1 min-w-0">
                         <p className="font-semibold text-dark-blue truncate">{firstProductInfo.name}</p>
-                        {order.products.length > 1 && <p className="text-xs text-slate-500">ve {order.products.length - 1} diğer ürün</p>}
+                        <p className="text-xs text-slate-500">{firstProductInfo.variationDetails}</p>
+                        {order.products.length > 1 && <p className="text-xs text-slate-500 mt-1">ve {order.products.length - 1} diğer ürün</p>}
                         <div className="flex items-center text-sm text-slate-600 mt-2">
                             <UserCircleIcon className="w-4 h-4 mr-1.5 text-slate-400" />
                             <span className="truncate">{order.customer}</span>
@@ -131,17 +66,38 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, isExpanded, onToggleDetail
                         <ul className="text-sm text-slate-600 space-y-1">
                             {order.products.map((p, i) => (
                                 <li key={i} className="flex justify-between">
-                                    <span>{p.quantity} x {p.name}</span>
+                                    <span>{p.quantity} x {p.name} <span className="text-slate-500">({p.variationDetails})</span></span>
                                     <span className="font-medium">{p.price}</span>
                                 </li>
                             ))}
                         </ul>
                     </div>
                      <div className="pt-3 border-t border-slate-200">
+                        <h4 className="font-semibold text-dark-blue mb-2 text-sm">Maliyet Dökümü</h4>
+                        <div className="text-sm space-y-1">
+                             <div className="flex justify-between items-center">
+                                <span className="font-medium text-slate-600">Ara Toplam</span>
+                                <span className="font-semibold text-dark-blue">{order.subtotal}</span>
+                            </div>
+                             <div className="flex justify-between items-center">
+                                <span className="font-medium text-slate-600">Kargo Toplamı</span>
+                                <span className="font-semibold text-dark-blue">{order.shippingTotal}</span>
+                            </div>
+                             <div className="flex justify-between items-center text-base font-bold text-primary mt-1">
+                                <span>Genel Toplam</span>
+                                <span>{order.total}</span>
+                            </div>
+                        </div>
+                    </div>
+                     <div className="pt-3 border-t border-slate-200">
                         <h4 className="font-semibold text-dark-blue mb-2 text-sm">Teslimat Bilgileri</h4>
                         <div className="flex items-start text-sm text-slate-600">
                             <MapPinIcon className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
                             <p>{order.address}</p>
+                        </div>
+                         <div className="flex items-start text-sm text-slate-600 mt-2">
+                            <TruckIcon className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+                            <p>Hedef: <span className="font-semibold uppercase">{order.products[0].destination}</span></p>
                         </div>
                     </div>
                     {order.trackingNumber && (

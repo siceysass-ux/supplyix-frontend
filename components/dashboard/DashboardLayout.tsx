@@ -1,3 +1,5 @@
+
+
 import React, { ReactNode } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
@@ -16,7 +18,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, isSidebarOpen, setSidebarOpen, navigate, cart, onUpdateCartQuantity, onRemoveFromCart }) => {
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900">
+    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-200">
       {/* New Mobile Menu Trigger */}
       <button
         onClick={() => setSidebarOpen(true)}
@@ -43,7 +45,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, 
           onUpdateCartQuantity={onUpdateCartQuantity}
           onRemoveFromCart={onRemoveFromCart}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

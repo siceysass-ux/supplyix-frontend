@@ -1,6 +1,9 @@
+
+
+
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
-import { CreditCardIcon, CubeIcon, StarIcon, DocumentTextIcon, AcademicCapIcon } from '../icons/outline';
+import { CubeIcon, StarIcon, DocumentTextIcon } from '../icons/outline';
 import StatusBadge from '../shared/StatusBadge';
 import { Order, Request } from '../types';
 

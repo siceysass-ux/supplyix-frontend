@@ -1,3 +1,6 @@
+
+
+
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
 import { StarIcon, TrashIcon } from '../icons/outline';
@@ -11,10 +14,10 @@ interface FavoritesPageProps {
 }
 
 const formatPrice = (price: Price): string => {
-    if (typeof price === 'number') {
-        return `$${price.toLocaleString('en-US')}`;
+    if (price.min === price.max) {
+        return `$${price.min.toFixed(2)}`;
     }
-    return `$${price.min.toLocaleString('en-US')} - $${price.max.toLocaleString('en-US')}`;
+    return `$${price.min.toFixed(2)} - $${price.max.toFixed(2)}`;
 };
 
 const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggleFavorite }) => {

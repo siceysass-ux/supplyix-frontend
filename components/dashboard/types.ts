@@ -1,195 +1,257 @@
-export type Price = number | { min: number; max: number };
+// Fix: Removed self-import which caused conflicts with local declarations.
+// Product-related types
+export interface Price {
+  min: number;
+  max: number;
+}
 
 export interface VariationOption {
-    name: string;
-    image?: string; // Optional image specific to this variation option
-    value?: string; // For color hex codes, etc.
+  name: string;
+  value: string;
+  image?: string;
+  price: number;
+  stock: number;
+  sku: string;
 }
 
 export interface Variation {
-    type: string; // e.g., "Renk", "Boyut"
-    options: VariationOption[];
+  type: string;
+  options: VariationOption[];
+}
+
+export interface ProductVariant {
+  sku: string;
+  attributes: Record<string, string>;
+  price: number;
+  stock: number;
+  shippingCostModifier: number;
 }
 
 export interface Product {
-    name: string;
-    sku: string;
-    stock: number;
-    price: Price;
-    recommendedPrice: number;
-    shipping: string;
-    images: string[];
-    isFavorite: boolean;
-    category: string;
-    subcategory: string;
-    variations?: Variation[];
-    description: string;
-    specifications: { key: string; value: string }[];
-    shippingInfo: { processingTime: string; warehouse: string };
+  name: string;
+  sku: string;
+  images: string[];
+  category: string;
+  subcategory: string;
+  tags: string[];
+  price: Price;
+  isFavorite: boolean;
+  description: string;
+  variations?: Variation[];
+  variants: ProductVariant[];
+  shippingInfo: {
+    weight: string;
+    dimensions: string;
+    shippingCosts: {
+      eu: number;
+      usa: number;
+    };
+  };
 }
 
+// Cart-related types
 export interface CartItem {
-  id: string; // A unique ID generated from product sku and variations
+  id: string; // Composite ID of variant SKU and destination
   product: Product;
+  variant: ProductVariant;
   quantity: number;
-  selectedVariations: Record<string, string>;
+  destination: 'eu' | 'usa';
 }
 
-// Order type
+
+// Order-related types
 export type OrderStatus = 'Beklemede' | 'Hazırlanıyor' | 'Kargoda' | 'Teslim Edildi' | 'İptal';
+
 export interface OrderProduct {
     name: string;
     quantity: number;
     price: string;
-}
-export interface Order {
-    id: string;
-    customer: string;
-    total: string;
-    status: OrderStatus;
-    creationDate: string;
-    updateDate: string;
-    address: string;
-    trackingNumber: string | null;
-    products: OrderProduct[];
+    variationDetails: string;
+    destination: 'eu' | 'usa';
 }
 
-// Request type
+export interface Order {
+    id: string;
+    creationDate: string; // YYYY-MM-DD
+    customer: string;
+    total: string;
+    subtotal: string;
+    shippingTotal: string;
+    status: OrderStatus;
+    products: OrderProduct[];
+    address: string;
+    trackingNumber?: string;
+}
+
+// Request-related types
 export type RequestType = 'Tedarik' | 'Danışmanlık';
 export type RequestStatus = 'Bekliyor' | 'Tamamlandı';
 export type RequestResult = 'Başarılı' | 'Başarısız' | null;
+
 export interface Request {
     id: string;
     type: RequestType;
     title: string;
+    updated: string;
     status: RequestStatus;
     result: RequestResult;
     explanation: string;
-    updated: string;
+    response?: string;
 }
 
-// Extra Fee type
-export type FeeStatus = 'Ödendi' | 'Beklemede';
+// Fee-related types
 export interface ExtraFee {
     id: string;
     item: string;
     description: string;
     amount: string;
     date: string;
-    status: FeeStatus;
+    status: 'Ödendi' | 'Beklemede';
 }
 
-// Chat Message type
+// Support-related types
 export interface ChatMessage {
-    id: number;
-    text: string;
-    sender: 'user' | 'consultant';
-    timestamp: string;
-    avatar?: string;
-    file?: {
-        name: string;
-        type: string;
-        size: number;
-    };
+  sender: 'user' | 'support';
+  text: string;
+  timestamp: string;
+}
+
+export type ConversationStatus = 'active' | 'archived' | 'spam';
+
+export interface Conversation {
+  id: string; // Corresponds to userId
+  userName: string;
+  userAvatar: string;
+  messages: ChatMessage[];
+  status: ConversationStatus;
+  isRead: boolean;
+  lastMessageTimestamp: string;
 }
 
 
+// Initial Data
 export const initialProducts: Product[] = [
-    { 
-        name: 'Akıllı Saat Pro X', 
-        sku: 'SPX-W01-BLK',
-        stock: 157,
-        price: 85,
-        recommendedPrice: 169.99,
-        shipping: '2-4 gün', 
-        images: [
-            'https://picsum.photos/seed/watchpro/800/800', 
-            'https://picsum.photos/seed/watchpro2/800/800', 
-            'https://picsum.photos/seed/watchpro3/800/800',
-            'https://picsum.photos/seed/watchpro-silver/800/800',
-            'https://picsum.photos/seed/watchpro-gold/800/800'
-        ], 
-        isFavorite: true, 
-        category: 'Elektronik', 
-        subcategory: 'Akıllı Saat',
-        variations: [
+  {
+    name: 'Ergonomik Ofis Sandalyesi',
+    sku: 'CHR-001',
+    images: ['https://picsum.photos/seed/chair1/800/800', 'https://picsum.photos/seed/chair2/800/800', 'https://picsum.photos/seed/chair3/800/800'],
+    category: 'Ev & Yaşam',
+    subcategory: 'Ofis Mobilyaları',
+    tags: ['ofis', 'sandalye', 'ergonomik'],
+    price: { min: 120.00, max: 135.00 },
+    isFavorite: true,
+    description: `Tüm gün konfor için tasarlanmış, ayarlanabilir özelliklere sahip modern ve ergonomik ofis sandalyesi.
+- Ayarlanabilir bel desteği
+- Nefes alabilen file sırtlık
+- 360 derece dönebilen tekerlekler`,
+    variations: [
+      {
+        type: 'Renk',
+        options: [
+          { name: 'Siyah', value: '#000000', price: 120.00, stock: 75, sku: 'BLK' },
+          { name: 'Gri', value: '#808080', price: 125.00, stock: 40, sku: 'GRY' },
+          { name: 'Beyaz', value: '#FFFFFF', price: 135.00, stock: 22, sku: 'WHT' },
+        ]
+      }
+    ],
+    variants: [
+      { sku: 'CHR-001-BLK', attributes: { 'Renk': 'Siyah' }, price: 120.00, stock: 75, shippingCostModifier: 0 },
+      { sku: 'CHR-001-GRY', attributes: { 'Renk': 'Gri' }, price: 125.00, stock: 40, shippingCostModifier: 0 },
+      { sku: 'CHR-001-WHT', attributes: { 'Renk': 'Beyaz' }, price: 135.00, stock: 22, shippingCostModifier: 0 },
+    ],
+    shippingInfo: { weight: '15kg', dimensions: '60x60x90cm', shippingCosts: { eu: 20.00, usa: 35.00 } },
+  },
+   {
+    name: 'Kablosuz Gürültü Engelleme Kulaklık',
+    sku: 'HDPH-002',
+    images: ['https://picsum.photos/seed/headphone1/800/800', 'https://picsum.photos/seed/headphone2/800/800'],
+    category: 'Elektronik',
+    subcategory: 'Ses Sistemleri',
+    tags: ['kulaklık', 'bluetooth', 'gürültü engelleme'],
+    price: { min: 99.99, max: 99.99 },
+    isFavorite: false,
+    description: `Kristal netliğinde ses kalitesi ve üstün gürültü engelleme özelliğiyle müzik ve aramalarda sürükleyici bir deneyim.
+- 30 saate varan pil ömrü
+- Dahili mikrofon
+- Taşıma çantası dahil`,
+    variants: [
+       { sku: 'HDPH-002-BLK', attributes: { 'Renk': 'Siyah' }, price: 99.99, stock: 150, shippingCostModifier: 0 },
+    ],
+    shippingInfo: { weight: '0.8kg', dimensions: '20x18x10cm', shippingCosts: { eu: 10.00, usa: 15.00 } },
+  },
+  // Add more products...
+];
+
+export const initialOrders: Order[] = [
+    { id: '#S001', creationDate: '2025-10-12', customer: 'Ahmet Yılmaz', total: '$67.50', subtotal: '$55.00', shippingTotal: '$12.50', status: 'Teslim Edildi', products: [{ name: 'Akıllı Saat Kordonu', quantity: 1, price: '$55.00', variationDetails: 'Silikon - Gece Mavisi', destination: 'eu' }], address: '123 Örnek Cad, İstanbul, Türkiye', trackingNumber: 'TR123456789' },
+    { id: '#S002', creationDate: '2025-10-11', customer: 'Ayşe Kaya', total: '$140.00', subtotal: '$120.00', shippingTotal: '$20.00', status: 'Kargoda', products: [{ name: 'Ergonomik Ofis Sandalyesi', quantity: 1, price: '$120.00', variationDetails: 'Siyah', destination: 'eu' }], address: '456 Test Sok, Ankara, Türkiye', trackingNumber: 'TR987654321' },
+    { id: '#S003', creationDate: '2025-10-10', customer: 'Ahmet Yılmaz', total: '$114.99', subtotal: '$99.99', shippingTotal: '$15.00', status: 'Hazırlanıyor', products: [{ name: 'Kablosuz Gürültü Engelleme Kulaklık', quantity: 1, price: '$99.99', variationDetails: 'Siyah', destination: 'usa' }], address: '789 Elm St, New York, USA' },
+];
+
+export const initialRequests: Request[] = [
+    { id: '#T001', type: 'Tedarik', title: 'Ahşap Telefon Standı', updated: '10.10.2025', status: 'Tamamlandı', result: 'Başarılı', explanation: 'Minimalist tasarımlı, kayın ağacından yapılmış bir telefon standı arıyorum.' },
+    { id: '#D001', type: 'Danışmanlık', title: 'Facebook Reklam Stratejileri', updated: '08.10.2025', status: 'Bekliyor', result: null, explanation: 'Yeni ürün lansmanım için Facebook ve Instagram reklamları konusunda bir strateji danışmanlığına ihtiyacım var.' },
+];
+
+export const initialFees: ExtraFee[] = [
+    { id: 'FEE001', item: 'Logo Tasarımı', description: 'Yeni mağaza için özel logo tasarımı hizmeti.', amount: '$75.00', date: '05.10.2025', status: 'Ödendi' },
+    { id: 'FEE002', item: 'Ürün Fotoğraf Çekimi', description: '3 adet ürün için profesyonel stüdyo çekimi.', amount: '$150.00', date: '02.10.2025', status: 'Beklemede' },
+];
+
+export const initialConversations: Conversation[] = [
+    {
+        id: 'user-1',
+        userName: 'Ahmet Yılmaz',
+        userAvatar: 'https://i.pravatar.cc/150?u=supplyix',
+        status: 'active',
+        isRead: true,
+        lastMessageTimestamp: new Date().toISOString(),
+        messages: [
             {
-                type: 'Renk',
-                options: [
-                    { name: 'Siyah', image: 'https://picsum.photos/seed/watchpro/800/800', value: '#1a1a1a' },
-                    { name: 'Gümüş', image: 'https://picsum.photos/seed/watchpro-silver/800/800', value: '#c0c0c0' },
-                    { name: 'Altın', image: 'https://picsum.photos/seed/watchpro-gold/800/800', value: '#ffd700' },
-                ]
+                sender: 'support',
+                text: 'Merhaba! Supplyix Destek Hattı\'na hoş geldiniz. Size nasıl yardımcı olabilirim?',
+                timestamp: new Date(Date.now() - 120000).toLocaleString('tr-TR')
             },
             {
-                type: 'Kordon',
-                options: [
-                    { name: 'Silikon' },
-                    { name: 'Metal' },
-                ]
+                sender: 'user',
+                text: 'Merhaba, kargo ücretleri hakkında bilgi almak istiyorum.',
+                timestamp: new Date(Date.now() - 60000).toLocaleString('tr-TR')
+            },
+            {
+                sender: 'support',
+                text: 'Elbette. Kargo ücretlerimiz ürünün ağırlığına, boyutlarına ve gönderileceği ülkeye (EU/USA) göre değişiklik göstermektedir. İlgilendiğiniz ürünün detay sayfasında bu maliyetleri görebilirsiniz.',
+                timestamp: new Date().toLocaleString('tr-TR')
+            },
+        ],
+    },
+    {
+        id: 'user-2',
+        userName: 'Ayşe Kaya',
+        userAvatar: 'https://i.pravatar.cc/150?u=ayse',
+        status: 'active',
+        isRead: false,
+        lastMessageTimestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+        messages: [
+            {
+                sender: 'user',
+                text: 'Bir siparişimle ilgili sorun yaşıyorum. Sipariş numaram #S002.',
+                timestamp: new Date(Date.now() - 5 * 60000).toLocaleString('tr-TR')
             }
-        ],
-        description: `Modern tasarımı ve üstün özellikleriyle Akıllı Saat Pro X, hayatınızı kolaylaştırmak için tasarlandı. Yüksek çözünürlüklü AMOLED ekranı, uzun pil ömrü ve suya dayanıklı yapısıyla her an yanınızda.\n\n- Kalp atış hızı takibi\n- Adım sayar ve kalori ölçer\n- GPS ve navigasyon\n- Müzik kontrolü ve bildirimler\n- 14 farklı spor modu`,
-        specifications: [
-            { key: 'Ekran', value: '1.4" AMOLED Dokunmatik Ekran' },
-            { key: 'Çözünürlük', value: '454 x 454 piksel' },
-            { key: 'Malzeme', value: 'Titanyum Kasa, Safir Cam' },
-            { key: 'Pil Ömrü', value: '14 güne kadar' },
-            { key: 'Su Direnci', value: '5 ATM' },
-            { key: 'Bağlantı', value: 'Bluetooth 5.1, GPS, NFC' },
-            { key: 'Uyumluluk', value: 'Android 6.0+, iOS 9.0+' },
-        ],
-        shippingInfo: {
-            processingTime: '1-2 iş günü',
-            warehouse: 'Hong Kong Deposu',
-        }
+        ]
     },
-    { 
-        name: 'Kablosuz Bluetooth Kulaklık', 
-        sku: 'SPX-H02-WHT',
-        stock: 250,
-        price: 45.50, 
-        recommendedPrice: 89.99,
-        shipping: '2-4 gün', 
-        images: [
-            'https://picsum.photos/seed/headphone/800/800', 
-            'https://picsum.photos/seed/headphone2/800/800'
-        ], 
-        isFavorite: false, 
-        category: 'Elektronik', 
-        subcategory: 'Kulaklık',
-        description: `Kristal netliğinde ses kalitesi ve ergonomik tasarımıyla gün boyu konfor sunar. Aktif gürültü engelleme (ANC) özelliği ile dış dünyadan soyutlanın.\n\n- Bluetooth 5.2 Teknolojisi\n- 30 saate varan pil ömrü\n- Dokunmatik kontrol yüzeyi`,
-        specifications: [{key: 'Bağlantı', value: 'Bluetooth 5.2'}],
-        shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Shenzhen Deposu' }
-    },
-    { name: 'Paslanmaz Çelik Termos Seti', sku: 'SPX-T01', stock: 88, price: { min: 28, max: 35 }, recommendedPrice: 59.99, shipping: '2-4 gün', images: ['https://picsum.photos/seed/thermos/800/800'], isFavorite: false, category: 'Ev & Yaşam', subcategory: 'Mutfak Gereçleri', description: 'İçeceklerinizi saatlerce sıcak veya soğuk tutan, sızdırmaz kapaklı şık termos seti.', specifications: [{key: 'Kapasite', value: '500ml'}], shippingInfo: { processingTime: '2-3 iş günü', warehouse: 'Yiwu Deposu' } },
-    { name: 'Yoga ve Pilates Matı', sku: 'SPX-YM01', stock: 30, price: 25, recommendedPrice: 49.99, shipping: '3-5 gün', images: ['https://picsum.photos/seed/yogamat/800/800'], isFavorite: true, category: 'Spor', subcategory: 'Yoga Malzemeleri', description: 'Kaymaz yüzeyi ve ideal kalınlığı ile yoga ve pilates pratiğiniz için mükemmel bir zemin sunar.', specifications: [{key: 'Kalınlık', value: '6mm'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Shenzhen Deposu' } },
-    { 
-        name: '4K Aksiyon Kamerası', 
-        sku: 'SPX-AC01',
-        stock: 75,
-        price: 120, 
-        recommendedPrice: 229.99,
-        shipping: '2-4 gün', 
-        images: [
-            'https://picsum.photos/seed/camera/800/800',
-            'https://picsum.photos/seed/camera2/800/800',
-            'https://picsum.photos/seed/camera3/800/800'
-        ], 
-        isFavorite: false, 
-        category: 'Elektronik', 
-        subcategory: 'Kamera',
-        description: `Maceralarınızı 4K kalitesinde kaydedin. Su geçirmez kılıfı ve geniş aksesuar kiti ile her koşulda yanınızda.`,
-        specifications: [{key: 'Video Çözünürlüğü', value: '4K/60fps'}],
-        shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Hong Kong Deposu' }
-    },
-    { name: 'Otomatik Kedi Mama Kabı', sku: 'SPX-PF01', stock: 0, price: { min: 95, max: 110 }, recommendedPrice: 199.99, shipping: '3-5 gün', images: ['https://picsum.photos/seed/petfeeder/800/800'], isFavorite: false, category: 'Evcil Hayvan', subcategory: 'Beslenme', description: 'Zaman ayarlı mama kabı ile evcil dostunuzun beslenme düzenini siz evde yokken bile koruyun.', specifications: [{key: 'Kapasite', value: '4 Litre'}], shippingInfo: { processingTime: '2-3 iş günü', warehouse: 'Yiwu Deposu' } },
-    { name: 'Masaj Tabancası', sku: 'SPX-MG01', stock: 120, price: 110, recommendedPrice: 219.99, shipping: '2-4 gün', images: ['https://picsum.photos/seed/massagegun/800/800'], isFavorite: false, category: 'Sağlık & Bakım', subcategory: 'Masaj Aletleri', description: 'Farklı başlıkları ve ayarlanabilir hız seviyeleri ile kaslarınızı gevşetin ve rahatlayın.', specifications: [{key: 'Hız Seviyesi', value: '30'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Shenzhen Deposu' } },
-    { name: 'LED Masa Lambası', sku: 'SPX-DL01', stock: 200, price: 32, recommendedPrice: 64.99, shipping: '3-5 gün', images: ['https://picsum.photos/seed/lamp/800/800'], isFavorite: false, category: 'Ev & Yaşam', subcategory: 'Aydınlatma', description: 'Göz yormayan, ayarlanabilir parlaklık ve renk sıcaklığına sahip modern masa lambası.', specifications: [{key: 'Işık Rengi', value: 'Sıcak/Soğuk Beyaz'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Yiwu Deposu' } },
-    { name: 'Taşınabilir Blender', sku: 'SPX-PB01', stock: 45, price: 45, recommendedPrice: 89.99, shipping: '2-4 gün', images: ['https://picsum.photos/seed/blender/800/800'], isFavorite: true, category: 'Ev & Yaşam', subcategory: 'Mutfak Gereçleri', description: 'USB ile şarj edilebilir, güçlü motoru sayesinde taze smoothie ve içeceklerinizi dilediğiniz yerde hazırlayın.', specifications: [{key: 'Şarj', value: 'USB-C'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Shenzhen Deposu' } },
-    { name: 'Ergonomik Ofis Sandalyesi', sku: 'SPX-OC01', stock: 60, price: { min: 250, max: 320 }, recommendedPrice: 499.99, shipping: '5-7 gün', images: ['https://picsum.photos/seed/officechair/800/800'], isFavorite: false, category: 'Ev & Yaşam', subcategory: 'Ofis Mobilyası', description: 'Bel desteği ve ayarlanabilir özellikleri ile uzun çalışma saatlerinde konfor sağlar.', specifications: [{key: 'Malzeme', value: 'File Kumaş'}], shippingInfo: { processingTime: '3-4 iş günü', warehouse: 'Foshan Deposu' } },
-    { name: 'Akıllı Ev Güvenlik Kamerası', sku: 'SPX-SC01', stock: 95, price: 80, recommendedPrice: 159.99, shipping: '2-4 gün', images: ['https://picsum.photos/seed/securitycam/800/800'], isFavorite: false, category: 'Elektronik', subcategory: 'Güvenlik Sistemleri', description: 'Gece görüşü ve hareket sensörü özellikleriyle evinizi 7/24 izleyin.', specifications: [{key: 'Görüş Açısı', value: '360 Derece'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Hong Kong Deposu' } },
-    { name: 'Bambu Banyo Seti', sku: 'SPX-BS01', stock: 150, price: 38, recommendedPrice: 74.99, shipping: '3-5 gün', images: ['https://picsum.photos/seed/bathset/800/800'], isFavorite: false, category: 'Ev & Yaşam', subcategory: 'Banyo Aksesuarları', description: 'Doğal bambu malzemeden üretilmiş, banyonuza şıklık katacak 4 parçalı set.', specifications: [{key: 'Parça Sayısı', value: '4'}], shippingInfo: { processingTime: '2-3 iş günü', warehouse: 'Yiwu Deposu' } },
-    { name: 'Gamer Klavye RGB', sku: 'SPX-GK01', stock: 110, price: 130, recommendedPrice: 249.99, shipping: '2-4 gün', images: ['https://picsum.photos/seed/keyboard/800/800'], isFavorite: false, category: 'Elektronik', subcategory: 'Bilgisayar Aksesuarları', description: 'Mekanik tuşları ve ayarlanabilir RGB aydınlatması ile oyun deneyiminizi bir üst seviyeye taşıyın.', specifications: [{key: 'Tuş Tipi', value: 'Mekanik Mavi Switch'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Shenzhen Deposu' } },
-    { name: 'Dijital Mutfak Terazisi', sku: 'SPX-KS01', stock: 300, price: 15.75, recommendedPrice: 34.99, shipping: '3-5 gün', images: ['https://picsum.photos/seed/scale/800/800'], isFavorite: false, category: 'Ev & Yaşam', subcategory: 'Mutfak Gereçleri', description: 'Hassas ölçüm özelliği ile tariflerinizde mükemmel sonuçlar elde edin.', specifications: [{key: 'Kapasite', value: '5kg'}], shippingInfo: { processingTime: '1-2 iş günü', warehouse: 'Yiwu Deposu' } },
+    {
+        id: 'user-3',
+        userName: 'Mehmet Çelik',
+        userAvatar: 'https://i.pravatar.cc/150?u=mehmet',
+        status: 'archived',
+        isRead: true,
+        lastMessageTimestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+        messages: [
+            {
+                sender: 'user',
+                text: 'Teşekkür ederim, sorunum çözüldü.',
+                timestamp: new Date(Date.now() - 24 * 3600 * 1000).toLocaleString('tr-TR')
+            }
+        ]
+    }
 ];

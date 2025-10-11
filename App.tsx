@@ -1,93 +1,141 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
+import FeaturesSection from './components/FeaturesSection';
 import LiveDemoSection from './components/LiveDemoSection';
-import CategoriesSection from './components/CategoriesSection';
 import PricingSection from './components/PricingSection';
-import FeatureSteps from './components/FeatureSteps';
 import Footer from './components/Footer';
-import ContactPage from './components/ContactPage';
 import LoginPage from './components/LoginPage';
-import ForgotPasswordPage from './components/ForgotPasswordPage';
 import SignupPage from './components/SignupPage';
-import DashboardPage from './components/dashboard/DashboardPage'; // Updated import
-import YouTubeSection from './components/YouTubeSection';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ContactPage from './components/ContactPage';
+import DashboardPage from './components/dashboard/DashboardPage';
+import AdminPage from './components/admin/AdminPage';
+import { initialConversations, Conversation, ChatMessage, ConversationStatus } from './components/dashboard/types';
+import FeatureSteps from './components/FeatureSteps';
 import MarketplaceMarquee from './components/MarketplaceMarquee';
+import CategoriesSection from './components/CategoriesSection';
 import FAQSection from './components/FAQSection';
+import YouTubeSection from './components/YouTubeSection';
 
-const HomePage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-  return (
-    <main>
-      <HeroSection navigate={navigate} />
-      <FeatureSteps />
-      <LiveDemoSection />
-      <CategoriesSection />
-      <MarketplaceMarquee />
-      <PricingSection navigate={navigate} />
-      <YouTubeSection />
-      <FAQSection />
-    </main>
-  );
-};
 
 const App: React.FC = () => {
-  const getCurrentRoute = () => window.location.hash.slice(1) || '/';
-  const [currentPage, setCurrentPage] = useState(getCurrentRoute());
-
-  const navigate = useCallback((path: string) => {
-    window.location.hash = path;
-    setCurrentPage(path); // Immediately update state on navigation
-  }, []);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      setCurrentPage(getCurrentRoute());
-      window.scrollTo(0, 0);
+    const getRoute = () => {
+        const hash = window.location.hash.substring(1); // Remove '#'
+        const [path, query] = hash.split('?');
+        const params = new URLSearchParams(query);
+        return { path, params };
     };
-    window.addEventListener('hashchange', handleHashChange);
-    // Set initial page on load
-    handleHashChange();
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+
+    const [route, setRoute] = useState(getRoute());
+    
+    // Centralized state for all conversations
+    const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+
+    const navigate = useCallback((path: string) => {
+        window.location.hash = path;
+    }, []);
+
+    useEffect(() => {
+        const handleHashChange = () => {
+            setRoute(getRoute());
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+    
+    // Chat Handlers
+    const handleSendMessage = (conversationId: string, messageText: string, sender: 'user' | 'support') => {
+        const newMessage: ChatMessage = {
+            sender,
+            text: messageText,
+            timestamp: new Date().toLocaleString('tr-TR')
+        };
+        setConversations(prev => prev.map(convo => {
+            if (convo.id === conversationId) {
+                return {
+                    ...convo,
+                    messages: [...convo.messages, newMessage],
+                    lastMessageTimestamp: new Date().toISOString(),
+                    isRead: sender === 'support', // Admin reply marks it as read for admin
+                    status: 'active', // Move from spam/archive back to active on new message
+                };
+            }
+            return convo;
+        }));
     };
-  }, []);
 
-  const renderPage = () => {
-    const route = currentPage.split('?')[0];
-    const urlParams = new URLSearchParams(currentPage.split('?')[1] || '');
-    const plan = urlParams.get('plan');
-    const price = urlParams.get('price');
+    const handleSetConversationStatus = (conversationId: string, status: ConversationStatus) => {
+        setConversations(prev => prev.map(convo =>
+            convo.id === conversationId ? { ...convo, status } : convo
+        ));
+    };
 
-    if (route.startsWith('/dashboard')) {
-        return <DashboardPage />;
-    }
+    const handleToggleReadStatus = (conversationId: string, isRead: boolean) => {
+        setConversations(prev => prev.map(convo =>
+            convo.id === conversationId ? { ...convo, isRead } : convo
+        ));
+    };
 
-    switch (route) {
-      case '/contact':
-        return <ContactPage navigate={navigate} />;
-      case '/login':
-        return <LoginPage navigate={navigate} />;
-      case '/signup':
-        return <SignupPage navigate={navigate} plan={plan} price={price} />;
-      case '/forgot-password':
-        return <ForgotPasswordPage navigate={navigate} />;
-      default:
-        return <HomePage navigate={navigate} />;
-    }
-  };
-  
-  const isDashboard = currentPage.startsWith('/dashboard');
-  const showHeaderFooter = !['/login', '/signup', '/forgot-password'].includes(currentPage.split('?')[0]) && !isDashboard;
-  
-  return (
-    <div className="min-h-screen bg-base-100 font-sans leading-normal tracking-normal flex flex-col">
-      {showHeaderFooter && <Header navigate={navigate} />}
-      <div className="flex-grow">
-        {renderPage()}
-      </div>
-      {showHeaderFooter && <Footer />}
-    </div>
-  );
+    const renderPage = () => {
+        const { path, params } = route;
+        
+        if (path.startsWith('/dashboard')) {
+            return (
+              <DashboardPage
+                conversations={conversations}
+                onSendMessage={handleSendMessage}
+              />
+            );
+        }
+        if (path.startsWith('/admin')) {
+             return (
+              <AdminPage
+                conversations={conversations}
+                onSendMessage={handleSendMessage}
+                onSetConversationStatus={handleSetConversationStatus}
+                onToggleReadStatus={handleToggleReadStatus}
+              />
+            );
+        }
+
+        switch (path) {
+            case '/login':
+                return <LoginPage navigate={navigate} />;
+            case '/signup':
+                return <SignupPage navigate={navigate} plan={params.get('plan')} price={params.get('price')} />;
+            case '/forgot-password':
+                return <ForgotPasswordPage navigate={navigate} />;
+            case '/contact':
+                return <ContactPage navigate={navigate} />;
+            default:
+                return (
+                    <>
+                        <Header navigate={navigate} />
+                        <main>
+                            <HeroSection navigate={navigate} />
+                            <MarketplaceMarquee />
+                            <FeatureSteps />
+                            <CategoriesSection />
+                            <LiveDemoSection />
+                            <PricingSection navigate={navigate} />
+                            <YouTubeSection />
+                            <FAQSection />
+                        </main>
+                        <Footer />
+                    </>
+                );
+        }
+    };
+
+    return (
+        <ThemeProvider>
+            <div className="bg-white text-gray-800 font-sans">
+                {renderPage()}
+            </div>
+        </ThemeProvider>
+    );
 };
 
 export default App;

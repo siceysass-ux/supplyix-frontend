@@ -1,17 +1,12 @@
+
+
+
 import React, { useState } from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';
 import EmptyState from '../shared/EmptyState';
 import { DocumentTextIcon, CubeIcon, AcademicCapIcon, EyeIcon } from '../icons/outline';
 import { Request, RequestType } from '../types';
-
-export const requests: Request[] = [
-    { id: '#T001', type: 'Tedarik', title: 'Özel tasarım t-shirt', status: 'Tamamlandı', result: 'Başarılı', explanation: 'Uygun tedarikçi bulundu ve teklif iletildi.', updated: '09.10.2025' },
-    { id: '#D001', type: 'Danışmanlık', title: 'Reklam Stratejileri', status: 'Tamamlandı', result: 'Başarılı', explanation: 'Görüşme tamamlandı, özet mail olarak gönderildi.', updated: '10.10.2025' },
-    { id: '#T002', type: 'Tedarik', title: 'Belirli bir alibaba linki', status: 'Tamamlandı', result: 'Başarısız', explanation: 'Ürünün gümrük işlemleriyle ilgili sorunlar nedeniyle tedarik edilemiyor.', updated: '02.10.2025' },
-    { id: '#T003', type: 'Tedarik', title: 'Ahşap telefon standı', status: 'Bekliyor', result: null, explanation: 'Tedarikçi araştırması devam ediyor.', updated: '11.10.2025' },
-    { id: '#D002', type: 'Danışmanlık', title: 'Pazaryeri Entegrasyonu', status: 'Bekliyor', result: null, explanation: 'Randevu tarihi ve saati için e-posta gönderilecek.', updated: '12.10.2025' },
-];
 
 interface RequestModalProps {
     type: RequestType;

@@ -33,15 +33,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
         setIsLoading(true);
         // Simulate API call
         setTimeout(() => {
-            if (email === 'supplyix@supplyix.com' && password === '12345678') {
-                // Handle "Remember Me" logic on successful login
+            // Admin user check
+            if (email === 'admin@gmail.com' && password === '12345678') {
+                if (rememberMe) {
+                    localStorage.setItem('rememberedEmail', email);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                }
+                navigate('/admin');
+            } 
+            // Regular user check
+            else if (email === 'supplyix@supplyix.com' && password === '12345678') {
                 if (rememberMe) {
                     localStorage.setItem('rememberedEmail', email);
                 } else {
                     localStorage.removeItem('rememberedEmail');
                 }
                 navigate('/dashboard');
-            } else {
+            } 
+            // Invalid credentials
+            else {
                 setError('Geçersiz e-posta adresi veya şifre.');
             }
             setIsLoading(false);

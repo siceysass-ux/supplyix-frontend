@@ -1,6 +1,8 @@
 import React from 'react';
 import { BellIcon, ShoppingCartIcon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from './icons/outline';
 import { CartItem } from './types';
+import { useTheme } from '../../contexts/ThemeContext';
+import ToggleSwitch from './shared/ToggleSwitch';
 
 interface DashboardHeaderProps {
   pageTitle: string;
@@ -28,14 +30,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
   const [isProfileOpen, setProfileOpen] = React.useState(false);
   const profileRef = React.useRef<HTMLDivElement>(null);
 
+  const { theme, toggleTheme } = useTheme();
+
   const hasUnread = React.useMemo(() => notifications.some(n => !n.read), [notifications]);
   const totalItemsInCart = React.useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
-  const subtotal = React.useMemo(() => {
-    return cart.reduce((sum, item) => {
-        const price = typeof item.product.price === 'number' ? item.product.price : item.product.price.min;
-        return sum + (price * item.quantity);
+  const { subtotal, shippingTotal, total } = React.useMemo(() => {
+    const sub = cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+    const shipping = cart.reduce((sum, item) => {
+        const baseShipping = item.product.shippingInfo.shippingCosts[item.destination];
+        const modifier = item.variant.shippingCostModifier;
+        return sum + (baseShipping + modifier) * item.quantity;
     }, 0);
+    return { subtotal: sub, shippingTotal: shipping, total: sub + shipping };
   }, [cart]);
   
   React.useEffect(() => {
@@ -80,17 +87,18 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
   };
 
   return (
-    <header className="flex-shrink-0 bg-white shadow-sm h-16 flex items-center justify-between px-4 sm:px-6 z-10">
+    <header className="flex-shrink-0 bg-white dark:bg-slate-800/50 shadow-sm h-16 flex items-center justify-between px-4 sm:px-6 z-10 border-b border-slate-200 dark:border-slate-700">
       <div className="flex items-center">
-        <h1 className="text-xl font-semibold text-dark-blue sm:block">{pageTitle}</h1>
+        <h1 className="text-xl font-semibold text-dark-blue dark:text-slate-100 sm:block">{pageTitle}</h1>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <ToggleSwitch isDark={theme === 'dark'} onToggle={toggleTheme} />
         {/* Shopping Cart */}
         <div className="relative" ref={cartRef}>
             <button
                 onClick={() => setCartOpen(!isCartOpen)}
-                className="text-slate-500 hover:text-slate-700 relative p-1 rounded-full hover:bg-slate-100"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
                 aria-label="Sepet"
             >
                 <ShoppingCartIcon className="h-6 w-6" />
@@ -101,51 +109,59 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
                 )}
             </button>
             {isCartOpen && (
-                <div className="absolute right-0 mt-2 w-96 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
-                    <div className="p-4 border-b border-slate-200">
-                        <h3 className="text-md font-semibold text-dark-blue">Alışveriş Sepeti</h3>
+                <div className="absolute right-0 mt-2 w-96 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black dark:ring-slate-700 ring-opacity-5 focus:outline-none z-20">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                        <h3 className="text-md font-semibold text-dark-blue dark:text-slate-100">Alışveriş Sepeti</h3>
                     </div>
                     {cart.length === 0 ? (
-                        <div className="p-6 text-center text-sm text-slate-500">
-                            <ShoppingCartIcon className="h-12 w-12 mx-auto text-slate-300 mb-2" />
+                        <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                            <ShoppingCartIcon className="h-12 w-12 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
                             Sepetiniz boş.
                         </div>
                     ) : (
                         <>
-                            <ul className="max-h-80 overflow-y-auto divide-y divide-slate-200 p-2">
+                            <ul className="max-h-80 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-700 p-2">
                                 {cart.map(item => {
-                                    const price = typeof item.product.price === 'number' ? item.product.price : item.product.price.min;
-                                    const variationText = Object.values(item.selectedVariations).join(', ');
+                                    const variationText = Object.values(item.variant.attributes).join(', ');
                                     return (
                                         <li key={item.id} className="p-2 flex items-start space-x-4">
                                             <img src={item.product.images[0]} alt={item.product.name} className="w-16 h-16 rounded-md object-cover flex-shrink-0" />
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-dark-blue truncate">{item.product.name}</p>
-                                                <p className="text-xs text-slate-500 truncate">{variationText}</p>
+                                                <p className="text-sm font-semibold text-dark-blue dark:text-slate-100 truncate">{item.product.name}</p>
+                                                {variationText && <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{variationText}</p>}
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Hedef: <span className="uppercase">{item.destination}</span></p>
                                                 <div className="flex items-center mt-2">
-                                                    <div className="flex items-center border border-slate-200 rounded-md">
-                                                        <button onClick={() => onUpdateCartQuantity(item.id, item.quantity - 1)} className="px-2 py-0.5 text-lg font-semibold text-slate-500 hover:bg-slate-100 rounded-l-md">-</button>
+                                                    <div className="flex items-center border border-slate-200 dark:border-slate-600 rounded-md">
+                                                        <button onClick={() => onUpdateCartQuantity(item.id, item.quantity - 1)} className="px-2 py-0.5 text-lg font-semibold text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l-md">-</button>
                                                         <span className="px-3 py-0.5 text-sm font-medium">{item.quantity}</span>
-                                                        <button onClick={() => onUpdateCartQuantity(item.id, item.quantity + 1)} className="px-2 py-0.5 text-lg font-semibold text-slate-500 hover:bg-slate-100 rounded-r-md">+</button>
+                                                        <button onClick={() => onUpdateCartQuantity(item.id, item.quantity + 1)} className="px-2 py-0.5 text-lg font-semibold text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r-md">+</button>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-right flex flex-col items-end justify-between h-16">
-                                                 <button onClick={() => onRemoveFromCart(item.id)} className="text-slate-400 hover:text-red-500" aria-label="Kaldır">
+                                                 <button onClick={() => onRemoveFromCart(item.id)} className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-500" aria-label="Kaldır">
                                                     <XMarkIcon className="w-4 h-4" />
                                                  </button>
-                                                <p className="text-sm font-bold text-dark-blue">${(price * item.quantity).toFixed(2)}</p>
+                                                <p className="text-sm font-bold text-dark-blue dark:text-slate-100">${(item.variant.price * item.quantity).toFixed(2)}</p>
                                             </div>
                                         </li>
                                     );
                                 })}
                             </ul>
-                            <div className="p-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-md font-semibold text-dark-blue">Ara Toplam:</span>
-                                    <span className="text-xl font-bold text-dark-blue">${subtotal.toFixed(2)}</span>
+                            <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium text-slate-600 dark:text-slate-300">Ara Toplam:</span>
+                                    <span className="font-semibold text-dark-blue dark:text-slate-100">${subtotal.toFixed(2)}</span>
                                 </div>
-                                <button className="w-full bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-focus transition-colors">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium text-slate-600 dark:text-slate-300">Kargo:</span>
+                                    <span className="font-semibold text-dark-blue dark:text-slate-100">${shippingTotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
+                                    <span className="text-md font-semibold text-dark-blue dark:text-slate-100">Toplam:</span>
+                                    <span className="text-xl font-bold text-dark-blue dark:text-slate-100">${total.toFixed(2)}</span>
+                                </div>
+                                <button className="w-full bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-focus transition-colors mt-2">
                                     Ödeme Yap
                                 </button>
                             </div>
@@ -159,7 +175,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
         <div className="relative" ref={notificationsRef}>
             <button 
               onClick={() => setNotificationsOpen(!isNotificationsOpen)} 
-              className="text-slate-500 hover:text-slate-700 relative p-1 rounded-full hover:bg-slate-100"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
               aria-label="Bildirimler"
             >
               <BellIcon className="h-6 w-6" />
@@ -171,28 +187,28 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
               )}
             </button>
             {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
-                    <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-                        <h3 className="text-md font-semibold text-dark-blue">Bildirimler</h3>
+                <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black dark:ring-slate-700 ring-opacity-5 focus:outline-none z-20">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                        <h3 className="text-md font-semibold text-dark-blue dark:text-slate-100">Bildirimler</h3>
                         {hasUnread && (
                           <button onClick={handleMarkAllAsRead} className="text-xs text-primary font-semibold hover:underline">Tümünü okundu işaretle</button>
                         )}
                     </div>
-                    <ul className="max-h-96 overflow-y-auto divide-y divide-slate-200">
+                    <ul className="max-h-96 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-700">
                         {notifications.map((notification, index) => (
                             <li 
                               key={index} 
                               onClick={() => handleMarkOneAsRead(index)}
-                              className={`p-4 hover:bg-slate-50 transition-colors flex items-start space-x-4 cursor-pointer ${!notification.read ? 'bg-primary/5' : ''}`}
+                              className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-start space-x-4 cursor-pointer ${!notification.read ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                             >
                                 <div className="flex-shrink-0">
-                                    <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
                                        {renderNotificationIcon(notification.icon)}
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-dark-blue whitespace-normal">{notification.title}</p>
-                                    <p className="text-xs text-slate-500 mt-1">{notification.date}</p>
+                                    <p className="text-sm font-medium text-dark-blue dark:text-slate-200 whitespace-normal">{notification.title}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{notification.date}</p>
                                 </div>
                                 {!notification.read && <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0" aria-label="Okunmadı"></div>}
                             </li>
@@ -206,21 +222,21 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
         <div className="relative" ref={profileRef}>
             <button 
                 onClick={() => setProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100"
+                className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
                 aria-label="Kullanıcı menüsü"
             >
                 <img className="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/150?u=supplyix" alt="User avatar" />
-                <span className="hidden sm:inline text-sm font-semibold text-dark-blue">Ahmet Yılmaz</span>
-                <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                <span className="hidden sm:inline text-sm font-semibold text-dark-blue dark:text-slate-200">Ahmet Yılmaz</span>
+                <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
             </button>
             {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
-                    <div className="p-4 border-b border-slate-200">
-                        <p className="text-sm font-semibold text-dark-blue truncate">Ahmet Yılmaz</p>
-                        <p className="text-xs text-slate-500 truncate">ahmet@sirket.com</p>
+                <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black dark:ring-slate-700 ring-opacity-5 focus:outline-none z-20">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                        <p className="text-sm font-semibold text-dark-blue dark:text-slate-100 truncate">Ahmet Yılmaz</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">ahmet@sirket.com</p>
                     </div>
                     <div className="py-2">
-                        <a href="#/dashboard/profile-security" onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/profile-security'); }} className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-primary transition-colors w-full text-left">
+                        <a href="#/dashboard/profile-security" onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/profile-security'); }} className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary transition-colors w-full text-left">
                             <UserCircleIcon className="w-5 h-5 mr-3" />
                             Profil & Güvenlik
                         </a>
