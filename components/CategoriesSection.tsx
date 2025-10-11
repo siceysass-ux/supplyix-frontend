@@ -137,7 +137,7 @@ const CategoriesSection: React.FC = () => {
   };
 
   return (
-    <section id="categories" className="py-12 bg-white">
+    <section id="categories" className="py-12 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-6">
         <div className="relative">
             {showLeftButton && (
@@ -151,7 +151,7 @@ const CategoriesSection: React.FC = () => {
             )}
             <div 
                 ref={scrollContainerRef}
-                className="flex overflow-x-auto justify-start md:justify-center border-b border-gray-200 scrollbar-hide"
+                className="flex overflow-x-auto justify-start md:justify-center border-b border-gray-200 dark:border-slate-700 scrollbar-hide"
             >
               {categoriesData.map((category, index) => (
                 <button
@@ -160,7 +160,7 @@ const CategoriesSection: React.FC = () => {
                   className={`px-4 py-3 text-sm font-medium transition-colors duration-300 focus:outline-none whitespace-nowrap ${
                     activeTab === index
                       ? 'border-b-2 border-primary text-primary'
-                      : 'text-gray-500 hover:text-gray-800'
+                      : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200'
                   }`}
                 >
                   {category.name}
@@ -181,10 +181,10 @@ const CategoriesSection: React.FC = () => {
         <div className="mt-8">
           {categoriesData.map((category, index) => (
             <div key={index} className={activeTab === index ? 'block' : 'hidden'}>
-              <div className="bg-neutral p-4 sm:p-6 md:p-8 rounded-lg">
+              <div className="bg-slate-50 dark:bg-slate-800 p-4 sm:p-6 md:p-8 rounded-lg">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {category.products.map((product, pIndex) => (
-                    <div key={pIndex} className="bg-white rounded-lg shadow-sm p-3 space-y-3 flex flex-col items-center">
+                    <div key={pIndex} className="bg-white dark:bg-slate-700 rounded-lg shadow-sm p-3 space-y-3 flex flex-col items-center">
                       <div className="relative aspect-square w-full">
                         <img
                           src={product.imageUrl}

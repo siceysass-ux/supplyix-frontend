@@ -10,10 +10,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, children }) =>
   return (
     <div className="mb-8 md:flex md:items-center md:justify-between">
       <div className="flex-1 min-w-0">
-        <h2 className="text-3xl font-bold leading-tight text-dark-blue sm:truncate">
+        <h2 className="text-3xl font-bold leading-tight text-dark-blue dark:text-slate-100 sm:truncate">
           {title}
         </h2>
-        <p className="mt-2 text-md text-slate-600">
+        <p className="mt-2 text-md text-slate-600 dark:text-slate-400">
           {subtitle}
         </p>
       </div>

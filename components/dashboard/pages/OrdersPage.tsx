@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useMemo } from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';
@@ -18,6 +17,14 @@ interface OrderCardProps {
 const OrderCard: React.FC<OrderCardProps> = ({ order, isExpanded, onToggleDetails, productImages }) => {
     const firstProductInfo = order.products[0];
     const imageUrl = productImages.get(firstProductInfo.name);
+    
+    const { shippingAddress } = order;
+    const fullAddress = [
+        shippingAddress.address,
+        shippingAddress.address2,
+        `${shippingAddress.city}, ${shippingAddress.province || ''} ${shippingAddress.postcode}`,
+        shippingAddress.country
+    ].filter(Boolean).join(', ');
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-300">
@@ -49,7 +56,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, isExpanded, onToggleDetail
                         {order.products.length > 1 && <p className="text-xs text-slate-500 mt-1">ve {order.products.length - 1} diğer ürün</p>}
                         <div className="flex items-center text-sm text-slate-600 mt-2">
                             <UserCircleIcon className="w-4 h-4 mr-1.5 text-slate-400" />
-                            <span className="truncate">{order.customer}</span>
+                            <span className="truncate">{order.shippingAddress.consignee}</span>
                         </div>
                     </div>
                     <div className="text-right">
@@ -93,7 +100,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, isExpanded, onToggleDetail
                         <h4 className="font-semibold text-dark-blue mb-2 text-sm">Teslimat Bilgileri</h4>
                         <div className="flex items-start text-sm text-slate-600">
                             <MapPinIcon className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
-                            <p>{order.address}</p>
+                            <p>{fullAddress}</p>
                         </div>
                          <div className="flex items-start text-sm text-slate-600 mt-2">
                             <TruckIcon className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
@@ -145,7 +152,7 @@ const OrdersPage: React.FC<OrdersPageProps> = ({ navigate, orders, products }) =
         return orders.filter(order => {
             const matchesSearch = searchTerm.trim() === '' ||
                 order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+                order.shippingAddress.consignee.toLowerCase().includes(searchTerm.toLowerCase());
             
             const matchesStatus = statusFilter === 'Tüm Durumlar' || order.status === statusFilter;
 

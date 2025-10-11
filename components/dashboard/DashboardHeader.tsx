@@ -1,5 +1,6 @@
 import React from 'react';
 import { BellIcon, ShoppingCartIcon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from './icons/outline';
+import { LogoutIcon } from './icons/duotone';
 import { CartItem } from './types';
 import { useTheme } from '../../contexts/ThemeContext';
 import ToggleSwitch from './shared/ToggleSwitch';
@@ -7,6 +8,7 @@ import ToggleSwitch from './shared/ToggleSwitch';
 interface DashboardHeaderProps {
   pageTitle: string;
   navigate: (path: string) => void;
+  onLogout: () => void;
   cart: CartItem[];
   onUpdateCartQuantity: (cartItemId: string, newQuantity: number) => void;
   onRemoveFromCart: (cartItemId: string) => void;
@@ -19,7 +21,7 @@ const initialNotifications = [
     { type: 'Sipariş', title: '#S002 numaralı siparişiniz teslim edildi.', date: '08.10.2025', read: true, icon: ShoppingCartIcon },
 ];
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, cart, onUpdateCartQuantity, onRemoveFromCart }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, onLogout, cart, onUpdateCartQuantity, onRemoveFromCart }) => {
   const [isNotificationsOpen, setNotificationsOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState(initialNotifications);
   const notificationsRef = React.useRef<HTMLDivElement>(null);
@@ -97,6 +99,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
         {/* Shopping Cart */}
         <div className="relative" ref={cartRef}>
             <button
+                id="cart-icon-button"
                 onClick={() => setCartOpen(!isCartOpen)}
                 className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
                 aria-label="Sepet"
@@ -161,9 +164,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
                                     <span className="text-md font-semibold text-dark-blue dark:text-slate-100">Toplam:</span>
                                     <span className="text-xl font-bold text-dark-blue dark:text-slate-100">${total.toFixed(2)}</span>
                                 </div>
-                                <button className="w-full bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-focus transition-colors mt-2">
-                                    Ödeme Yap
-                                </button>
+                                <div className="mt-2">
+                                    <button onClick={() => { navigate('/dashboard/cart'); setCartOpen(false); }} className="w-full bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-focus transition-colors">
+                                        Sepete Git
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )}
@@ -222,24 +227,32 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
         <div className="relative" ref={profileRef}>
             <button 
                 onClick={() => setProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
                 aria-label="Kullanıcı menüsü"
             >
-                <img className="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/150?u=supplyix" alt="User avatar" />
+                <img className="h-8 w-8 rounded-full object-cover" src="https://i.pravatar.cc/150?u=supplyix" alt="Profil Avatar" />
                 <span className="hidden sm:inline text-sm font-semibold text-dark-blue dark:text-slate-200">Ahmet Yılmaz</span>
                 <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
             </button>
             {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black dark:ring-slate-700 ring-opacity-5 focus:outline-none z-20">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                        <p className="text-sm font-semibold text-dark-blue dark:text-slate-100 truncate">Ahmet Yılmaz</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">ahmet@sirket.com</p>
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                        <img className="h-12 w-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=supplyix" alt="Profil Avatar" />
+                        <div>
+                            <p className="text-sm font-semibold text-dark-blue dark:text-slate-100 truncate">Ahmet Yılmaz</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">ahmet@sirket.com</p>
+                        </div>
                     </div>
                     <div className="py-2">
                         <a href="#/dashboard/profile-security" onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/profile-security'); }} className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary transition-colors w-full text-left">
                             <UserCircleIcon className="w-5 h-5 mr-3" />
                             Profil & Güvenlik
                         </a>
+                        <div className="border-t border-slate-200 dark:border-slate-700 mx-2 my-1"></div>
+                        <button onClick={onLogout} className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-red-500 dark:hover:text-red-500 transition-colors w-full text-left">
+                            <LogoutIcon className="w-5 h-5 mr-3" />
+                            Çıkış Yap
+                        </button>
                     </div>
                 </div>
             )}

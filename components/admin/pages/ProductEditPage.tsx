@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { Product, Variation, ProductVariant, VariationOption } from '../../dashboard/types';
 import { XMarkIcon, TrashIcon, CameraIcon, PlusIcon, PencilIcon } from '../../dashboard/icons/outline';
@@ -162,6 +164,7 @@ interface ProductEditPageProps {
 const defaultProduct: Product = {
     name: '', sku: '', images: [], category: '', subcategory: '', tags: [],
     price: { min: 0, max: 0 }, isFavorite: false, description: '',
+    isPOD: false,
     variations: [], variants: [],
     shippingInfo: { weight: '', dimensions: '', shippingCosts: { eu: 0, usa: 0 } },
 };
@@ -180,22 +183,33 @@ const presetVariations: Record<string, Variation> = {
   'Ayakkabı Numarası': { type: 'Ayakkabı Numarası', options: Array.from({ length: 11 }, (_, i) => 36 + i).map(num => ({ name: String(num), value: String(num), price: 0, stock: 0, sku: '' })) }
 };
 
-const Input = (props: React.ComponentProps<'input'>) => <input {...props} className="w-full bg-slate-50 p-2 rounded-md border border-slate-300 focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition" />;
-const Textarea = (props: React.ComponentProps<'textarea'>) => <textarea {...props} className="w-full bg-slate-50 p-2 rounded-md border border-slate-300 focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition" />;
-const Select = (props: React.ComponentProps<'select'>) => <select {...props} className="w-full bg-slate-50 p-2 rounded-md border border-slate-300 focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition disabled:bg-slate-200 disabled:cursor-not-allowed">{props.children}</select>;
-const Label = (props: React.ComponentProps<'label'>) => <label {...props} className="text-sm font-bold text-slate-700 mb-1 block">{props.children}</label>;
-const Card = ({children, title}: {children?: React.ReactNode, title: string}) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+// FIX: Switched prop type definitions from `interface` with `extends` to `type` with an intersection (&).
+// This resolves a series of TypeScript errors where properties were not being correctly inherited from the base HTML attribute types.
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean; };
+const Input = ({ hasError, className, ...props }: InputProps) => <input {...props} className={`w-full bg-slate-50 p-2 rounded-md border focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition ${hasError ? 'border-red-500' : 'border-slate-300'} ${className || ''}`} />;
+
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & { hasError?: boolean; };
+const Textarea = ({ hasError, className, ...props }: TextareaProps) => <textarea {...props} className={`w-full bg-slate-50 p-2 rounded-md border focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition ${hasError ? 'border-red-500' : 'border-slate-300'} ${className || ''}`} />;
+
+type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & { hasError?: boolean; };
+const Select = ({ hasError, className, children, ...props }: SelectProps) => <select {...props} className={`w-full bg-slate-50 p-2 rounded-md border focus:bg-white focus:ring-2 focus:ring-primary focus:border-primary transition disabled:bg-slate-200 disabled:cursor-not-allowed ${hasError ? 'border-red-500' : 'border-slate-300'} ${className || ''}`}>{children}</select>;
+
+const Label = (props: React.LabelHTMLAttributes<HTMLLabelElement>) => <label {...props} className={`text-sm font-bold text-slate-700 mb-1 block ${props.className || ''}`}>{props.children}</label>;
+
+const Card = ({children, title, hasError}: {children?: React.ReactNode, title: string, hasError?: boolean}) => (
+    <div className={`bg-white p-6 rounded-xl shadow-sm border ${hasError ? 'border-red-500' : 'border-slate-200'}`}>
         <h2 className="text-lg font-bold text-dark-blue border-b border-slate-200 pb-3 mb-4">{title}</h2>
         <div className="space-y-4">{children}</div>
     </div>
 );
 
+const FieldError = ({ message }: { message?: string }) => message ? <p className="text-red-500 text-xs mt-1">{message}</p> : null;
 
 const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navigate }) => {
     const [formData, setFormData] = useState<Product>(product || defaultProduct);
     const [imageInput, setImageInput] = useState('');
     const [categories] = useState<CategoryType[]>(initialCategories);
+    const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
     const [isVariationModalOpen, setIsVariationModalOpen] = useState(false);
     const [editingVariationIndex, setEditingVariationIndex] = useState<number | null>(null);
@@ -203,6 +217,19 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
 
     const isEditMode = Boolean(product);
     
+    const validate = (): boolean => {
+        const newErrors: Partial<Record<string, string>> = {};
+
+        if (!formData.name.trim()) newErrors.name = "Ürün adı zorunludur.";
+        if ((!formData.variations || formData.variations.length === 0) && (!formData.price.min || formData.price.min <= 0)) newErrors.price = "Fiyat 0'dan büyük olmalıdır.";
+        if (formData.images.length === 0) newErrors.images = "En az bir görsel eklenmelidir.";
+        if (!formData.category) newErrors.category = "Kategori seçimi zorunludur.";
+        if (formData.shippingInfo.shippingCosts.eu <= 0 || formData.shippingInfo.shippingCosts.usa <= 0) newErrors.shipping = "Kargo ücretleri 0'dan büyük olmalıdır.";
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleOpenVariationModal = (index: number | null) => {
         setEditingVariationIndex(index);
         setIsVariationModalOpen(true);
@@ -258,24 +285,40 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
     };
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => {
-             const newState = { ...prev, [name]: value };
-            if (name === 'category') {
-                newState.subcategory = ''; // Reset subcategory when main category changes
-            }
-            return newState;
-        });
+        const { name, value, type } = e.target;
+        
+        if (type === 'checkbox') {
+            const { checked } = e.target as HTMLInputElement;
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData(prev => {
+                 const newState = { ...prev, [name]: value };
+                if (name === 'category') {
+                    newState.subcategory = ''; // Reset subcategory when main category changes
+                }
+                return newState;
+            });
+        }
     };
 
-    const handleNestedChange = (e: React.ChangeEvent<HTMLInputElement>, ...path: string[]) => {
-        const { name, value, type } = e.target;
-        const val = type === 'number' ? parseFloat(value) : value;
+    const handleNestedChange = (e: React.ChangeEvent<HTMLInputElement>, ...path: (string | number)[]) => {
+        const { name, value } = e.target;
+        const val = e.target.type === 'number' ? parseFloat(value) || 0 : value;
+    
         setFormData(prev => {
             const newState = JSON.parse(JSON.stringify(prev));
-            let current = newState;
-            for (let i = 0; i < path.length - 1; i++) { current = current[path[i]]; }
-            current[path[path.length-1]][name] = val;
+            let current: any = newState;
+    
+            for (let i = 0; i < path.length; i++) {
+                current = current[path[i]];
+            }
+    
+            current[name] = val;
+    
+            if (path.length === 1 && path[0] === 'price' && name === 'min' && (!newState.variations || newState.variations.length === 0)) {
+                newState.price.max = val;
+            }
+    
             return newState;
         });
     };
@@ -303,15 +346,66 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const finalData = { ...formData };
-        const allPrices = finalData.variations?.flatMap(v => v.options.map(opt => opt.price)) || [];
-        if (allPrices.length > 0) {
-            finalData.price.min = Math.min(...allPrices);
-            finalData.price.max = Math.max(...allPrices);
-        } else {
-             finalData.price.min = 0;
-             finalData.price.max = 0;
+        if (!validate()) {
+            alert("Lütfen tüm zorunlu (*) alanları doğru bir şekilde doldurun.");
+            return;
         }
+    
+        const finalData = { ...formData };
+        const variationsWithOptions = finalData.variations?.filter(v => v.options && v.options.length > 0) || [];
+    
+        if (variationsWithOptions.length > 0) {
+            const combinations = variationsWithOptions.reduce((acc, variation) => {
+                const res: any[] = [];
+                if (!acc || acc.length === 0) {
+                    return variation.options.map(opt => [{ type: variation.type, option: opt }]);
+                }
+                acc.forEach(existingCombo => {
+                    variation.options.forEach(option => {
+                        res.push([...existingCombo, { type: variation.type, option: option }]);
+                    });
+                });
+                return res;
+            }, [] as any[]);
+    
+            finalData.variants = combinations.map((combo: { type: string; option: VariationOption }[]) => {
+                const attributes: Record<string, string> = {};
+                const skuParts: string[] = [];
+                let price = 0;
+                let stock = Infinity;
+    
+                combo.forEach(item => {
+                    attributes[item.type] = item.option.name;
+                    skuParts.push(item.option.sku || item.option.name.substring(0, 3).toUpperCase());
+                    price += item.option.price;
+                    stock = Math.min(stock, item.option.stock);
+                });
+    
+                return {
+                    sku: (finalData.sku || 'PROD') + '-' + skuParts.join('-'),
+                    attributes,
+                    price,
+                    stock: stock === Infinity ? 0 : stock,
+                    shippingCostModifier: 0,
+                };
+            });
+    
+            const allPrices = finalData.variants.map(v => v.price);
+            if (allPrices.length > 0) {
+                finalData.price.min = Math.min(...allPrices);
+                finalData.price.max = Math.max(...allPrices);
+            }
+        } else {
+            finalData.price.max = finalData.price.min;
+            finalData.variants = [{
+                sku: finalData.sku || `SKU-${Date.now()}`,
+                attributes: {},
+                price: finalData.price.min,
+                stock: 100,
+                shippingCostModifier: 0,
+            }];
+        }
+        
         onSave(finalData);
     };
     
@@ -341,10 +435,29 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                 <div className="lg:col-span-7 space-y-6">
                     <Card title="Temel Bilgiler">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><Label>Ürün Adı *</Label><Input type="text" name="name" value={formData.name} onChange={handleChange} required /></div>
+                            <div>
+                                <Label>Ürün Adı *</Label>
+                                <Input type="text" name="name" value={formData.name} onChange={handleChange} required hasError={!!errors.name} />
+                                <FieldError message={errors.name} />
+                            </div>
                             <div><Label>Ana SKU</Label><Input type="text" name="sku" value={formData.sku} onChange={handleChange} /></div>
                         </div>
+                        {(!formData.variations || formData.variations.length === 0) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Fiyat *</Label>
+                                    <Input type="number" step="0.01" name="min" value={formData.price.min} onChange={(e) => handleNestedChange(e, 'price')} required hasError={!!errors.price} />
+                                    <FieldError message={errors.price} />
+                                </div>
+                            </div>
+                        )}
                         <div><Label>Açıklama</Label><Textarea name="description" value={formData.description} onChange={handleChange} rows={8}></Textarea></div>
+                        <div className="pt-4 border-t border-slate-200">
+                             <label className="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="isPOD" checked={formData.isPOD} onChange={handleChange} className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                                <span className="font-semibold text-dark-blue">Bu bir POD (İsteğe Bağlı Baskı) ürünü mü?</span>
+                            </label>
+                        </div>
                     </Card>
 
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -390,7 +503,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
 
                 {/* Right Column */}
                 <div className="lg:col-span-5 space-y-6">
-                    <Card title="Görseller">
+                    <Card title="Görseller" hasError={!!errors.images}>
                         <div>
                             <Label>Görsel URL'i Ekle</Label>
                             <div className="mt-1 flex gap-2">
@@ -404,6 +517,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                             </label>
                             <input id="file-upload" type="file" className="hidden" onChange={handleImageFileChange} accept="image/*" multiple />
                         </div>
+                        <FieldError message={errors.images} />
                         <div className="grid grid-cols-3 gap-3">
                             {formData.images.map(img => (
                                 <div key={img} className="relative aspect-square">
@@ -416,10 +530,11 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                      <Card title="Kategorizasyon">
                         <div>
                             <Label>Kategori *</Label>
-                            <Select name="category" value={formData.category} onChange={handleChange} required>
+                            <Select name="category" value={formData.category} onChange={handleChange} required hasError={!!errors.category}>
                                 <option value="">Kategori Seçin</option>
                                 {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                             </Select>
+                             <FieldError message={errors.category} />
                         </div>
                         <div>
                             <Label>Alt Kategori</Label>
@@ -436,11 +551,18 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                             </Select>
                         </div>
                     </Card>
-                    <Card title="Kargo Ücretleri">
+                    <Card title="Kargo Ücretleri *" hasError={!!errors.shipping}>
                         <div className="grid grid-cols-2 gap-4">
-                           <div><Label>Kargo Ücreti (EU)</Label><Input type="number" name="eu" value={formData.shippingInfo.shippingCosts.eu} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} /></div>
-                           <div><Label>Kargo Ücreti (USA)</Label><Input type="number" name="usa" value={formData.shippingInfo.shippingCosts.usa} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} /></div>
+                           <div>
+                                <Label>Kargo Ücreti (EU)</Label>
+                                <Input type="number" step="0.01" name="eu" value={formData.shippingInfo.shippingCosts.eu} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} hasError={!!errors.shipping} />
+                            </div>
+                           <div>
+                                <Label>Kargo Ücreti (USA)</Label>
+                                <Input type="number" step="0.01" name="usa" value={formData.shippingInfo.shippingCosts.usa} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} hasError={!!errors.shipping} />
+                            </div>
                         </div>
+                        <FieldError message={errors.shipping} />
                     </Card>
                 </div>
             </div>

@@ -1,53 +1,77 @@
-
-
 import React, { ReactNode } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
-import { CartItem } from './types';
+import { CartItem, NavItem } from './types';
+import { Bars3Icon } from './icons/outline';
 
 interface DashboardLayoutProps {
-  children: ReactNode;
   pageTitle: string;
   isSidebarOpen: boolean;
   setSidebarOpen: (isOpen: boolean) => void;
   navigate: (path: string) => void;
+  onLogout: () => void;
   cart: CartItem[];
   onUpdateCartQuantity: (cartItemId: string, newQuantity: number) => void;
   onRemoveFromCart: (cartItemId: string) => void;
+  children: ReactNode;
+  mainNavItems: NavItem[];
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle, isSidebarOpen, setSidebarOpen, navigate, cart, onUpdateCartQuantity, onRemoveFromCart }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ 
+    pageTitle, 
+    isSidebarOpen, 
+    setSidebarOpen, 
+    navigate, 
+    onLogout,
+    cart,
+    onUpdateCartQuantity,
+    onRemoveFromCart,
+    children,
+    mainNavItems
+}) => {
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-200">
-      {/* New Mobile Menu Trigger */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className={`lg:hidden fixed top-1/2 -translate-y-1/2 left-0 z-20 bg-primary text-white p-2 rounded-r-lg shadow-lg transition-transform duration-300 transform ${
-          isSidebarOpen ? '-translate-x-full' : 'translate-x-0'
-        }`}
-        aria-label="Menüyü aç"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
+    <div className="flex h-screen bg-slate-100 dark:bg-slate-900 font-sans">
       <DashboardSidebar 
-        isOpen={isSidebarOpen} 
-        setIsOpen={setSidebarOpen}
-        navigate={navigate}
+        isSidebarOpen={isSidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+        navigate={navigate} 
+        onLogout={onLogout} 
+        mainNavItems={mainNavItems}
       />
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader 
-          pageTitle={pageTitle}
-          navigate={navigate}
-          cart={cart}
-          onUpdateCartQuantity={onUpdateCartQuantity}
-          onRemoveFromCart={onRemoveFromCart}
-        />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <header className="lg:hidden flex-shrink-0 bg-white dark:bg-slate-800 shadow-sm h-16 flex items-center justify-between px-4 z-10 border-b border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="text-slate-500 dark:text-slate-400 focus:outline-none"
+              aria-label="Open sidebar"
+            >
+              <Bars3Icon className="h-6 w-6" />
+            </button>
+            <a href="#/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
+                <img src="/logo.png" alt="Supplyix Logo" className="h-10 w-auto" />
+            </a>
+            <div className="w-6"></div> {/* Spacer to balance the header */}
+        </header>
+        
+        <div className="flex-1 flex items-stretch overflow-hidden">
+          <main className="flex-1 overflow-y-auto">
+            {/* The sticky header is now part of the scrollable main area */}
+            <div className="sticky top-0 z-10">
+                <DashboardHeader 
+                    pageTitle={pageTitle}
+                    navigate={navigate}
+                    onLogout={onLogout}
+                    cart={cart}
+                    onUpdateCartQuantity={onUpdateCartQuantity}
+                    onRemoveFromCart={onRemoveFromCart}
+                />
+            </div>
+            <div className="p-4 sm:p-6 lg:p-8">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

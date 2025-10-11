@@ -85,8 +85,22 @@ const ManageSupportPage: React.FC<ManageSupportPageProps> = ({ conversations, on
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                                        {convo.status === 'active' && <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'archived')}} className="p-1 text-slate-500 hover:text-primary" title="Arşivle"><ArchiveBoxIcon className="w-4 h-4" /></button>}
-                                        {convo.status !== 'spam' && <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'spam')}} className="p-1 text-slate-500 hover:text-red-500" title="Spam olarak işaretle"><TrashIcon className="w-4 h-4" /></button>}
+                                        {convo.status === 'active' && (
+                                            <>
+                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'archived')}} className="p-1 text-slate-500 hover:text-primary" title="Arşivle"><ArchiveBoxIcon className="w-4 h-4" /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'spam')}} className="p-1 text-slate-500 hover:text-red-500" title="Spam olarak işaretle"><TrashIcon className="w-4 h-4" /></button>
+                                            </>
+                                        )}
+                                        {convo.status === 'archived' && (
+                                            <>
+                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'active')}} className="p-1 text-slate-500 hover:text-green-500" title="Gelen Kutusuna Taşı"><InboxIcon className="w-4 h-4" /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'spam')}} className="p-1 text-slate-500 hover:text-red-500" title="Spam olarak işaretle"><TrashIcon className="w-4 h-4" /></button>
+                                            </>
+                                        )}
+                                        {convo.status === 'spam' && (
+                                            <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'active')}} className="p-1 text-slate-500 hover:text-green-500" title="Gelen Kutusuna Taşı (Spam Değil)"><InboxIcon className="w-4 h-4" /></button>
+                                        )}
+
                                         <button onClick={(e) => { e.stopPropagation(); onToggleReadStatus(convo.id, !convo.isRead)}} className="p-1 text-slate-500 hover:text-blue-500" title={convo.isRead ? "Okunmadı olarak işaretle" : "Okundu olarak işaretle"}>
                                             {convo.isRead ? <EnvelopeIcon className="w-4 h-4" /> : <EnvelopeOpenIcon className="w-4 h-4" />}
                                         </button>

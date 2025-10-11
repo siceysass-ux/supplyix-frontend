@@ -43,11 +43,11 @@ const LiveDemoSection: React.FC = () => {
   };
 
   return (
-    <section id="demo" className="py-20 bg-white overflow-hidden">
+    <section id="demo" className="py-20 bg-white dark:bg-slate-900 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Supplyix'i Çalışırken Görün</h2>
-          <p className="text-lg text-dark-blue">
+          <p className="text-lg text-dark-blue dark:text-slate-300">
             Platformumuzun sezgisel arayüzünü ve güçlü özelliklerini keşfedin. Kayıt olmanıza gerek yok.
           </p>
         </div>
@@ -62,14 +62,14 @@ const LiveDemoSection: React.FC = () => {
                 className={`p-6 rounded-lg border-2 text-left transition-all duration-300 transform hover:-translate-y-1 ${
                   activeIndex === index
                     ? 'bg-primary/5 border-primary shadow-lg shadow-primary/20'
-                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                    : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
               >
                 <div className="flex items-center mb-2">
-                  <Icon iconName={feature.iconName} className={`w-6 h-6 mr-3 ${activeIndex === index ? 'text-primary' : 'text-dark-blue/60'}`} />
-                  <h3 className="text-lg font-bold text-dark-blue">{feature.title}</h3>
+                  <Icon iconName={feature.iconName} className={`w-6 h-6 mr-3 ${activeIndex === index ? 'text-primary' : 'text-dark-blue/60 dark:text-slate-400'}`} />
+                  <h3 className="text-lg font-bold text-dark-blue dark:text-slate-100">{feature.title}</h3>
                 </div>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 dark:text-slate-400 text-sm">
                   {feature.description}
                 </p>
               </button>
@@ -77,13 +77,13 @@ const LiveDemoSection: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 relative">
-             <div className="bg-white rounded-xl border border-gray-200 p-2 shadow-2xl shadow-gray-500/10">
-                <div className="flex items-center space-x-1.5 p-2 border-b border-gray-200">
+             <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-2 shadow-2xl shadow-gray-500/10">
+                <div className="flex items-center space-x-1.5 p-2 border-b border-gray-200 dark:border-slate-700">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
-                <div className="aspect-video bg-neutral rounded-b-lg p-4">
+                <div className="aspect-video bg-slate-50 dark:bg-slate-700 rounded-b-lg p-4">
                     {activeIndex !== null && (
                       <img
                           key={activeIndex}
@@ -102,7 +102,7 @@ const LiveDemoSection: React.FC = () => {
           {demoFeatures.map((feature, index) => {
             const isActive = activeIndex === index;
             return (
-              <div key={index} className={`rounded-lg border-2 transition-all duration-300 ${isActive ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}>
+              <div key={index} className={`rounded-lg border-2 transition-all duration-300 ${isActive ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white dark:bg-slate-800 dark:border-slate-700'}`}>
                 <button
                   onClick={() => toggleAccordion(index)}
                   className="w-full p-6 text-left"
@@ -110,16 +110,16 @@ const LiveDemoSection: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center pr-4">
-                      <Icon iconName={feature.iconName} className={`w-6 h-6 mr-3 flex-shrink-0 ${isActive ? 'text-primary' : 'text-dark-blue/60'}`} />
-                      <h3 className="text-lg font-bold text-dark-blue">{feature.title}</h3>
+                      <Icon iconName={feature.iconName} className={`w-6 h-6 mr-3 flex-shrink-0 ${isActive ? 'text-primary' : 'text-dark-blue/60 dark:text-slate-400'}`} />
+                      <h3 className="text-lg font-bold text-dark-blue dark:text-slate-100">{feature.title}</h3>
                     </div>
                     <Icon iconName="chevron-down" className={`w-5 h-5 text-gray-500 transition-transform duration-300 flex-shrink-0 ${isActive ? 'transform rotate-180' : ''}`} />
                   </div>
                 </button>
                 <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive ? 'max-h-[1000px]' : 'max-h-0'}`}>
                   <div className="px-6 pb-6">
-                    <p className="text-gray-600 text-sm mb-4">{feature.description}</p>
-                    <div className="aspect-video bg-neutral rounded-lg p-2 border border-gray-200">
+                    <p className="text-gray-600 dark:text-slate-400 text-sm mb-4">{feature.description}</p>
+                    <div className="aspect-video bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-gray-200 dark:border-slate-600">
                       <img
                           src={feature.imageUrl}
                           alt={feature.title}

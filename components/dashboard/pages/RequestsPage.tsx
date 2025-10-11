@@ -1,32 +1,76 @@
 
-
-
 import React, { useState } from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';
 import EmptyState from '../shared/EmptyState';
-import { DocumentTextIcon, CubeIcon, AcademicCapIcon, EyeIcon } from '../icons/outline';
+import { DocumentTextIcon, CubeIcon, AcademicCapIcon, EyeIcon, CameraIcon, XMarkIcon } from '../icons/outline';
 import { Request, RequestType } from '../types';
+
+type AddRequestPayload = 
+    | { type: 'Danışmanlık'; title: string; explanation: string; }
+    | { type: 'Tedarik'; productName: string; imageUrls: string[]; referenceLink: string; explanation: string; };
 
 interface RequestModalProps {
     type: RequestType;
     onClose: () => void;
-    onAddRequest: (request: { type: RequestType; title: string; explanation: string; }) => Promise<void>;
+    onAddRequest: (request: AddRequestPayload) => Promise<void>;
 }
 
 const RequestModal: React.FC<RequestModalProps> = ({ type, onClose, onAddRequest }) => {
-    const [title, setTitle] = useState('');
+    // Common fields
     const [explanation, setExplanation] = useState('');
+    
+    // 'Danışmanlık' specific
+    const [title, setTitle] = useState('');
+
+    // 'Tedarik' specific
+    const [productName, setProductName] = useState('');
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [referenceLink, setReferenceLink] = useState('');
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setImageFiles(prev => [...prev, ...Array.from(e.target.files)]);
+        }
+    };
+
+    const handleRemoveImage = (indexToRemove: number) => {
+        setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        await onAddRequest({
-            type,
-            title,
-            explanation
-        });
+        setError('');
+
+        if (type === 'Tedarik') {
+            if (!productName.trim() || imageFiles.length === 0 || !referenceLink.trim() || !explanation.trim()) {
+                setError('Lütfen tüm zorunlu alanları doldurun.');
+                return;
+            }
+            setIsSubmitting(true);
+            await onAddRequest({
+                type,
+                productName,
+                imageUrls: imageFiles.map(file => URL.createObjectURL(file)),
+                referenceLink,
+                explanation
+            });
+        } else { // Danışmanlık
+            if (!title.trim() || !explanation.trim()) {
+                setError('Lütfen tüm zorunlu alanları doldurun.');
+                return;
+            }
+            setIsSubmitting(true);
+            await onAddRequest({
+                type,
+                title,
+                explanation
+            });
+        }
+
         setIsSubmitting(false);
         onClose();
     };
@@ -39,14 +83,59 @@ const RequestModal: React.FC<RequestModalProps> = ({ type, onClose, onAddRequest
                         <h2 className="text-xl font-bold text-dark-blue">{type} İsteği Oluştur</h2>
                     </div>
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                        <div>
-                            <label className="text-sm font-medium text-slate-700">{type === 'Tedarik' ? 'Ürün Adı / Referans Link' : 'Konu'} *</label>
-                            <input value={title} onChange={(e) => setTitle(e.target.value)} type="text" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" required />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium text-slate-700">Açıklama *</label>
-                            <textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={4} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" required></textarea>
-                        </div>
+                        {error && <div className="bg-red-100 text-red-700 p-3 rounded-md text-sm">{error}</div>}
+                        {type === 'Tedarik' ? (
+                            <>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Ürün Adı *</label>
+                                    <input value={productName} onChange={(e) => setProductName(e.target.value)} type="text" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Görsel Yükle *</label>
+                                    <label htmlFor="file-upload" className="mt-1 flex justify-center w-full h-32 px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md cursor-pointer hover:border-primary">
+                                        <div className="space-y-1 text-center">
+                                            <CameraIcon className="mx-auto h-12 w-12 text-slate-400" />
+                                            <div className="flex text-sm text-slate-600">
+                                                <p className="pl-1">Görselleri buraya sürükleyin veya <span className="font-semibold text-primary">dosya seçin</span></p>
+                                            </div>
+                                            <p className="text-xs text-slate-500">PNG, JPG, GIF (Birden fazla seçilebilir)</p>
+                                        </div>
+                                        <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple onChange={handleImageChange} accept="image/*" />
+                                    </label>
+                                    {imageFiles.length > 0 && (
+                                        <div className="mt-2 grid grid-cols-4 gap-2">
+                                            {imageFiles.map((file, index) => (
+                                                <div key={index} className="relative aspect-square">
+                                                    <img src={URL.createObjectURL(file)} alt="Önizleme" className="w-full h-full object-cover rounded-md" />
+                                                    <button type="button" onClick={() => handleRemoveImage(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-black/80">
+                                                        <XMarkIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Referans Link (Ürünün bulunduğu sayfa) *</label>
+                                    <input value={referenceLink} onChange={(e) => setReferenceLink(e.target.value)} type="url" placeholder="https://..." className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Mesajınız *</label>
+                                    <textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={4} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary"></textarea>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Konu *</label>
+                                    <input value={title} onChange={(e) => setTitle(e.target.value)} type="text" className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" required />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Açıklama *</label>
+                                    <textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={4} className="w-full bg-slate-100 mt-1 p-2 rounded-md border border-slate-200 focus:ring-primary focus:border-primary" required></textarea>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className="p-4 bg-slate-50 flex justify-end space-x-3 rounded-b-xl">
                         <button type="button" onClick={onClose} disabled={isSubmitting} className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300 disabled:opacity-50">İptal</button>
@@ -73,12 +162,39 @@ const ViewRequestModal: React.FC<ViewRequestModalProps> = ({ request, onClose })
                     <h2 className="text-xl font-bold text-dark-blue">Talep Detayı: {request.id}</h2>
                 </div>
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                     {request.type === 'Tedarik' ? (
+                        <>
+                            <div>
+                                <label className="text-sm font-medium text-slate-700">Ürün Adı</label>
+                                <p className="mt-1 text-slate-900">{request.productName}</p>
+                            </div>
+                             {request.imageUrls && request.imageUrls.length > 0 && (
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Yüklenen Görseller</label>
+                                    <div className="mt-2 grid grid-cols-3 gap-2">
+                                    {request.imageUrls.map((url, index) => (
+                                        <a href={url} key={index} target="_blank" rel="noopener noreferrer">
+                                            <img src={url} alt={`Tedarik talebi görseli ${index + 1}`} className="w-full h-full object-cover rounded-md border border-slate-200 hover:opacity-80" />
+                                        </a>
+                                    ))}
+                                    </div>
+                                </div>
+                            )}
+                            {request.referenceLink && (
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700">Referans Link</label>
+                                    <a href={request.referenceLink} target="_blank" rel="noopener noreferrer" className="mt-1 text-primary hover:underline block truncate">{request.referenceLink}</a>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                         <div>
+                            <label className="text-sm font-medium text-slate-700">Konu</label>
+                            <p className="mt-1 text-slate-900">{request.title}</p>
+                        </div>
+                    )}
                     <div>
-                        <label className="text-sm font-medium text-slate-700">Başlık</label>
-                        <p className="mt-1 text-slate-900">{request.title}</p>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-slate-700">Açıklama</label>
+                        <label className="text-sm font-medium text-slate-700">Mesaj</label>
                         <p className="mt-1 text-slate-600 whitespace-pre-line">{request.explanation}</p>
                     </div>
                 </div>
@@ -94,7 +210,7 @@ const ViewRequestModal: React.FC<ViewRequestModalProps> = ({ request, onClose })
 interface RequestsPageProps {
     navigate: (path: string) => void;
     requests: Request[];
-    onAddRequest: (request: { type: RequestType; title: string; explanation: string; }) => Promise<void>;
+    onAddRequest: (request: AddRequestPayload) => Promise<void>;
 }
 
 const RequestsPage: React.FC<RequestsPageProps> = ({ navigate, requests, onAddRequest }) => {
@@ -136,7 +252,7 @@ const RequestsPage: React.FC<RequestsPageProps> = ({ navigate, requests, onAddRe
                                 <tr>
                                     <th scope="col" className="px-6 py-3">Talep #</th>
                                     <th scope="col" className="px-6 py-3">Tür</th>
-                                    <th scope="col" className="px-6 py-3">Başlık</th>
+                                    <th scope="col" className="px-6 py-3">Konu / Ürün</th>
                                     <th scope="col" className="px-6 py-3">Durum</th>
                                     <th scope="col" className="px-6 py-3">Sonuç</th>
                                     <th scope="col" className="px-6 py-3 text-right">İşlemler</th>
@@ -147,7 +263,9 @@ const RequestsPage: React.FC<RequestsPageProps> = ({ navigate, requests, onAddRe
                                     <tr key={req.id} className="hover:bg-slate-50">
                                         <td className="px-6 py-4 whitespace-nowrap font-semibold text-primary">{req.id}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-dark-blue font-medium">{req.type}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-slate-900 max-w-sm truncate">{req.title}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-slate-900 max-w-sm truncate">
+                                            {req.type === 'Tedarik' ? req.productName : req.title}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <StatusBadge status={req.status} />
                                         </td>

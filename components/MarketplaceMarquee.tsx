@@ -16,13 +16,13 @@ const MarketplaceMarquee: React.FC = () => {
     const extendedLogos = [...marketplaces, ...marketplaces];
 
     return (
-        <section className="bg-white py-16 md:py-20">
+        <section className="bg-white dark:bg-slate-900 py-16 md:py-20">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-primary">
                         Satış Yapabileceğiniz Platformlar
                     </h2>
-                    <p className="mt-3 text-lg text-dark-blue">
+                    <p className="mt-3 text-lg text-dark-blue dark:text-slate-300">
                         dilediğiniz pazar yerinde satış yapın
                     </p>
                 </div>

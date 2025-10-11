@@ -31,7 +31,7 @@ const featureStepsData = [
 
 const FeatureSteps: React.FC = () => {
   return (
-    <section className="bg-white dark:bg-dark-blue/20 py-16 md:py-20">
+    <section className="bg-white dark:bg-slate-900 py-16 md:py-20">
       <div className="container mx-auto max-w-7xl px-4 md:px-6">
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center">
@@ -48,7 +48,7 @@ const FeatureSteps: React.FC = () => {
           {featureStepsData.map((step, index) => (
             <div
               key={index}
-              className={`flex flex-col text-center p-4 md:p-6 bg-neutral/60 dark:bg-neutral-900/90 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 border-primary ${index === 4 ? 'col-span-2 md:col-span-1' : ''}`}
+              className={`flex flex-col text-center p-4 md:p-6 bg-slate-50/60 dark:bg-slate-800/50 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 border-primary ${index === 4 ? 'col-span-2 md:col-span-1' : ''}`}
               aria-label={`${index + 1}. ${step.title}`}
             >
                 {/* Icon Container */}

@@ -1,7 +1,4 @@
-
-
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Product, ProductVariant, VariationOption } from '../types';
 import { StarIcon as StarIconOutline, ShoppingCartIcon, ArrowDownTrayIcon, ClipboardIcon } from '../icons/outline';
 import { StarIcon as StarIconSolid } from '../icons/solid';
@@ -13,7 +10,7 @@ interface ProductDetailPageProps {
     product?: Product;
     toggleFavorite: (productName: string) => void;
     navigate: (path: string) => void;
-    addToCart: (product: Product, variant: ProductVariant, destination: 'eu' | 'usa', quantity?: number) => void;
+    addToCart: (product: Product, variant: ProductVariant, destination: 'eu' | 'usa', quantity: number, podFile?: File) => void;
 }
 
 const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFavorite, navigate, addToCart }) => {
@@ -24,6 +21,9 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
     const [copySuccess, setCopySuccess] = useState('');
     const [zoomPosition, setZoomPosition] = useState('50% 50%');
     const [addSuccess, setAddSuccess] = useState(false);
+    const [podFile, setPodFile] = useState<File | null>(null);
+    
+    const addToCartButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (product) {
@@ -67,11 +67,60 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
         );
     }
 
+    const handlePodFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPodFile(e.target.files ? e.target.files[0] : null);
+    };
+
     const handleAddToCart = () => {
         if (product && selectedVariant) {
-            addToCart(product, selectedVariant, selectedDestination);
+             if (product.isPOD && !podFile) {
+                alert("Lütfen baskı için bir dosya yükleyin.");
+                return;
+            }
+            addToCart(product, selectedVariant, selectedDestination, 1, podFile || undefined);
+    
+            const cartIcon = document.getElementById('cart-icon-button');
+            if (addToCartButtonRef.current && cartIcon) {
+                const buttonRect = addToCartButtonRef.current.getBoundingClientRect();
+                const cartRect = cartIcon.getBoundingClientRect();
+    
+                const logoEl = document.createElement('div');
+    
+                logoEl.style.position = 'fixed';
+                logoEl.style.zIndex = '9999';
+                logoEl.style.borderRadius = '12px';
+                logoEl.style.backgroundColor = 'white';
+                logoEl.style.padding = '5px';
+                logoEl.style.width = '60px';
+                logoEl.style.height = '60px';
+                logoEl.style.display = 'flex';
+                logoEl.style.alignItems = 'center';
+                logoEl.style.justifyContent = 'center';
+                logoEl.style.pointerEvents = 'none';
+    
+                const img = document.createElement('img');
+                img.src = '/logo.png';
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                logoEl.appendChild(img);
+    
+                logoEl.style.setProperty('--start-left', `${buttonRect.left + buttonRect.width / 2 - 30}px`);
+                logoEl.style.setProperty('--start-top', `${buttonRect.top + buttonRect.height / 2 - 30}px`);
+                logoEl.style.setProperty('--end-left', `${cartRect.left + cartRect.width / 2 - 15}px`);
+                logoEl.style.setProperty('--end-top', `${cartRect.top + cartRect.height / 2 - 15}px`);
+                
+                logoEl.addEventListener('animationend', () => {
+                    if (document.body.contains(logoEl)) {
+                        document.body.removeChild(logoEl);
+                    }
+                });
+    
+                logoEl.classList.add('fly-to-cart-animation');
+                document.body.appendChild(logoEl);
+            }
+    
             setAddSuccess(true);
-            setTimeout(() => setAddSuccess(false), 2000);
+            setTimeout(() => setAddSuccess(false), 3000);
         }
     };
     
@@ -84,19 +133,54 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
         setIsDownloading(true);
         try {
             const zip = new JSZip();
-            const fetchImage = (url: string) => fetch(url).then(res => res.blob());
-            const imagePromises = product.images.map((imgUrl, index) => 
-                fetchImage(imgUrl).then(blob => ({
-                    blob,
-                    name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.${blob.type.split('/')[1]}`
-                }))
-            );
+            
+            const convertToPngBlob = (blob: Blob): Promise<Blob> => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const url = URL.createObjectURL(blob);
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) {
+                            reject(new Error('Could not get canvas context'));
+                            return;
+                        }
+                        ctx.drawImage(img, 0, 0);
+                        canvas.toBlob((pngBlob) => {
+                            if (pngBlob) {
+                                resolve(pngBlob);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed'));
+                            }
+                            URL.revokeObjectURL(url);
+                        }, 'image/png');
+                    };
+                    img.onerror = () => {
+                        reject(new Error('Image loading failed'));
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                });
+            };
+
+            const imagePromises = product.images.map(async (imgUrl, index) => {
+                const originalBlob = await fetch(imgUrl).then(res => res.blob());
+                const pngBlob = await convertToPngBlob(originalBlob);
+                return {
+                    blob: pngBlob,
+                    name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.png`
+                };
+            });
+    
             const imageBlobs = await Promise.all(imagePromises);
             imageBlobs.forEach(({ blob, name }) => zip.file(name, blob));
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${product.name.replace(/\s+/g, '_')}_images.zip`);
         } catch (error) {
             console.error("Error downloading images:", error);
+            alert("Görseller indirilirken bir hata oluştu.");
         } finally {
             setIsDownloading(false);
         }
@@ -120,6 +204,41 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
 
     return (
         <div className="space-y-8">
+             <style>{`
+                @keyframes fade-in-fast {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .animate-fade-in-fast {
+                    animation: fade-in-fast 0.3s ease-out;
+                }
+                @keyframes fly-to-cart {
+                    0% {
+                        left: var(--start-left);
+                        top: var(--start-top);
+                        transform: scale(0);
+                        opacity: 0.5;
+                        box-shadow: 0 0 5px 2px rgba(59, 130, 246, 0.2);
+                    }
+                    20% {
+                        left: var(--start-left);
+                        top: var(--start-top);
+                        transform: scale(1.1);
+                        opacity: 1;
+                        box-shadow: 0 0 30px 10px rgba(59, 130, 246, 0.6);
+                    }
+                    100% {
+                        left: var(--end-left);
+                        top: var(--end-top);
+                        transform: scale(0.1);
+                        opacity: 0;
+                        box-shadow: 0 0 5px 2px rgba(59, 130, 246, 0.2);
+                    }
+                }
+                .fly-to-cart-animation {
+                    animation: fly-to-cart 1.2s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+                }
+            `}</style>
             <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Thumbnails */}
@@ -188,11 +307,37 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                             </div>
                         </div>
 
+                        {product.isPOD && (
+                            <div className="mt-6">
+                                <h3 className="text-sm font-semibold text-slate-700 mb-2">Baskı Dosyası Yükle *</h3>
+                                {podFile ? (
+                                    <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50">
+                                        <p className="text-sm font-medium text-slate-700 truncate flex-grow">{podFile.name}</p>
+                                        <button onClick={() => setPodFile(null)} className="text-xs font-semibold text-red-500 hover:underline flex-shrink-0">Kaldır</button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label htmlFor="pod-upload" className="cursor-pointer bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary block transition-colors">
+                                            <p className="text-sm text-slate-600">Dosya seçmek için tıklayın veya sürükleyip bırakın.</p>
+                                        </label>
+                                        <input type="file" id="pod-upload" className="hidden" onChange={handlePodFileChange} accept="image/png, image/jpeg, image/svg+xml, image/webp, .psd, .ai" />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
-                            <button onClick={handleAddToCart} disabled={addSuccess || selectedVariant.stock === 0} className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-focus transition-colors flex items-center justify-center text-base disabled:bg-green-500 disabled:cursor-not-allowed">
-                               <ShoppingCartIcon className="w-5 h-5 mr-2" /> 
-                               {selectedVariant.stock === 0 ? 'Tükendi' : (addSuccess ? 'Sepete Eklendi!' : 'Sepete Ekle')}
-                            </button>
+                            <div className="flex gap-3">
+                                <button ref={addToCartButtonRef} onClick={handleAddToCart} disabled={addSuccess || selectedVariant.stock === 0 || (product.isPOD && !podFile)} className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-focus transition-colors flex items-center justify-center text-base disabled:bg-primary/50 disabled:cursor-not-allowed">
+                                   <ShoppingCartIcon className="w-5 h-5 mr-2" /> 
+                                   {selectedVariant.stock === 0 ? 'Tükendi' : (product.isPOD && !podFile) ? 'Dosya Yüklemeniz Gerekli' : (addSuccess ? 'Sepete Eklendi!' : 'Sepete Ekle')}
+                                </button>
+                                {addSuccess && (
+                                    <button onClick={() => navigate('/dashboard/cart')} className="w-full bg-dark-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-dark-blue/80 transition-all text-base flex items-center justify-center animate-fade-in-fast">
+                                        Sepete Git
+                                    </button>
+                                )}
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <button onClick={() => toggleFavorite(product.name)} className={`font-bold py-3 rounded-lg transition-colors flex items-center justify-center border-2 ${product.isFavorite ? 'bg-primary/10 border-primary text-primary' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'}`}>
                                     {product.isFavorite ? <StarIconSolid className="w-5 h-5 mr-2" /> : <StarIconOutline className="w-5 h-5 mr-2" />}

@@ -28,18 +28,18 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ navigate }) => 
     };
 
     return (
-        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <main className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                         <img src="/logo.png" alt="Supplyix Logo" className="h-20 w-auto mx-auto" />
                     </a>
                 </div>
-                <div className="bg-white p-8 md:p-10 rounded-xl border border-gray-200 shadow-xl">
+                <div className="bg-white dark:bg-slate-800 p-8 md:p-10 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl">
                     {isSubmitted ? (
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold text-dark-blue mb-2">Bağlantı Gönderildi</h1>
-                            <p className="text-gray-600">
+                            <h1 className="text-2xl font-bold text-dark-blue dark:text-slate-100 mb-2">Bağlantı Gönderildi</h1>
+                            <p className="text-gray-600 dark:text-slate-300">
                                 {email} adresine bir şifre sıfırlama bağlantısı gönderildi. Lütfen gelen kutunuzu kontrol edin.
                             </p>
                              <button
@@ -52,8 +52,8 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ navigate }) => 
                     ) : (
                         <>
                             <div className="text-center mb-6">
-                                <h1 className="text-2xl font-bold text-dark-blue">Şifreni Sıfırla</h1>
-                                <p className="text-gray-500 mt-1">E-posta adresinize bir sıfırlama bağlantısı göndereceğiz.</p>
+                                <h1 className="text-2xl font-bold text-dark-blue dark:text-slate-100">Şifreni Sıfırla</h1>
+                                <p className="text-gray-500 dark:text-slate-400 mt-1">E-posta adresinize bir sıfırlama bağlantısı göndereceğiz.</p>
                             </div>
 
                             {error && (
@@ -64,13 +64,13 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ navigate }) => 
 
                             <form onSubmit={handleSubmit} noValidate>
                                 <div className="mb-4">
-                                    <label htmlFor="email" className="block text-dark-blue font-bold mb-2">E-posta Adresi</label>
+                                    <label htmlFor="email" className="block text-dark-blue dark:text-slate-200 font-bold mb-2">E-posta Adresi</label>
                                     <input
                                         type="email"
                                         id="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                                         required
                                         disabled={isLoading}
                                     />
@@ -84,7 +84,7 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ navigate }) => 
                                 </button>
                             </form>
 
-                            <p className="text-center text-gray-500 mt-6">
+                            <p className="text-center text-gray-500 dark:text-slate-400 mt-6">
                                 <a href="#/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }} className="text-primary font-bold hover:underline">
                                     Giriş yapmaya geri dön
                                 </a>

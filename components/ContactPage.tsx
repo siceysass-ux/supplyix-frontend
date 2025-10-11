@@ -66,7 +66,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
     };
 
     return (
-        <main className="bg-white flex items-center justify-center py-12 md:py-20 px-4">
+        <main className="bg-white dark:bg-slate-900 flex items-center justify-center py-12 md:py-20 px-4">
              {showBurstAnimation && (
                 <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
                     <div className="animate-burst bg-white p-8 rounded-lg shadow-2xl">
@@ -77,32 +77,32 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
              <div className="relative w-full max-w-lg animate-fade-in-up mt-8">
                 <button
                     onClick={(e) => { e.preventDefault(); navigate('/'); }}
-                    className="absolute top-0 -translate-y-1/2 -left-20 z-10 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral focus:ring-primary"
+                    className="absolute top-0 -translate-y-1/2 -left-20 z-10 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral dark:focus:ring-offset-slate-900 focus:ring-primary"
                     aria-label="Ana Sayfaya Geri Dön"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <div className="bg-white p-8 md:p-10 rounded-xl border border-gray-200 shadow-xl shadow-gray-500/10">
+                <div className="bg-white dark:bg-slate-800 p-8 md:p-10 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl shadow-gray-500/10">
                     {isSubmitted ? (
                         <div className="text-center">
                              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-green-500 mx-auto mb-4 animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h2 className="text-2xl font-bold text-dark-blue mb-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>Mesajınız Gönderildi!</h2>
-                            <p className="text-gray-600 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                            <h2 className="text-2xl font-bold text-dark-blue dark:text-slate-100 mb-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>Mesajınız Gönderildi!</h2>
+                            <p className="text-gray-600 dark:text-slate-300 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                                 Başarıyla e-postanız iletildi. En kısa sürede yanıtlanacaktır.
                             </p>
-                            <p className="text-sm text-gray-500 mt-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                            <p className="text-sm text-gray-500 dark:text-slate-400 mt-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                                 Ana sayfaya yönlendiriliyorsunuz...
                             </p>
                         </div>
                     ) : (
                         <>
                             <div className="text-left mb-8">
-                                <h2 className="text-3xl font-bold text-dark-blue">İletişime Geçin</h2>
-                                <p className="text-gray-500 mt-1">Sorularınız için buradayız!</p>
+                                <h2 className="text-3xl font-bold text-dark-blue dark:text-slate-100">İletişime Geçin</h2>
+                                <p className="text-gray-500 dark:text-slate-400 mt-1">Sorularınız için buradayız!</p>
                             </div>
                              {error && (
                                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert">
@@ -112,40 +112,40 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                             )}
                             <form onSubmit={handleSubmit} noValidate>
                                 <div className="mb-4">
-                                    <label htmlFor="name" className="block text-dark-blue font-bold mb-2">Ad Soyad</label>
+                                    <label htmlFor="name" className="block text-dark-blue dark:text-slate-200 font-bold mb-2">Ad Soyad</label>
                                     <input
                                         type="text"
                                         id="name"
                                         name="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full bg-gray-50 text-gray-800 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary"
                                         required
                                         disabled={isSubmitting}
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="email" className="block text-dark-blue font-bold mb-2">E-posta Adresi</label>
+                                    <label htmlFor="email" className="block text-dark-blue dark:text-slate-200 font-bold mb-2">E-posta Adresi</label>
                                     <input
                                         type="email"
                                         id="email"
                                         name="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-gray-50 text-gray-800 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary"
                                         required
                                         disabled={isSubmitting}
                                     />
                                 </div>
                                 <div className="mb-6">
-                                    <label htmlFor="message" className="block text-dark-blue font-bold mb-2">Mesajınız</label>
+                                    <label htmlFor="message" className="block text-dark-blue dark:text-slate-200 font-bold mb-2">Mesajınız</label>
                                     <textarea
                                         id="message"
                                         name="message"
                                         rows={5}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
-                                        className="w-full bg-gray-50 text-gray-800 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary"
                                         required
                                         disabled={isSubmitting}
                                     ></textarea>

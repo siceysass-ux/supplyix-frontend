@@ -1,201 +1,145 @@
-import React, { useState, useEffect, DragEvent } from 'react';
-import { adminNavItems, adminSecondaryNavItems } from './navItems';
-import { XMarkIcon } from '../dashboard/icons/duotone';
-import { Bars3Icon, PencilIcon } from '../dashboard/icons/outline'; // Sürükleme ve düzenleme ikonu
-import { useTheme } from '../../contexts/ThemeContext';
+import React, { useMemo } from 'react';
+import { secondaryNavItems } from './navItems';
+import { XMarkIcon, UserPlusIcon } from './icons';
+import { PencilIcon } from '../dashboard/icons/outline';
+import { UserRole } from './types';
+import { NavItem } from '../dashboard/types';
 
 interface AdminSidebarProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  isSidebarOpen: boolean;
+  setSidebarOpen: (isOpen: boolean) => void;
   navigate: (path: string) => void;
+  onLogout: () => void;
+  onCreateUser: () => void;
+  currentUserRole: UserRole;
+  adminNavItems: NavItem[];
 }
 
-interface NavItem {
-  path: string;
-  icon: React.ComponentType<any>;
-  name: string;
-}
-
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, navigate }) => {
-  const [isEditingOrder, setIsEditingOrder] = useState(false);
-  const [navItems, setNavItems] = useState<NavItem[]>(adminNavItems as NavItem[]);
-  const [tempNavItems, setTempNavItems] = useState<NavItem[]>([]);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const { theme, toggleTheme } = useTheme();
-
-
-  useEffect(() => {
-    try {
-      const savedOrder = localStorage.getItem('adminNavOrder');
-      if (savedOrder) {
-        const orderedPaths = JSON.parse(savedOrder) as string[];
-        const baseItems = adminNavItems as NavItem[];
-        
-        const orderedItems = orderedPaths
-            .map(path => baseItems.find(item => item.path === path))
-            .filter((item): item is NavItem => !!item);
-
-        const missingItems = baseItems.filter(item => !orderedPaths.includes(item.path));
-        setNavItems([...orderedItems, ...missingItems]);
-      } else {
-        setNavItems(adminNavItems as NavItem[]);
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOpen, navigate, onLogout, onCreateUser, currentUserRole, adminNavItems }) => {
+  const currentPath = window.location.hash.substring(1);
+  
+  const mainNavItems = useMemo(() => {
+      if (currentUserRole === 'product lister') {
+          return adminNavItems.filter(item => 
+              item.name === 'Ürünleri Yönet' || item.name === 'Kategorileri Yönet'
+          );
       }
-    } catch (error) {
-      console.error("Failed to load or parse nav order from localStorage:", error);
-      setNavItems(adminNavItems as NavItem[]);
-    }
-  }, []);
+      return adminNavItems;
+  }, [adminNavItems, currentUserRole]);
 
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
-    if (isEditingOrder) return;
-    if (path === '/' && theme === 'dark') {
-      toggleTheme(); // Switch back to light mode on logout
-    }
     navigate(path);
+    setSidebarOpen(false);
   };
   
-  const handleEditClick = () => {
-    setTempNavItems([...navItems]);
-    setIsEditingOrder(true);
+  const handleCreateUser = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onCreateUser();
+    setSidebarOpen(false);
   };
 
-  const handleSaveClick = () => {
-    setNavItems(tempNavItems);
-    try {
-      localStorage.setItem('adminNavOrder', JSON.stringify(tempNavItems.map(item => item.path)));
-    } catch (error) {
-      console.error("Failed to save nav order to localStorage:", error);
-    }
-    setIsEditingOrder(false);
-  };
-
-  const handleCancelClick = () => {
-    setIsEditingOrder(false);
-  };
-  
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnter = (index: number) => {
-    if (draggedIndex !== null && draggedIndex !== index) {
-      setDragOverIndex(index);
-    }
-  };
-  
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDrop = (targetIndex: number) => {
-    if (draggedIndex === null) return;
-    const items = [...tempNavItems];
-    const [draggedItem] = items.splice(draggedIndex, 1);
-    items.splice(targetIndex, 0, draggedItem);
-    setTempNavItems(items);
-  };
-
-
-  const NavLink: React.FC<{ item: NavItem; index?: number }> = ({ item, index }) => {
-    const { path, icon: Icon, name } = item;
-    const currentPath = window.location.hash;
-    const isActive = (path === '/admin' && currentPath === '#/admin') || (path !== '/admin' && currentPath.startsWith(`#${path}`));
-    
-    const baseClasses = 'flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-semibold';
-    const activeClasses = 'bg-primary text-white shadow-lg shadow-primary/30';
-    const inactiveClasses = 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
-
-    return (
-      <div 
-        draggable={isEditingOrder && index !== undefined}
-        onDragStart={isEditingOrder && index !== undefined ? () => handleDragStart(index) : undefined}
-        onDragEnter={isEditingOrder && index !== undefined ? () => handleDragEnter(index) : undefined}
-        onDragEnd={isEditingOrder ? handleDragEnd : undefined}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={isEditingOrder && index !== undefined ? () => handleDrop(index) : undefined}
-        className={`relative ${isEditingOrder ? 'cursor-grab' : ''} ${draggedIndex === index ? 'opacity-50' : ''}`}
-      >
-        <a
-          href={`#${path}`}
-          onClick={(e) => handleNavigation(e, path)}
-          className={`${baseClasses} ${isActive && !isEditingOrder ? activeClasses : inactiveClasses} w-full`}
-        >
-          {isEditingOrder && index !== undefined && <Bars3Icon className="h-5 w-5 mr-2 text-slate-400 dark:text-slate-500" />}
-          <Icon className={`h-6 w-6 mr-3 flex-shrink-0 ${isActive && !isEditingOrder ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`} />
-          <span className="flex-1">{name}</span>
+  const SidebarContent = () => (
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700">
+      <div className="flex h-16 shrink-0 items-center">
+        <a href="#/admin" onClick={(e) => handleNavigation(e, '/admin')}>
+          <img className="h-12 w-auto" src="/logo.png" alt="Supplyix Admin" />
         </a>
       </div>
-    );
-  };
-  
-  const itemsToDisplay = isEditingOrder ? tempNavItems : navItems;
+      <nav className="flex flex-1 flex-col">
+        <ul role="list" className="flex flex-1 flex-col gap-y-7">
+          <li>
+            <ul role="list" className="-mx-2 space-y-1">
+              {mainNavItems.map((item) => {
+                const isActive = currentPath === item.path || (item.path !== '/admin/home' && currentPath.startsWith(item.path));
+                return (
+                  <li key={item.name}>
+                    <a
+                      href={`#${item.path}`}
+                      onClick={(e) => handleNavigation(e, item.path)}
+                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                        isActive ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      <item.icon className={`h-6 w-6 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`} aria-hidden="true" />
+                      {item.name}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+           {currentUserRole === 'admin' && (
+             <li>
+                <button
+                    onClick={handleCreateUser}
+                    className="w-full group flex items-center justify-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold bg-primary/10 text-primary hover:bg-primary/20"
+                >
+                    <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                    Yeni Kullanıcı Ekle
+                </button>
+            </li>
+           )}
+          <li className="mt-auto">
+            <ul role="list" className="-mx-2 space-y-1">
+              <li>
+                <a
+                  href="#/admin/menu-settings"
+                  onClick={(e) => handleNavigation(e, '/admin/menu-settings')}
+                  className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                  <PencilIcon className="h-6 w-6 shrink-0 text-slate-400 group-hover:text-primary" aria-hidden="true" />
+                  Menüyü Düzenle
+                </a>
+              </li>
+              {secondaryNavItems.map((item) => (
+                <li key={item.name}>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (item.name === 'Çıkış Yap') {
+                          onLogout();
+                      } else {
+                          handleNavigation(e, item.path);
+                      }
+                      setSidebarOpen(false);
+                    }}
+                    className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${item.color} ${item.darkColor} ${item.hoverColor} ${item.darkHoverColor}`}
+                  >
+                    <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
 
   return (
     <>
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity lg:hidden ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsOpen(false)}
-        aria-hidden="true"
-      ></div>
-
-      <aside
-        className={`fixed lg:relative flex-shrink-0 bg-white dark:bg-slate-800/50 border-r border-slate-200 dark:border-slate-700 w-72 h-screen flex flex-col z-40 transition-transform transform ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 h-16 flex-shrink-0">
-          <a href="#/admin" onClick={(e) => handleNavigation(e, '/admin')} className="flex items-center gap-2">
-            <img src="/logo.png" alt="Supplyix Logo" className="h-10 w-auto" />
-            <span className="font-bold text-lg text-dark-blue dark:text-slate-100">Admin</span>
-          </a>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            aria-label="Menüyü kapat"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1" onDragLeave={() => setDragOverIndex(null)}>
-            {itemsToDisplay.map((item, index) => (
-                <div key={item.path}>
-                    {dragOverIndex === index && (
-                        <div className="h-1 bg-primary/50 rounded-full my-1 transition-all" />
-                    )}
-                    <NavLink item={item as NavItem} index={index} />
-                </div>
-            ))}
-             {dragOverIndex === itemsToDisplay.length && (
-                <div className="h-1 bg-primary/50 rounded-full my-1 transition-all" />
-            )}
-        </nav>
-        
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700 space-y-2 flex-shrink-0">
-           {isEditingOrder ? (
-              <div className="flex items-center gap-2">
-                <button onClick={handleSaveClick} className="w-full bg-green-600 text-white font-semibold py-2 rounded-lg text-sm hover:bg-green-700">Kaydet</button>
-                <button onClick={handleCancelClick} className="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600">İptal</button>
-              </div>
-            ) : (
-              <button onClick={handleEditClick} className="w-full text-slate-600 dark:text-slate-400 font-semibold py-2 px-3 rounded-lg text-xs hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center gap-2">
-                <PencilIcon className="w-4 h-4"/>
-                Sıralamayı Düzenle
+      <div className={`relative z-50 lg:hidden ${isSidebarOpen ? 'block' : 'hidden'}`} role="dialog" aria-modal="true">
+        <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)}></div>
+        <div className="fixed inset-0 flex">
+          <div className="relative mr-16 flex w-full max-w-xs flex-1">
+            <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+              <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
+                <span className="sr-only">Close sidebar</span>
+                <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
-            )}
-          {adminSecondaryNavItems.map((item) => (
-            <a href={`#${item.path}`} onClick={(e) => handleNavigation(e, item.path)} className="flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
-               <item.icon className="h-6 w-6 mr-3 flex-shrink-0 text-slate-600 dark:text-slate-400" />
-               <span className="flex-1">{item.name}</span>
-            </a>
-          ))}
+            </div>
+            <SidebarContent />
+          </div>
         </div>
-      </aside>
+      </div>
+      
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <SidebarContent />
+      </div>
+      <div className="hidden lg:block lg:w-72"></div>
     </>
   );
 };

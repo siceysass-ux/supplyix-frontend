@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PaymentFailureModal from './dashboard/shared/PaymentFailureModal';
 
 interface SignupPageProps {
     navigate: (path: string) => void;
@@ -93,17 +94,17 @@ interface LegalModalProps {
 const LegalModal: React.FC<LegalModalProps> = ({ title, content, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in-fast">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-                <div className="flex justify-between items-center p-5 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-dark-blue">{title}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-800 transition-colors text-3xl font-light" aria-label="Kapat">&times;</button>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+                <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-slate-700">
+                    <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100">{title}</h2>
+                    <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-800 dark:hover:text-slate-200 transition-colors text-3xl font-light" aria-label="Kapat">&times;</button>
                 </div>
                 <div className="p-6 overflow-y-auto" style={{ whiteSpace: 'pre-line' }}>
                     {content.split('\n\n').map((paragraph, index) => (
-                        <p key={index} className="mb-4 text-gray-700">{paragraph}</p>
+                        <p key={index} className="mb-4 text-gray-700 dark:text-slate-300">{paragraph}</p>
                     ))}
                 </div>
-                <div className="p-4 border-t border-gray-200 text-right">
+                <div className="p-4 border-t border-gray-200 dark:border-slate-700 text-right">
                      <button onClick={onClose} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-focus transition-colors">Kapat</button>
                 </div>
             </div>
@@ -138,15 +139,15 @@ const RegistrationSuccess: React.FC = () => {
     });
 
     return (
-        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-center overflow-hidden relative">
+        <main className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4 text-center overflow-hidden relative">
             <div className="absolute inset-0 pointer-events-none z-0">{confettiPieces}</div>
-            <div className="relative bg-white p-8 md:p-12 rounded-xl shadow-2xl animate-scale-in z-10">
+            <div className="relative bg-white dark:bg-slate-800 p-8 md:p-12 rounded-xl shadow-2xl animate-scale-in z-10">
                 <img src="/logo.png" alt="Supplyix Logo" className="h-20 w-auto mx-auto mb-6" />
-                <h1 className="text-3xl font-bold text-dark-blue mb-4">Hoş Geldiniz!</h1>
-                <p className="text-gray-600">
+                <h1 className="text-3xl font-bold text-dark-blue dark:text-slate-100 mb-4">Hoş Geldiniz!</h1>
+                <p className="text-gray-600 dark:text-slate-300">
                     Kaydınız başarıyla tamamlandı.
                 </p>
-                <p className="text-sm text-gray-500 mt-6">
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-6">
                     Giriş yapma sayfasına yönlendiriliyorsunuz...
                 </p>
             </div>
@@ -190,6 +191,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [modalContent, setModalContent] = useState<{title: string, content: string} | null>(null);
     const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
+    const [showPaymentFailure, setShowPaymentFailure] = useState(false);
 
     useEffect(() => {
         if (!plan) {
@@ -274,6 +276,12 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (validateStep3()) {
+            // DEMO: Simulate payment failure if CVC is not '123'
+            if (formData.cardCVC !== '123') {
+                setShowPaymentFailure(true);
+                return;
+            }
+
             // Simulate final submission
             console.log("Form Submitted: ", formData);
             setIsRegistrationComplete(true);
@@ -292,23 +300,23 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
             case 1:
                 return (
                     <div>
-                        <h2 className="text-xl font-bold text-dark-blue mb-4">Adım 1: Kişisel Bilgiler</h2>
+                        <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-4">Adım 1: Kişisel Bilgiler</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Ad Soyad *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Şifre *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Şifreyi Doğrula *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Telefon Numarası *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="tcKimlik" value={formData.tcKimlik} onChange={handleChange} placeholder="T.C. Kimlik No *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.tcKimlik ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="vergiKimlik" value={formData.vergiKimlik} onChange={handleChange} placeholder="Vergi Kimlik No (Opsiyonel)" className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300" />
-                            <input name="referans" value={formData.referans} onChange={handleChange} placeholder="Referans Kodu (Opsiyonel)" className="w-full bg-gray-50 p-3 rounded-lg border border-gray-300" />
+                            <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Ad Soyad *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Şifre *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Şifreyi Doğrula *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Telefon Numarası *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="tcKimlik" value={formData.tcKimlik} onChange={handleChange} placeholder="T.C. Kimlik No *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.tcKimlik ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="vergiKimlik" value={formData.vergiKimlik} onChange={handleChange} placeholder="Vergi Kimlik No (Opsiyonel)" className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600" />
+                            <input name="referans" value={formData.referans} onChange={handleChange} placeholder="Referans Kodu (Opsiyonel)" className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600" />
                         </div>
                         <div className="mt-4 space-y-2">
-                            <label className="flex items-start text-sm text-gray-600">
+                            <label className="flex items-start text-sm text-gray-600 dark:text-slate-300">
                                 <input type="checkbox" name="acceptPrivacy" checked={formData.acceptPrivacy} onChange={handleChange} className="mt-1 mr-2 h-4 w-4" />
                                 <span>Supplyix’e üye olarak kişisel verilerimin, <button type="button" onClick={() => setModalContent({ title: privacyPolicyTitle, content: privacyPolicyText })} className="text-primary underline font-semibold">Aydınlatma Metni</button> kapsamında işlenmesini kabul ediyorum.</span>
                             </label>
-                            <label className="flex items-start text-sm text-gray-600">
+                            <label className="flex items-start text-sm text-gray-600 dark:text-slate-300">
                                 <input type="checkbox" name="acceptTerms" checked={formData.acceptTerms} onChange={handleChange} className="mt-1 mr-2 h-4 w-4" />
                                 <span>Bununla birlikte <button type="button" onClick={() => setModalContent({ title: termsOfServiceTitle, content: termsOfServiceText })} className="text-primary underline font-semibold">Üyelik Sözleşmesi</button>’ni okudum ve kabul ediyorum.</span>
                             </label>
@@ -319,10 +327,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
             case 2:
                 return (
                     <div>
-                        <h2 className="text-xl font-bold text-dark-blue mb-4">Adım 2: Kullandığınız Platformlar</h2>
+                        <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-4">Adım 2: Kullandığınız Platformlar</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {platformsData.map(p => (
-                                <label key={p.name} className={`p-4 border rounded-lg cursor-pointer text-center font-semibold flex items-center justify-center h-20 transition-colors ${formData.platforms.includes(p.name) ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-gray-300 hover:border-gray-400'}`}>
+                                <label key={p.name} className={`p-4 border rounded-lg cursor-pointer text-center font-semibold flex items-center justify-center h-20 transition-colors ${formData.platforms.includes(p.name) ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 dark:bg-slate-700 border-gray-300 dark:border-slate-600 dark:text-slate-200 hover:border-gray-400 dark:hover:border-slate-500'}`}>
                                     <input type="checkbox" className="hidden" onChange={() => handlePlatformChange(p.name)} />
                                     {p.logo && <img src={p.logo} alt={`${p.name} logo`} className="h-6 max-w-[24px] object-contain mr-2" />}
                                     <span className="text-sm">{p.name}</span>
@@ -335,16 +343,16 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
             case 3:
                 return (
                     <div>
-                         <h2 className="text-xl font-bold text-dark-blue mb-6">Adım 3: Ödeme Bilgileri</h2>
+                         <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-6">Adım 3: Ödeme Bilgileri</h2>
                          <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg mb-6 text-center">
-                            <p className="font-bold text-dark-blue">Seçilen Plan: <span className="text-primary">{plan}</span> - <span className="text-primary">${price}</span></p>
+                            <p className="font-bold text-dark-blue dark:text-slate-200">Seçilen Plan: <span className="text-primary">{plan}</span> - <span className="text-primary">${price}</span></p>
                          </div>
                          <div className="space-y-4">
-                            <input name="cardName" value={formData.cardName} onChange={handleChange} placeholder="Kart Üzerindeki İsim *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.cardName ? 'border-red-500' : 'border-gray-300'}`} />
-                            <input name="cardNumber" value={formData.cardNumber} onChange={handleChange} placeholder="Kart Numarası *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'}`} />
+                            <input name="cardName" value={formData.cardName} onChange={handleChange} placeholder="Kart Üzerindeki İsim *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardName ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                            <input name="cardNumber" value={formData.cardNumber} onChange={handleChange} placeholder="Kart Numarası *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
                             <div className="grid grid-cols-2 gap-4">
-                                <input name="cardExpiry" value={formData.cardExpiry} onChange={handleChange} placeholder="MM/YY *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.cardExpiry ? 'border-red-500' : 'border-gray-300'}`} />
-                                <input name="cardCVC" value={formData.cardCVC} onChange={handleChange} placeholder="CVC *" className={`w-full bg-gray-50 p-3 rounded-lg border ${errors.cardCVC ? 'border-red-500' : 'border-gray-300'}`} />
+                                <input name="cardExpiry" value={formData.cardExpiry} onChange={handleChange} placeholder="MM/YY *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardExpiry ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
+                                <input name="cardCVC" value={formData.cardCVC} onChange={handleChange} placeholder="CVC *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardCVC ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
                             </div>
                          </div>
                     </div>
@@ -355,8 +363,9 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
     const steps = ['Kişisel Bilgiler', 'Platformlar', 'Ödeme'];
 
     return (
-        <main className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <main className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4">
             {modalContent && <LegalModal title={modalContent.title} content={modalContent.content} onClose={() => setModalContent(null)} />}
+            {showPaymentFailure && <PaymentFailureModal onClose={() => setShowPaymentFailure(false)} />}
             <div className="w-full max-w-2xl">
                 <div className="text-center mb-8">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
@@ -369,22 +378,22 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
                     {steps.map((s, i) => (
                         <React.Fragment key={i}>
                             <div className="flex flex-col items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step > i ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step > i ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'}`}>
                                     {step > i ? '✓' : i + 1}
                                 </div>
-                                <p className={`mt-2 text-xs text-center font-semibold ${step > i ? 'text-primary' : 'text-gray-500'}`}>{s}</p>
+                                <p className={`mt-2 text-xs text-center font-semibold ${step > i ? 'text-primary' : 'text-gray-500 dark:text-slate-400'}`}>{s}</p>
                             </div>
-                            {i < steps.length - 1 && <div className={`flex-1 h-1 mx-2 ${step > i + 1 ? 'bg-primary' : 'bg-gray-200'}`}></div>}
+                            {i < steps.length - 1 && <div className={`flex-1 h-1 mx-2 ${step > i + 1 ? 'bg-primary' : 'bg-gray-200 dark:bg-slate-700'}`}></div>}
                         </React.Fragment>
                     ))}
                 </div>
 
-                <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-xl">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl">
                     <form onSubmit={handleSubmit} noValidate>
                         {renderStep()}
                         <div className="mt-8 flex justify-between">
                             {step > 1 ? (
-                                <button type="button" onClick={handleBack} className="bg-gray-200 text-dark-blue font-bold py-3 px-8 rounded-lg hover:bg-gray-300">Geri</button>
+                                <button type="button" onClick={handleBack} className="bg-gray-200 dark:bg-slate-600 text-dark-blue dark:text-slate-100 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-500">Geri</button>
                             ) : <div></div>}
                             
                             {step < 3 ? (

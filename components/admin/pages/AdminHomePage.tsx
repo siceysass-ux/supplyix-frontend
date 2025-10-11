@@ -1,7 +1,4 @@
 
-
-
-
 import React from 'react';
 import StatCard from '../shared/StatCard';
 import { Order, Request } from '../../dashboard/types';
@@ -46,7 +43,7 @@ const AdminHomePage: React.FC<AdminHomePageProps> = ({ users, orders, requests }
                                 {recentOrders.map(order => (
                                     <tr key={order.id}>
                                         <td className="px-4 py-3 font-semibold text-primary">{order.id}</td>
-                                        <td className="px-4 py-3 text-dark-blue dark:text-slate-200">{order.customer}</td>
+                                        <td className="px-4 py-3 text-dark-blue dark:text-slate-200">{order.shippingAddress.consignee}</td>
                                         <td className="px-4 py-3 font-bold">{order.total}</td>
                                         <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
                                     </tr>

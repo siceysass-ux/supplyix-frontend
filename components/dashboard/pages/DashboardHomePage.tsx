@@ -1,19 +1,25 @@
 
 
-
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
 import { CubeIcon, StarIcon, DocumentTextIcon } from '../icons/outline';
 import StatusBadge from '../shared/StatusBadge';
-import { Order, Request } from '../types';
+import { Order, Request, Announcement } from '../types';
 
 interface DashboardHomePageProps {
   navigate: (path: string) => void;
   orders: Order[];
   requests: Request[];
+  announcements: Announcement[];
 }
 
-const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders, requests }) => {
+const announcementColors = {
+    primary: 'border-primary',
+    blue: 'border-blue-500',
+    green: 'border-green-500',
+};
+
+const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders, requests, announcements }) => {
   
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -117,7 +123,7 @@ const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders,
                             {recentRequests.map(req => (
                                 <tr key={req.id} className="bg-white border-b last:border-b-0 border-slate-200">
                                     <td className="px-6 py-4 text-slate-900">{req.type}</td>
-                                    <td className="px-6 py-4 text-slate-900">{req.title}</td>
+                                    <td className="px-6 py-4 text-slate-900">{req.type === 'Tedarik' ? req.productName : req.title}</td>
                                     <td className="px-6 py-4"><StatusBadge status={req.status} /></td>
                                 </tr>
                             ))}
@@ -133,16 +139,13 @@ const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders,
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-semibold text-dark-blue mb-4">Duyurular & Güncellemeler</h3>
             <div className="space-y-4">
-              <div className="border-l-4 border-primary pl-4">
-                <h4 className="font-semibold text-dark-blue">Yeni Kargo Seçenekleri Eklendi!</h4>
-                <p className="text-sm text-slate-600 mt-1">Artık siparişlerinizde daha fazla kargo firması seçeneğiyle gönderim yapabilirsiniz.</p>
-                <p className="text-xs text-slate-400 mt-2">08.10.2025</p>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold text-dark-blue">Tedarik Havuzuna Yeni Ürünler</h4>
-                <p className="text-sm text-slate-600 mt-1">Elektronik ve ev yaşam kategorilerine 50'den fazla yeni trend ürün eklendi.</p>
-                 <p className="text-xs text-slate-400 mt-2">05.10.2025</p>
-              </div>
+              {announcements.map(announcement => (
+                <div key={announcement.id} className={`border-l-4 ${announcementColors[announcement.type] || 'border-primary'} pl-4`}>
+                    <h4 className="font-semibold text-dark-blue">{announcement.title}</h4>
+                    <p className="text-sm text-slate-600 mt-1">{announcement.description}</p>
+                    <p className="text-xs text-slate-400 mt-2">{announcement.date}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

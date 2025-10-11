@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 import PageHeader from '../shared/PageHeader';
 import StatusBadge from '../shared/StatusBadge';

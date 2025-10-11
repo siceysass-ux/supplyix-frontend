@@ -1,139 +1,109 @@
-import React, { useEffect } from 'react';
-import { mainNavItems, secondaryNavItems } from './navItems';
-import { XMarkIcon } from './icons/duotone';
-import { useTheme } from '../../contexts/ThemeContext';
+import React from 'react';
+import { secondaryNavItems } from './navItems';
+import { XMarkIcon } from './icons/outline';
+import { NavItem } from './types';
 
 interface DashboardSidebarProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  isSidebarOpen: boolean;
+  setSidebarOpen: (isOpen: boolean) => void;
   navigate: (path: string) => void;
+  onLogout: () => void;
+  mainNavItems: NavItem[];
 }
 
-interface NavItem {
-  path: string;
-  icon: React.ComponentType<any>;
-  name: string;
-  color?: string;
-  darkColor?: string;
-  hoverColor?: string;
-  darkHoverColor?: string;
-  activeColor?: string;
-  darkActiveColor?: string;
-}
+const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setSidebarOpen, navigate, onLogout, mainNavItems }) => {
+  const currentPath = window.location.hash.substring(1);
 
-
-const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, setIsOpen, navigate }) => {
-  const { theme, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      const sidebar = document.getElementById('sidebar');
-      if (isOpen && sidebar && !sidebar.contains(event.target as Node)) {
-        const menuButton = document.getElementById('menu-button');
-        if (menuButton && menuButton.contains(event.target as Node)) {
-          return;
-        }
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [isOpen, setIsOpen]);
-
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
-    if (path === '/' && theme === 'dark') {
-      toggleTheme(); // Switch back to light mode on logout
-    }
     navigate(path);
+    setSidebarOpen(false);
   };
 
-  const NavLink: React.FC<{ item: NavItem }> = ({ item }) => {
-    const { path, icon: Icon, name, color, darkColor, hoverColor, darkHoverColor, activeColor, darkActiveColor } = item;
-    const currentPath = window.location.hash;
-    const isActive = (path === '/dashboard' && (currentPath === '#/dashboard' || currentPath === '#/dashboard/')) || (path !== '/dashboard' && path !== '/' && currentPath.startsWith(`#${path}`));
-    
-    const baseClasses = 'flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-semibold';
-    
-    const activeClasses = activeColor 
-        ? `${activeColor} dark:${darkActiveColor || activeColor} text-white shadow-lg` 
-        : 'bg-primary text-white shadow-lg shadow-primary/30';
+  const SidebarContent = () => (
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700">
+      <div className="flex h-16 shrink-0 items-center">
+        <a href="#/dashboard" onClick={(e) => handleNavigation(e, '/dashboard')}>
+          <img className="h-12 w-auto" src="/logo.png" alt="Supplyix" />
+        </a>
+      </div>
+      <nav className="flex flex-1 flex-col">
+        <ul role="list" className="flex flex-1 flex-col gap-y-7">
+          <li>
+            <div className="text-xs font-semibold leading-6 text-slate-400">Ana Panel</div>
+            <ul role="list" className="-mx-2 mt-2 space-y-1">
+              {mainNavItems.map((item) => {
+                const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
+                return (
+                  <li key={item.name}>
+                    <a
+                      href={`#${item.path}`}
+                      onClick={(e) => handleNavigation(e, item.path)}
+                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                        isActive ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      <item.icon className={`h-6 w-6 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`} aria-hidden="true" />
+                      {item.name}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+          <li className="mt-auto">
+             <div className="text-xs font-semibold leading-6 text-slate-400">Hesap</div>
+            <ul role="list" className="-mx-2 mt-2 space-y-1">
+              {secondaryNavItems.map((item) => (
+                <li key={item.name}>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (item.name === 'Çıkış Yap') {
+                          onLogout();
+                      } else {
+                          handleNavigation(e, item.path);
+                      }
+                      setSidebarOpen(false);
+                    }}
+                    className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700"
+                  >
+                    <item.icon className="h-6 w-6 shrink-0 text-slate-400 group-hover:text-primary" aria-hidden="true" />
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
 
-    const inactiveClasses = color && hoverColor 
-        ? `${color} ${darkColor} ${hoverColor} ${darkHoverColor}`
-        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
-    
-    if (name === 'Çıkış Yap') {
-        return (
-             <a
-                href={`#${path}`}
-                onClick={(e) => handleNavigation(e, path)}
-                className={`${baseClasses} ${inactiveClasses}`}
-            >
-                <Icon className={`h-6 w-6 mr-3 flex-shrink-0 ${color || 'text-slate-600'} ${darkColor || 'dark:text-slate-400'}`} />
-                <span className="flex-1">{name}</span>
-            </a>
-        );
-    }
-    
-    return (
-      <a
-        href={`#${path}`}
-        onClick={(e) => handleNavigation(e, path)}
-        className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
-      >
-        <Icon className={`h-6 w-6 mr-3 flex-shrink-0 ${isActive ? 'text-white' : (color || 'text-slate-600')} ${isActive ? '' : (darkColor || 'dark:text-slate-400')}`} />
-        <span className="flex-1">{name}</span>
-      </a>
-    );
-  };
-  
   return (
     <>
-      {/* Overlay for mobile */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity lg:hidden ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsOpen(false)}
-        aria-hidden="true"
-      ></div>
-
-      <aside
-        id="sidebar"
-        className={`fixed lg:relative flex-shrink-0 bg-slate-50 border-r border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 w-72 h-screen flex flex-col z-40 transition-transform transform ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 h-16 flex-shrink-0">
-          <a href="#/dashboard" onClick={(e) => handleNavigation(e, '/dashboard')} aria-label="Panel Ana Sayfa">
-            <img 
-              src="/logo.png" 
-              alt="Supplyix Logo" 
-              className="h-10 w-auto dark:bg-white dark:p-1 dark:rounded-md dark:shadow-[0_0_8px_rgba(255,255,255,0.7)]" 
-            />
-          </a>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            aria-label="Menüyü kapat"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
+      {/* Mobile sidebar */}
+      <div className={`relative z-50 lg:hidden ${isSidebarOpen ? 'block' : 'hidden'}`} role="dialog" aria-modal="true">
+        <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)}></div>
+        <div className="fixed inset-0 flex">
+          <div className="relative mr-16 flex w-full max-w-xs flex-1">
+            <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+              <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
+                <span className="sr-only">Close sidebar</span>
+                <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
+              </button>
+            </div>
+            <SidebarContent />
+          </div>
         </div>
-        
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-          {mainNavItems.map((item) => (
-            <NavLink key={item.name} item={item as NavItem} />
-          ))}
-        </nav>
-        
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700 space-y-2 flex-shrink-0">
-          {secondaryNavItems.map((item) => (
-            <NavLink key={item.name} item={item as NavItem} />
-          ))}
-        </div>
-      </aside>
+      </div>
+      
+      {/* Desktop sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <SidebarContent />
+      </div>
+       <div className="hidden lg:block lg:w-72"></div>
     </>
   );
 };

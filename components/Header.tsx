@@ -11,7 +11,7 @@ const Header: React.FC<HeaderProps> = ({ navigate }) => {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 w-full border-b border-gray-200">
+    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50 w-full border-b border-gray-200 dark:border-slate-700">
       <nav className="container mx-auto px-6 py-2">
         <div className="flex items-center justify-between">
           <a href="#" onClick={(e) => handleNavigation(e, '/')} className="flex items-center">

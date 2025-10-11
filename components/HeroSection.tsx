@@ -124,7 +124,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
     };
 
     return (
-        <section className="relative bg-white overflow-hidden pb-20 md:pb-0">
+        <section className="relative bg-white dark:bg-slate-900 overflow-hidden pb-20 md:pb-0">
              {showConfetti && <ConfettiBurst />}
              <FlyingLogos />
 
@@ -135,19 +135,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
 
             <div className="relative grid grid-cols-1 md:grid-cols-2">
 
-                <div className="text-dark-blue flex items-center justify-center">
+                <div className="text-dark-blue dark:text-slate-200 flex items-center justify-center">
                     <div className="px-6 py-20 md:py-28 lg:py-32 max-w-2xl text-center md:text-left">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-up text-primary" style={{ animationDelay: '0.2s' }}>
                             Supplyix ile e-ticaret zahmetsiz: Stok Yok, Kargo Yok, Sadece Satış Var!
                         </h1>
-                        <p className="text-lg md:text-xl text-dark-blue mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                        <p className="text-lg md:text-xl text-dark-blue dark:text-slate-300 mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                             Ürünlerini seç, listele, satış yaptıkça biz gönderelim. Sen sadece kazancına odaklan.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 animate-fade-in-up" style={{ animationDelay: '1s' }}>
                             <a href="#pricing" onClick={handleScrollToPricing} className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30 inline-block w-full sm:w-auto text-center">
                                 Şimdi Başla!
                             </a>
-                            <a href="#/contact" onClick={handleContactClick} className="bg-white text-primary border-2 border-primary font-bold py-4 px-10 rounded-lg hover:bg-primary/10 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/10 inline-block w-full sm:w-auto text-center">
+                            <a href="#/contact" onClick={handleContactClick} className="bg-white dark:bg-slate-800 text-primary border-2 border-primary font-bold py-4 px-10 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/10 inline-block w-full sm:w-auto text-center">
                                 İletişime Geç
                             </a>
                         </div>
@@ -156,8 +156,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
 
                 <div className="hidden md:flex items-center justify-center p-8 sm:p-12">
                      <div className="relative mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                        <div className="w-full max-w-lg h-[550px] bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-                            <div className="h-10 bg-white flex items-center justify-between px-4 border-b border-gray-200">
+                        <div className="w-full max-w-lg h-[550px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-slate-700">
+                            <div className="h-10 bg-white dark:bg-slate-800 flex items-center justify-between px-4 border-b border-gray-200 dark:border-slate-700">
                                 <img
                                     src="/logo.png"
                                     alt="Supplyix Logo"
@@ -167,14 +167,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
                                     Giriş Yap
                                 </div>
                             </div>
-                            <div className="h-[calc(100%-2.5rem)] overflow-hidden p-2 bg-neutral">
+                            <div className="h-[calc(100%-2.5rem)] overflow-hidden p-2 bg-neutral-50 dark:bg-slate-700">
                                 <div className="animate-scroll-products">
                                     <div className="grid grid-cols-3 gap-2">
                                         {displayedProducts.map((product, index) => (
-                                            <div key={index} className="bg-white p-2 rounded-lg shadow-md flex flex-col">
+                                            <div key={index} className="bg-white dark:bg-slate-600 p-2 rounded-lg shadow-md flex flex-col">
                                                 <img src={product.imageUrl} alt={`Product showcase ${index + 1}`} className="w-full object-cover rounded-md aspect-square" />
                                                 <div className="pt-2 flex-grow flex flex-col justify-between">
-                                                     <p className="font-bold text-dark-blue text-center text-sm mb-1">{product.price}</p>
+                                                     <p className="font-bold text-dark-blue dark:text-white text-center text-sm mb-1">{product.price}</p>
                                                      <button className="w-full text-xs bg-primary text-white font-semibold py-1 px-2 rounded-md hover:bg-primary-focus transition-colors duration-300">
                                                         Satmaya Başla
                                                      </button>
@@ -193,10 +193,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
                 {notification && (
                      <div
                         key={notification.key}
-                        className="animate-pop-in-out bg-white/90 backdrop-blur-sm rounded-lg shadow-lg py-2 px-4 border border-gray-200"
+                        className="animate-pop-in-out bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg py-2 px-4 border border-gray-200 dark:border-slate-600"
                      >
-                        <p className="text-gray-600 text-sm text-center">
-                            <span className="font-bold text-dark-blue">{notification.location}</span>'dan bir satış: <span className="font-bold text-primary">{notification.price}</span>!
+                        <p className="text-gray-600 dark:text-slate-300 text-sm text-center">
+                            <span className="font-bold text-dark-blue dark:text-slate-100">{notification.location}</span>'dan bir satış: <span className="font-bold text-primary">{notification.price}</span>!
                         </p>
                     </div>
                 )}
