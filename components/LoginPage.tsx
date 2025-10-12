@@ -35,35 +35,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
         setIsLoading(true);
         // Simulate API call
         setTimeout(() => {
-            // Hardcoded Admin user check
-            if (email === 'admin@gmail.com' && password === '12345678') {
-                if (rememberMe) localStorage.setItem('rememberedEmail', email);
-                else localStorage.removeItem('rememberedEmail');
-                navigate('/admin');
-                return;
-            } 
-            
-            // Hardcoded Regular user check
-            if (email === 'supplyix@supplyix.com' && password === '12345678') {
-                if (rememberMe) localStorage.setItem('rememberedEmail', email);
-                else localStorage.removeItem('rememberedEmail');
-                navigate('/dashboard');
-                return;
-            }
+            const user = users.find(u => u.email === email && u.password === password);
 
-            // Check dynamically created users from the state
-            const dynamicUser = users.find(u => u.email === email && u.password === password);
-            if (dynamicUser) {
-                if (rememberMe) localStorage.setItem('rememberedEmail', email);
-                else localStorage.removeItem('rememberedEmail');
-                
-                // Navigate based on role. All dynamically created users are 'member' for now.
-                if (dynamicUser.role === 'admin' || dynamicUser.role === 'product lister') {
+            if (user) {
+                if (rememberMe) {
+                    localStorage.setItem('rememberedEmail', email);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                }
+
+                // Navigate based on user role
+                if (user.role === 'admin' || user.role === 'product lister') {
                     navigate('/admin');
                 } else {
                     navigate('/dashboard');
                 }
-                return;
+                return; // Important to stop execution here
             }
             
             // If no user found
