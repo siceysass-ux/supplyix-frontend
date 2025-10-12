@@ -20,6 +20,26 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
     setSidebarOpen(false);
   };
 
+  const getItemClasses = (item: NavItem, isActive: boolean) => {
+    if (isActive) {
+        return {
+            link: 'bg-primary text-white',
+            icon: 'text-white'
+        };
+    }
+
+    // Default item style
+    const baseLink = 'text-slate-700 dark:text-slate-300';
+    const baseIcon = 'text-slate-400';
+    const hoverClasses = 'hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700';
+    const iconHover = 'group-hover:text-primary';
+
+    return {
+        link: `${baseLink} ${hoverClasses}`,
+        icon: `${baseIcon} ${iconHover}`
+    };
+  };
+
   const SidebarContent = () => (
     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700">
       <div className="flex h-16 shrink-0 items-center">
@@ -34,16 +54,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
             <ul role="list" className="-mx-2 mt-2 space-y-1">
               {mainNavItems.map((item) => {
                 const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
+                const classes = getItemClasses(item, isActive);
                 return (
                   <li key={item.name}>
                     <a
                       href={`#${item.path}`}
                       onClick={(e) => handleNavigation(e, item.path)}
-                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
-                        isActive ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'
-                      }`}
+                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${classes.link}`}
                     >
-                      <item.icon className={`h-6 w-6 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`} aria-hidden="true" />
+                      <item.icon className={`h-6 w-6 shrink-0 ${classes.icon}`} aria-hidden="true" />
                       {item.name}
                     </a>
                   </li>
@@ -67,9 +86,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
                       }
                       setSidebarOpen(false);
                     }}
-                    className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700"
+                    className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${item.colorClass || 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   >
-                    <item.icon className="h-6 w-6 shrink-0 text-slate-400 group-hover:text-primary" aria-hidden="true" />
+                    <item.icon className={`h-6 w-6 shrink-0 ${item.iconColorClass || 'text-slate-400 group-hover:text-primary'}`} aria-hidden="true" />
                     {item.name}
                   </a>
                 </li>

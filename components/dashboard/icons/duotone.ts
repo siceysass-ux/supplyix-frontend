@@ -50,6 +50,10 @@ export const LogoutIcon = createDuotoneIcon(
     "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15",
     "M12.75 12l3-3m0 0l-3-3m3 3H9"
 );
+export const LifebuoyIcon = createDuotoneIcon(
+    "M10.5 5.25a7.5 7.5 0 107.5 7.5",
+    "M12 21a9 9 0 100-18 9 9 0 000 18zm0-5.25a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
+);
 
 
 // Single path icons for simplicity

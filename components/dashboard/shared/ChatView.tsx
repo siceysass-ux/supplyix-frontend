@@ -1,84 +1,129 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { PaperAirplaneIcon, PaperClipIcon } from '../icons/outline';
+import React, { useState, useRef } from 'react';
 import { ChatMessage } from '../types';
+import { PaperAirplaneIcon, PaperClipIcon, XMarkIcon } from '../icons/outline';
 
 interface ChatViewProps {
-  messages: ChatMessage[];
-  onSendMessage: (messageText: string) => void;
-  isSending: boolean;
-  currentUser: 'user' | 'support';
+    messages: ChatMessage[];
+    onSendMessage: (message: Pick<ChatMessage, 'text' | 'imageUrls'>) => void;
+    isUserMessage: (sender: 'user' | 'support') => boolean;
+    isClosed: boolean;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isSending, currentUser }) => {
-    const [newMessage, setNewMessage] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+    });
+};
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMessage, isClosed }) => {
+    const [newMessage, setNewMessage] = useState('');
+    const [attachments, setAttachments] = useState<File[]>([]);
+    const [isReplying, setIsReplying] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setAttachments(prev => [...prev, ...Array.from(e.target.files)]);
+        }
     };
 
-    useEffect(scrollToBottom, [messages]);
+    const handleRemoveAttachment = (indexToRemove: number) => {
+        setAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+    };
 
-    const handleSend = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newMessage.trim()) {
-            onSendMessage(newMessage.trim());
+    const handleSendMessage = async () => {
+        if (newMessage.trim() || attachments.length > 0) {
+            const imageUrls = await Promise.all(attachments.map(fileToBase64));
+            onSendMessage({
+                text: newMessage.trim(),
+                imageUrls,
+            });
             setNewMessage('');
+            setAttachments([]);
+            setIsReplying(false);
         }
     };
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-800/50">
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg, index) => (
-                    <div key={index} className={`flex items-end gap-3 ${msg.sender === currentUser ? 'justify-end' : 'justify-start'}`}>
-                        {msg.sender !== currentUser && (
-                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center font-bold text-slate-500">
-                                {msg.sender === 'support' ? 'S' : 'U'}
+        <div className="flex flex-col">
+            <div className="space-y-6">
+                {messages.map((msg, index) => {
+                    const isUser = isUserMessage(msg.sender);
+                    return (
+                        <div key={index} className="flex flex-col">
+                             <div className={`w-full p-4 rounded-lg border ${isUser ? 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700' : 'bg-primary/10 border-primary/20'}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className={`text-sm font-bold ${isUser ? 'text-dark-blue dark:text-slate-100' : 'text-primary'}`}>
+                                        {isUser ? 'Siz' : 'Destek Ekibi'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{msg.timestamp}</p>
+                                </div>
+                                {msg.text && <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line">{msg.text}</p>}
+                                {msg.imageUrls && msg.imageUrls.length > 0 && (
+                                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {msg.imageUrls.map((url, i) => (
+                                            <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block aspect-square">
+                                                <img src={url} alt={`Ek ${i+1}`} className="w-full h-full object-cover rounded-md border border-slate-300 dark:border-slate-600" />
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        <div
-                            className={`max-w-xs md:max-w-md p-3 rounded-2xl ${
-                                msg.sender === currentUser
-                                    ? 'bg-primary text-white rounded-br-lg'
-                                    : 'bg-slate-200 dark:bg-slate-700 text-dark-blue dark:text-slate-200 rounded-bl-lg'
-                            }`}
-                        >
-                            <p className="text-sm whitespace-pre-line">{msg.text}</p>
-                            <p className={`text-xs mt-1 ${msg.sender === currentUser ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'} text-right`}>
-                                {new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                            </p>
                         </div>
-                         {msg.sender === currentUser && (
-                            <div className="w-8 h-8 rounded-full bg-primary flex-shrink-0 flex items-center justify-center font-bold text-white">
-                                {msg.sender === 'support' ? 'S' : 'U'}
-                            </div>
-                        )}
-                    </div>
-                ))}
-                <div ref={messagesEndRef} />
+                    );
+                })}
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700">
-                <form onSubmit={handleSend} className="flex items-center gap-3">
-                    <button type="button" className="p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary-focus">
-                        <PaperClipIcon className="w-5 h-5" />
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                {isClosed ? (
+                    <div className="text-center p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Bu destek talebi çözülmüştür ve yeni mesaj gönderilemez.</p>
+                    </div>
+                ) : isReplying ? (
+                    <div className="space-y-3">
+                        <textarea
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Mesajınızı buraya yazın..."
+                            rows={5}
+                            className="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-primary focus:border-primary"
+                        />
+                         {attachments.length > 0 && (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                {attachments.map((file, index) => (
+                                    <div key={index} className="relative aspect-square">
+                                        <img src={URL.createObjectURL(file)} alt="Önizleme" className="w-full h-full object-cover rounded-md" />
+                                        <button type="button" onClick={() => handleRemoveAttachment(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-black/80">
+                                            <XMarkIcon className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                            <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:text-primary rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
+                                <PaperClipIcon className="w-6 h-6" />
+                            </button>
+                            <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} accept="image/*" className="hidden" />
+                            <div className="flex gap-3">
+                                <button onClick={() => { setIsReplying(false); setAttachments([]); }} className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-100 dark:hover:bg-slate-500">
+                                    İptal
+                                </button>
+                                <button onClick={handleSendMessage} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus flex items-center gap-2">
+                                    <PaperAirplaneIcon className="w-5 h-5" />
+                                    Gönder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <button onClick={() => setIsReplying(true)} className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-focus">
+                        Talebi Yanıtla
                     </button>
-                    <textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { handleSend(e); } }}
-                        placeholder="Mesajınızı yazın..."
-                        rows={1}
-                        className="flex-1 bg-white dark:bg-slate-700 p-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-primary focus:border-primary resize-none"
-                        disabled={isSending}
-                    />
-                    <button type="submit" className="p-2 bg-primary text-white rounded-full hover:bg-primary-focus disabled:bg-primary/70" disabled={isSending || !newMessage.trim()}>
-                        <PaperAirplaneIcon className="w-5 h-5" />
-                    </button>
-                </form>
+                )}
             </div>
         </div>
     );

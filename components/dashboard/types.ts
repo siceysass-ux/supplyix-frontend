@@ -1,7 +1,6 @@
-// FIX: Import React to resolve "Cannot find namespace 'React'" error.
 import React from 'react';
-import { HomeIcon as DuotoneHomeIcon, CubeIcon as DuotoneCubeIcon, DocumentTextIcon as DuotoneDocumentTextIcon, ShoppingCartIcon as DuotoneShoppingCartIcon, StarIcon, BanknotesIcon, SupportIcon } from './icons/duotone';
-import { HomeIcon, UsersIcon, CubeIcon, ShoppingCartIcon, DocumentTextIcon, Squares2X2Icon, BellIcon, Cog6ToothIcon, PencilIcon, CurrencyDollarIcon } from './icons/outline';
+import { HomeIcon as DuotoneHomeIcon, CubeIcon as DuotoneCubeIcon, DocumentTextIcon as DuotoneDocumentTextIcon, ShoppingCartIcon as DuotoneShoppingCartIcon, StarIcon, BanknotesIcon, CreditCardIcon as DuotoneCreditCardIcon, LifebuoyIcon } from './icons/duotone';
+import { HomeIcon, UsersIcon, CubeIcon, ShoppingCartIcon, DocumentTextIcon, Squares2X2Icon, BellIcon, Cog6ToothIcon, PencilIcon, CurrencyDollarIcon, LifebuoyIcon as OutlineLifebuoyIcon } from './icons/outline';
 
 
 // --- INTERFACES ---
@@ -32,6 +31,7 @@ export interface EventPopup {
 export interface InfluencerCode {
     id: string;
     code: string;
+    discountRate?: number;
 }
 
 export interface Price {
@@ -109,6 +109,7 @@ export interface ShippingAddress {
 
 export interface OrderProduct {
     name: string;
+    sku: string;
     variationDetails: string;
     quantity: number;
     price: string;
@@ -163,24 +164,6 @@ export interface ExtraFee {
     status: 'Ödendi' | 'Beklemede';
 }
 
-export interface ChatMessage {
-    sender: 'user' | 'support';
-    text: string;
-    timestamp: string; // ISO string
-}
-
-export type ConversationStatus = 'active' | 'archived' | 'spam';
-
-export interface Conversation {
-    id: string;
-    userName: string;
-    userAvatar: string;
-    lastMessageTimestamp: string;
-    isRead: boolean;
-    status: ConversationStatus;
-    messages: ChatMessage[];
-}
-
 export interface Announcement {
     id: string;
     title: string;
@@ -193,6 +176,27 @@ export interface FavoriteCategory {
     id: string;
     name: string;
     productNames: string[];
+}
+
+export type TicketStatus = 'Açık' | 'Yanıt Bekleniyor' | 'Çözüldü';
+
+export interface ChatMessage {
+    sender: 'user' | 'support';
+    text?: string;
+    imageUrls?: string[];
+    timestamp: string;
+}
+
+export interface SupportTicket {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    subject: string;
+    status: TicketStatus;
+    messages: ChatMessage[];
+    isReadByAdmin: boolean;
+    lastUpdate: string; // ISO String
 }
 
 
@@ -214,7 +218,7 @@ export const initialAdminNavItems: NavItem[] = [
     { name: 'Ürünleri Yönet', path: '/admin/products', icon: CubeIcon },
     { name: 'Siparişleri Yönet', path: '/admin/orders', icon: ShoppingCartIcon },
     { name: 'Talepleri Yönet', path: '/admin/requests', icon: DocumentTextIcon },
-    { name: 'Destek Yönetimi', path: '/admin/support', icon: SupportIcon },
+    { name: 'Destek Yönetimi', path: '/admin/support', icon: OutlineLifebuoyIcon },
     { name: 'Kategorileri Yönet', path: '/admin/categories', icon: Squares2X2Icon },
     { name: 'Ek Ücretleri Yönet', path: '/admin/extra-fees', icon: CurrencyDollarIcon },
     { name: 'Duyuruları Yönet', path: '/admin/announcements', icon: BellIcon },
@@ -239,8 +243,8 @@ export const initialEventPopup: EventPopup = {
 };
 
 export const initialInfluencerCodes: InfluencerCode[] = [
-    { id: 'inf-1', code: 'INFLUENCER-10' },
-    { id: 'inf-2', code: 'PROMO-2025' },
+    { id: 'inf-1', code: 'INFLUENCER-10', discountRate: 10 },
+    { id: 'inf-2', code: 'PROMO-2025', discountRate: 25 },
 ];
 
 export const initialProducts: Product[] = [
@@ -326,10 +330,10 @@ const defaultShippingAddress: ShippingAddress = {
 };
 
 export const initialOrders: Order[] = [
-    { id: '#S001', creationDate: '2025-10-10', status: 'Teslim Edildi', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', variationDetails: 'Siyah, Deri', quantity: 1, price: '$130.00', destination: 'eu' }], subtotal: '$130.00', shippingTotal: '$20.00', total: '$150.00', shippingCarrier: 'UPS', trackingNumber: '1Z9999999999999999' },
-    { id: '#S002', creationDate: '2025-10-11', status: 'Kargoda', shippingAddress: {...defaultShippingAddress, consignee: 'Ayşe Kaya'}, products: [{ name: 'Akıllı Saat', variationDetails: '', quantity: 2, price: '$179.80', destination: 'usa' }], subtotal: '$179.80', shippingTotal: '$15.00', total: '$194.80', shippingCarrier: 'FedEx', trackingNumber: '999999999999' },
-    { id: '#S003', creationDate: '2025-10-12', status: 'Hazırlanıyor', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', variationDetails: 'Gri, Kumaş', quantity: 1, price: '$125.00', destination: 'eu' }], subtotal: '$125.00', shippingTotal: '$15.00', total: '$140.00' },
-    { id: '#S004', creationDate: '2025-10-13', status: 'Beklemede', shippingAddress: defaultShippingAddress, products: [{ name: 'Özelleştirilebilir T-Shirt', variationDetails: 'Beyaz, M', quantity: 1, price: '$15.00', destination: 'eu', podFileUrl: '/logo.png', podFileName: 'musteri_tasarimi.png' }], subtotal: '$15.00', shippingTotal: '$5.00', total: '$20.00' },
+    { id: '#S001', creationDate: '2025-10-10', status: 'Teslim Edildi', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', sku: 'CHR-001-BLK-LTH', variationDetails: 'Siyah, Deri', quantity: 1, price: '$130.00', destination: 'eu' }], subtotal: '$130.00', shippingTotal: '$20.00', total: '$150.00', shippingCarrier: 'UPS', trackingNumber: '1Z9999999999999999' },
+    { id: '#S002', creationDate: '2025-10-11', status: 'Kargoda', shippingAddress: {...defaultShippingAddress, consignee: 'Ayşe Kaya'}, products: [{ name: 'Akıllı Saat', sku: 'WTCH-01', variationDetails: '', quantity: 2, price: '$179.80', destination: 'usa' }], subtotal: '$179.80', shippingTotal: '$15.00', total: '$194.80', shippingCarrier: 'FedEx', trackingNumber: '999999999999' },
+    { id: '#S003', creationDate: '2025-10-12', status: 'Hazırlanıyor', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', sku: 'CHR-001-GRY-FAB', variationDetails: 'Gri, Kumaş', quantity: 1, price: '$125.00', destination: 'eu' }], subtotal: '$125.00', shippingTotal: '$15.00', total: '$140.00' },
+    { id: '#S004', creationDate: '2025-10-13', status: 'Beklemede', shippingAddress: defaultShippingAddress, products: [{ name: 'Özelleştirilebilir T-Shirt', sku: 'TSH-POD-01-WHT-M', variationDetails: 'Beyaz, M', quantity: 1, price: '$15.00', destination: 'eu', podFileUrl: '/logo.png', podFileName: 'musteri_tasarimi.png' }], subtotal: '$15.00', shippingTotal: '$5.00', total: '$20.00' },
 ];
 
 export const initialRequests: Request[] = [
@@ -339,36 +343,57 @@ export const initialRequests: Request[] = [
 
 export const initialFees: ExtraFee[] = [
     { id: 'fee-1', userId: 'user-1', item: 'Logo Tasarımı', description: 'Yeni mağaza için özel logo tasarımı hizmeti.', amount: '$50.00', date: '2025-10-08', status: 'Ödendi' },
-    { id: 'fee-2', userId: 'user-2', item: 'Ek Depolama Alanı', description: 'POD ürünleri için ek 10GB bulut depolama.', amount: '$5.00', date: '2025-10-11', status: 'Beklemede' },
-];
-
-export const initialConversations: Conversation[] = [
-    {
-        id: 'conv-1',
-        userName: 'Ahmet Yılmaz',
-        userAvatar: 'https://i.pravatar.cc/150?u=ahmet',
-        lastMessageTimestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        isRead: false,
-        status: 'active',
-        messages: [
-            { sender: 'user', text: 'Merhaba, kargo ücretleri hakkında bir sorum vardı.', timestamp: new Date(Date.now() - 1000 * 60 * 6).toISOString() },
-            { sender: 'support', text: 'Elbette, nasıl yardımcı olabilirim?', timestamp: new Date(Date.now() - 1000 * 60 * 5.5).toISOString() },
-            { sender: 'user', text: 'Amerika gönderimlerinde ek gümrük vergisi oluyor mu?', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-        ]
-    },
-    {
-        id: 'conv-2',
-        userName: 'Ayşe Kaya',
-        userAvatar: 'https://i.pravatar.cc/150?u=ayse',
-        lastMessageTimestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        isRead: true,
-        status: 'active',
-        messages: [{ sender: 'user', text: 'Teşekkür ederim, sorunum çözüldü.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() }]
-    }
+    { id: 'fee-2', userId: 'user-1', item: 'Ek Depolama Alanı', description: 'POD ürünleri için ek 10GB bulut depolama.', amount: '$5.00', date: '2025-10-11', status: 'Beklemede' },
 ];
 
 export const initialAnnouncements: Announcement[] = [
     { id: 'ann-1', title: 'Yeni Özellik: Kategori Yönetimi', description: 'Favori ürünlerinizi artık özel kategoriler altında gruplayabilirsiniz.', date: '10.10.2025', type: 'green' },
     { id: 'ann-2', title: 'Sistem Güncellemesi', description: 'Performans iyileştirmeleri ve hata düzeltmeleri yapıldı.', date: '08.10.2025', type: 'blue' },
     { id: 'ann-3', title: 'Önemli Hatırlatma', description: 'Danışmanlık taleplerinize en geç 24 saat içinde yanıt verilecektir.', date: '05.10.2025', type: 'primary' },
+];
+
+export const initialSupportTickets: SupportTicket[] = [
+    {
+        id: 'DSTK-001',
+        userId: 'user-1',
+        userName: 'Ahmet Yılmaz',
+        userEmail: 'ahmet@sirket.com',
+        subject: '#S003 numaralı siparişim hakkında',
+        status: 'Yanıt Bekleniyor',
+        isReadByAdmin: true,
+        lastUpdate: '2025-10-11T10:00:00Z',
+        messages: [
+            { sender: 'user', text: 'Merhaba, #S003 numaralı siparişim ne zaman kargoya verilecek?', timestamp: '2 gün önce' },
+            { sender: 'support', text: 'Elbette Ahmet Bey, hemen kontrol ediyorum. Siparişiniz bugün içinde kargoya verilecektir.', timestamp: '2 gün önce' },
+        ]
+    },
+    {
+        id: 'DSTK-002',
+        userId: 'user-2',
+        userName: 'Ayşe Kaya',
+        userEmail: 'ayse.kaya@example.com',
+        subject: 'Ürün iadesi nasıl yapılıyor?',
+        status: 'Açık',
+        isReadByAdmin: false,
+        lastUpdate: '2025-10-13T09:00:00Z',
+        messages: [
+            { sender: 'user', text: 'Ürün iadesi yapmak istiyorum, süreci anlatabilir misiniz?', timestamp: '1 saat önce' },
+        ]
+    },
+     {
+        id: 'DSTK-003',
+        userId: 'user-1',
+        userName: 'Ahmet Yılmaz',
+        userEmail: 'ahmet@sirket.com',
+        subject: 'Şifremi unuttum',
+        status: 'Çözüldü',
+        isReadByAdmin: true,
+        lastUpdate: '2025-10-05T12:00:00Z',
+        messages: [
+            { sender: 'user', text: 'Şifremi unuttum, yardımcı olur musunuz?', timestamp: '1 hafta önce' },
+            { sender: 'support', text: 'Merhaba, şifre sıfırlama bağlantısını e-posta adresinize gönderdik.', timestamp: '1 hafta önce' },
+            { sender: 'user', text: 'Teşekkürler, hallettim.', timestamp: '1 hafta önce' },
+            { sender: 'support', text: 'Yardımcı olabildiğimize sevindik. Talebinizi kapatıyorum. İyi günler!', timestamp: '1 hafta önce' },
+        ]
+    }
 ];

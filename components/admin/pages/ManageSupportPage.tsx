@@ -1,131 +1,154 @@
-import React, { useState, useMemo } from 'react';
-import { Conversation, ConversationStatus } from '../../dashboard/types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { SupportTicket, TicketStatus, ChatMessage } from '../../dashboard/types';
 import ChatView from '../../dashboard/shared/ChatView';
-import { ArchiveBoxIcon, TrashIcon, EnvelopeOpenIcon, EnvelopeIcon, InboxIcon } from '../icons';
+import { ChevronDownIcon, EnvelopeIcon, EnvelopeOpenIcon } from '../icons';
+import StatusBadge from '../../dashboard/shared/StatusBadge';
 
 interface ManageSupportPageProps {
-  conversations: Conversation[];
-  onAdminReply: (conversationId: string, messageText: string) => void;
-  onSetConversationStatus: (conversationId: string, status: ConversationStatus) => void;
-  onToggleReadStatus: (conversationId: string, isRead: boolean) => void;
+    supportTickets: SupportTicket[];
+    onSendMessageToTicket: (ticketId: string, message: Pick<ChatMessage, 'text' | 'imageUrls'>, sender: 'user' | 'support') => void;
+    onChangeTicketStatus: (ticketId: string, status: TicketStatus) => void;
+    onMarkTicketAsRead: (ticketId: string) => void;
 }
 
-const ManageSupportPage: React.FC<ManageSupportPageProps> = ({ conversations, onAdminReply, onSetConversationStatus, onToggleReadStatus }) => {
-    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<ConversationStatus>('active');
+const ManageSupportPage: React.FC<ManageSupportPageProps> = ({ supportTickets, onSendMessageToTicket, onChangeTicketStatus, onMarkTicketAsRead }) => {
+    const TABS: TicketStatus[] = ['Açık', 'Yanıt Bekleniyor', 'Çözüldü'];
+    const [activeTab, setActiveTab] = useState<TicketStatus>('Açık');
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+    const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
 
-    const filteredConversations = useMemo(() => {
-        return conversations
-            .filter(c => c.status === activeTab)
-            .sort((a, b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
-    }, [conversations, activeTab]);
+    const filteredTickets = useMemo(() => {
+        return supportTickets
+            .filter(t => t.status === activeTab)
+            .sort((a, b) => {
+                if (a.isReadByAdmin !== b.isReadByAdmin) {
+                    return a.isReadByAdmin ? 1 : -1; // Unread first
+                }
+                return new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime(); // Then by last update
+            });
+    }, [supportTickets, activeTab]);
 
-    const selectedConversation = useMemo(() => {
-        return conversations.find(c => c.id === selectedConversationId) || null;
-    }, [conversations, selectedConversationId]);
+    const selectedTicket = useMemo(() => {
+        return supportTickets.find(t => t.id === selectedTicketId);
+    }, [supportTickets, selectedTicketId]);
 
-    const handleSelectConversation = (convo: Conversation) => {
-        setSelectedConversationId(convo.id);
-        if (!convo.isRead) {
-            onToggleReadStatus(convo.id, true);
+    useEffect(() => {
+        // Automatically select the first ticket in the current filter if none is selected
+        if (!selectedTicketId && filteredTickets.length > 0) {
+            setSelectedTicketId(filteredTickets[0].id);
         }
-    };
+        // If the selected ticket is no longer in the filtered list, clear selection
+        if (selectedTicketId && !filteredTickets.some(t => t.id === selectedTicketId)) {
+            setSelectedTicketId(filteredTickets.length > 0 ? filteredTickets[0].id : null);
+        }
+    }, [filteredTickets, selectedTicketId]);
     
-    const tabs: { name: string, status: ConversationStatus }[] = [
-        { name: 'Gelen Kutusu', status: 'active' },
-        { name: 'Arşiv', status: 'archived' },
-        { name: 'Spam', status: 'spam' }
-    ];
+    useEffect(() => {
+        if (selectedTicket && !selectedTicket.isReadByAdmin) {
+            onMarkTicketAsRead(selectedTicket.id);
+        }
+    }, [selectedTicket, onMarkTicketAsRead]);
+
+    const handleStatusChange = (status: TicketStatus) => {
+        if (selectedTicket) {
+            onChangeTicketStatus(selectedTicket.id, status);
+        }
+        setIsStatusMenuOpen(false);
+    };
 
     return (
         <div className="h-[calc(100vh-8rem)] flex bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            {/* Conversations List */}
-            <div className="w-1/3 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+            {/* Ticket List */}
+            <div className="w-full md:w-1/3 border-r border-slate-200 dark:border-slate-700 flex flex-col">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-lg font-bold text-dark-blue dark:text-slate-100">Destek Mesajları</h2>
+                    <h2 className="text-lg font-bold text-dark-blue dark:text-slate-100">Destek Talepleri</h2>
                 </div>
-                <div className="border-b border-slate-200 dark:border-slate-700">
-                    <nav className="flex -mb-px">
-                        {tabs.map(tab => (
-                             <button
-                                key={tab.status}
-                                onClick={() => setActiveTab(tab.status)}
-                                className={`flex-1 py-3 px-1 text-center text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === tab.status
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200'
+                {/* Filter Tabs */}
+                <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex px-2">
+                        {TABS.map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 px-3 py-3 text-sm font-semibold transition-colors focus:outline-none ${
+                                    activeTab === tab 
+                                    ? 'border-b-2 border-primary text-primary' 
+                                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
-                                {tab.name}
+                                {tab}
                             </button>
                         ))}
-                    </nav>
+                    </div>
                 </div>
-                <ul className="overflow-y-auto flex-1">
-                    {filteredConversations.map(convo => {
-                        const lastMessage = convo.messages[convo.messages.length - 1];
-                        return (
-                            <li
-                                key={convo.id}
-                                onClick={() => handleSelectConversation(convo)}
-                                className={`p-4 border-b border-slate-200 dark:border-slate-700 cursor-pointer group transition-colors ${
-                                    selectedConversationId === convo.id ? 'bg-primary/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                                }`}
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                                        {!convo.isRead && <span className="mt-1.5 w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>}
-                                        <img src={convo.userAvatar} alt={convo.userName} className="w-10 h-10 rounded-full flex-shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-baseline">
-                                                <p className="font-semibold text-dark-blue dark:text-slate-100 truncate">{convo.userName}</p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">{new Date(convo.lastMessageTimestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
-                                            </div>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{lastMessage?.text || 'Henüz mesaj yok'}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                                        {convo.status === 'active' && (
-                                            <>
-                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'archived')}} className="p-1 text-slate-500 hover:text-primary" title="Arşivle"><ArchiveBoxIcon className="w-4 h-4" /></button>
-                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'spam')}} className="p-1 text-slate-500 hover:text-red-500" title="Spam olarak işaretle"><TrashIcon className="w-4 h-4" /></button>
-                                            </>
-                                        )}
-                                        {convo.status === 'archived' && (
-                                            <>
-                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'active')}} className="p-1 text-slate-500 hover:text-green-500" title="Gelen Kutusuna Taşı"><InboxIcon className="w-4 h-4" /></button>
-                                                <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'spam')}} className="p-1 text-slate-500 hover:text-red-500" title="Spam olarak işaretle"><TrashIcon className="w-4 h-4" /></button>
-                                            </>
-                                        )}
-                                        {convo.status === 'spam' && (
-                                            <button onClick={(e) => { e.stopPropagation(); onSetConversationStatus(convo.id, 'active')}} className="p-1 text-slate-500 hover:text-green-500" title="Gelen Kutusuna Taşı (Spam Değil)"><InboxIcon className="w-4 h-4" /></button>
-                                        )}
-
-                                        <button onClick={(e) => { e.stopPropagation(); onToggleReadStatus(convo.id, !convo.isRead)}} className="p-1 text-slate-500 hover:text-blue-500" title={convo.isRead ? "Okunmadı olarak işaretle" : "Okundu olarak işaretle"}>
-                                            {convo.isRead ? <EnvelopeIcon className="w-4 h-4" /> : <EnvelopeOpenIcon className="w-4 h-4" />}
-                                        </button>
-                                    </div>
+                {/* Ticket Items */}
+                <div className="flex-1 overflow-y-auto">
+                    {filteredTickets.map(ticket => (
+                        <button
+                            key={ticket.id}
+                            onClick={() => setSelectedTicketId(ticket.id)}
+                            className={`w-full text-left p-4 border-b border-slate-200 dark:border-slate-700 flex items-start gap-3 transition-colors ${
+                                selectedTicketId === ticket.id ? 'bg-primary/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                            }`}
+                        >
+                            <div className="flex-shrink-0 pt-1">
+                                {ticket.isReadByAdmin ? <EnvelopeOpenIcon className="w-5 h-5 text-slate-400" /> : <EnvelopeIcon className="w-5 h-5 text-primary" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-center">
+                                    <p className="font-semibold text-dark-blue dark:text-slate-100 truncate">{ticket.userName}</p>
+                                    {!ticket.isReadByAdmin && <div className="w-2.5 h-2.5 bg-primary rounded-full flex-shrink-0 ml-2" />}
                                 </div>
-                            </li>
-                        )
-                    })}
-                </ul>
+                                <p className="text-sm text-slate-600 dark:text-slate-300 truncate">{ticket.subject}</p>
+                                <p className="text-xs text-slate-400 mt-1">{new Date(ticket.lastUpdate).toLocaleString('tr-TR')}</p>
+                            </div>
+                        </button>
+                    ))}
+                     {filteredTickets.length === 0 && (
+                        <div className="p-8 text-center text-sm text-slate-500">
+                            Bu kategoride talep bulunmuyor.
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Chat View */}
-            <div className="w-2/3 flex flex-col">
-                {selectedConversation ? (
-                    <ChatView
-                        messages={selectedConversation.messages}
-                        onSendMessage={(msg) => onAdminReply(selectedConversation.id, msg)}
-                        isSending={false} // Placeholder
-                        currentUser="support"
-                    />
+            <div className="hidden md:flex w-2/3 flex-col">
+                {selectedTicket ? (
+                    <>
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
+                            <div>
+                                <h3 className="font-bold text-dark-blue dark:text-slate-100">{selectedTicket.userName}</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">{selectedTicket.userEmail}</p>
+                            </div>
+                            <div className="relative">
+                                <button onClick={() => setIsStatusMenuOpen(prev => !prev)} className="flex items-center gap-2">
+                                    <StatusBadge status={selectedTicket.status as any} />
+                                    <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform ${isStatusMenuOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {isStatusMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 z-10">
+                                        {TABS.map(status => (
+                                            <button key={status} onClick={() => handleStatusChange(status)} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                                {status}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <ChatView
+                                messages={selectedTicket.messages}
+                                onSendMessage={(msg) => onSendMessageToTicket(selectedTicket.id, msg, 'support')}
+                                isUserMessage={(sender) => sender === 'user'}
+                                isClosed={selectedTicket.status === 'Çözüldü'}
+                            />
+                        </div>
+                    </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-800/50">
-                        <InboxIcon className="w-16 h-16 text-slate-300 dark:text-slate-600" />
-                        <h3 className="mt-4 text-lg font-semibold text-dark-blue dark:text-slate-200">Bir görüşme seçin</h3>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Başlamak için sol taraftaki listeden bir kullanıcı görüşmesi seçin.</p>
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-slate-500">Görüntülemek için bir talep seçin.</p>
                     </div>
                 )}
             </div>

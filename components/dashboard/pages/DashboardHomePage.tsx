@@ -86,7 +86,12 @@ const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders,
           {/* Recent Orders & Requests */}
            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <h3 className="text-lg font-semibold text-dark-blue p-6">Son Siparişler</h3>
+                <div className="flex justify-between items-center p-6">
+                    <h3 className="text-lg font-semibold text-dark-blue">Son Siparişler</h3>
+                    <button onClick={() => navigate('/dashboard/orders')} className="text-sm font-semibold text-primary hover:underline">
+                        Tümünü Gör &rarr;
+                    </button>
+                </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-slate-500">
                         <thead className="text-xs text-slate-700 uppercase bg-slate-50">
@@ -109,7 +114,12 @@ const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ navigate, orders,
                 </div>
              </div>
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <h3 className="text-lg font-semibold text-dark-blue p-6">Son Talepler</h3>
+                <div className="flex justify-between items-center p-6">
+                    <h3 className="text-lg font-semibold text-dark-blue">Son Talepler</h3>
+                    <button onClick={() => navigate('/dashboard/requests')} className="text-sm font-semibold text-primary hover:underline">
+                        Tümünü Gör &rarr;
+                    </button>
+                </div>
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-slate-500">
                         <thead className="text-xs text-slate-700 uppercase bg-slate-50">

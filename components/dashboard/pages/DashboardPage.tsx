@@ -9,14 +9,13 @@ import FavoritesPage from './FavoritesPage';
 import OrdersPage from './OrdersPage';
 import RequestsPage from './RequestsPage';
 import ExtraFeesPage from './ExtraFeesPage';
-import SupportCenterPage from './SupportCenterPage';
 import ProfileSecurityPage from './ProfileSecurityPage';
 import ProductDetailPage from './ProductDetailPage';
 import CartPage from './CartPage';
+import SupportCenterPage from './SupportCenterPage';
 import { 
-    Product, CartItem, Order, Request, ExtraFee, Conversation, ProductVariant, FavoriteCategory, 
-    initialProducts, initialOrders, initialRequests, initialFees, initialConversations, 
-    initialAnnouncements, ShippingAddress, ChatMessage, NavItem
+    Product, CartItem, Order, Request, ExtraFee, ProductVariant, FavoriteCategory, 
+    initialAnnouncements, ShippingAddress, NavItem, SupportTicket, ChatMessage, Plan, Announcement
 } from '../types';
 
 
@@ -30,8 +29,8 @@ const pageComponents: { [key: string]: React.ComponentType<any> } = {
     'orders': OrdersPage,
     'requests': RequestsPage,
     'extra-fees': ExtraFeesPage,
-    'support-center': SupportCenterPage,
     'profile-security': ProfileSecurityPage,
+    'support': SupportCenterPage,
 };
 
 const pageTitles: { [key: string]: string } = {
@@ -44,20 +43,47 @@ const pageTitles: { [key: string]: string } = {
     'orders': 'Siparişlerim',
     'requests': 'Taleplerim',
     'extra-fees': 'Ek Ücretler',
-    'support-center': 'Destek Merkezi',
     'profile-security': 'Profil & Güvenlik',
     'product': 'Ürün Detayı',
+    'support': 'Destek Merkezi',
 };
 
 interface DashboardPageProps {
     onLogout: () => void;
     mainNavItems: NavItem[];
+    // All data now comes from props for full integration
+    orders: Order[];
+    products: Product[];
+    requests: Request[];
+    announcements: Announcement[];
+    extraFees: ExtraFee[];
+    supportTickets: SupportTicket[];
+    // All handlers now come from props
+    onAddRequest: (request: any) => Promise<void>;
+    onCreateOrder: (order: Order) => void;
+    onSaveFee: (fee: ExtraFee) => void;
+    onSendMessageToTicket: (ticketId: string, message: Pick<ChatMessage, 'text' | 'imageUrls'>, sender: 'user' | 'support') => void;
+    onCreateTicket: (userId: string, subject: string, initialMessage: Pick<ChatMessage, 'text' | 'imageUrls'>) => void;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ 
+    onLogout, 
+    mainNavItems,
+    orders,
+    products: productsFromProps,
+    requests,
+    announcements,
+    extraFees,
+    supportTickets,
+    onAddRequest,
+    onCreateOrder,
+    onSaveFee,
+    onSendMessageToTicket,
+    onCreateTicket,
+}) => {
     const getRouteInfo = () => {
-        const hash = window.location.hash.substring(1); // Remove '#'
-        const parts = hash.split('/').filter(Boolean); // e.g., ['dashboard', 'product', 'product-name']
+        const hash = window.location.hash.substring(1);
+        const parts = hash.split('/').filter(Boolean);
         
         if (parts[0] === 'dashboard') {
             if (parts[1] === 'product' && parts[2]) {
@@ -65,21 +91,26 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
             }
             return { page: parts[1] || 'dashboard', param: null };
         }
-        // Fallback for unexpected hash
         return { page: 'dashboard', param: null };
     };
 
     const [routeInfo, setRouteInfo] = useState(getRouteInfo());
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-    // --- Centralized State Management ---
-    const [products, setProducts] = useState<Product[]>(initialProducts);
+    // --- State Management ---
+    // Products state is now managed here to handle favorites locally within the dashboard session
+    const [products, setProducts] = useState<Product[]>(productsFromProps);
+    useEffect(() => { setProducts(productsFromProps) }, [productsFromProps]);
+    
+    // UI-specific state or session-based state
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [orders, setOrders] = useState<Order[]>(initialOrders);
-    const [requests, setRequests] = useState<Request[]>(initialRequests);
-    const [fees, setFees] = useState<ExtraFee[]>(initialFees);
-    const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
     const [favoriteCategories, setFavoriteCategories] = useState<FavoriteCategory[]>([]);
+    const [subscription, setSubscription] = useState({
+        planName: '1 Ay',
+        startDate: '2025-10-10',
+        endDate: '2025-11-10',
+        willRenew: true,
+    });
 
 
     const navigate = useCallback((path: string) => {
@@ -152,6 +183,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
         const orderProducts = await Promise.all(
             itemsToOrder.map(async (item) => ({
                 name: item.product.name,
+                sku: item.variant.sku,
                 variationDetails: Object.values(item.variant.attributes).join(', '),
                 quantity: item.quantity,
                 price: `$${(item.variant.price * item.quantity).toFixed(2)}`,
@@ -160,53 +192,24 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
                 podFileName: item.podFile?.name,
             }))
         );
+        
+        const subtotal = itemsToOrder.reduce((sum, i) => sum + i.variant.price * i.quantity, 0);
+        const shippingTotal = itemsToOrder.reduce((sum, i) => sum + (i.product.shippingInfo.shippingCosts[i.destination] + i.variant.shippingCostModifier) * i.quantity, 0);
+        const total = subtotal + shippingTotal;
     
         const newOrder: Order = {
-            id: `#S${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            id: `#S${String(Date.now()).slice(-4)}`,
             creationDate: new Date().toISOString().split('T')[0],
             status: 'Beklemede',
             shippingAddress: shippingDetails,
             products: orderProducts,
-            subtotal: `$${itemsToOrder.reduce((sum, i) => sum + i.variant.price * i.quantity, 0).toFixed(2)}`,
-            shippingTotal: `$${itemsToOrder.reduce((sum, i) => sum + (i.product.shippingInfo.shippingCosts[i.destination] + i.variant.shippingCostModifier) * i.quantity, 0).toFixed(2)}`,
-            total: `$${itemsToOrder.reduce((sum, i) => sum + (i.variant.price + i.product.shippingInfo.shippingCosts[i.destination] + i.variant.shippingCostModifier) * i.quantity, 0).toFixed(2)}`,
+            subtotal: `$${subtotal.toFixed(2)}`,
+            shippingTotal: `$${shippingTotal.toFixed(2)}`,
+            total: `$${total.toFixed(2)}`,
         };
     
-        setOrders(prev => [newOrder, ...prev]);
+        onCreateOrder(newOrder);
         setCart(prev => prev.filter(item => !selectedItemIds.includes(item.id)));
-    };
-
-    
-    const handleAddRequest = (request: any): Promise<void> => {
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                const newRequest: Request = {
-                    ...request,
-                    id: `#${request.type === 'Tedarik' ? 'T' : 'D'}${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-                    updated: new Date().toLocaleDateString('tr-TR'),
-                    status: 'Bekliyor',
-                    result: null,
-                    userName: 'Ahmet Yılmaz',
-                    userEmail: 'ahmet@sirket.com',
-                };
-                setRequests(prev => [newRequest, ...prev]);
-                resolve();
-            }, 1000);
-        });
-    };
-
-    const handleSendMessage = (messageText: string) => {
-        const conversation = conversations[0];
-        if (conversation) {
-            const newMessage: ChatMessage = { sender: 'user' as const, text: messageText, timestamp: new Date().toISOString() };
-            const updatedConversation: Conversation = {
-                ...conversation,
-                messages: [...conversation.messages, newMessage],
-                lastMessageTimestamp: newMessage.timestamp,
-                isRead: true, // User sent a message, so admin should see it
-            };
-             setConversations(prev => [updatedConversation, ...prev.filter(c => c.id !== conversation.id)]);
-        }
     };
     
     const handleAddCategory = (name: string) => {
@@ -221,9 +224,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
     const handleAssignProduct = (productName: string, categoryId: string | null) => {
         setFavoriteCategories(prev => {
             return prev.map(cat => {
-                // Remove from old category
                 const productNames = cat.productNames.filter(p => p !== productName);
-                // Add to new category
                 if (cat.id === categoryId) {
                     productNames.push(productName);
                 }
@@ -231,12 +232,34 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
             });
         });
     };
+    
+    const handleToggleRenewal = (renew: boolean) => {
+        setSubscription(prev => ({ ...prev, willRenew: renew }));
+    };
+    
+    const handleUpdatePlan = (plan: Plan) => {
+        const calculateEndDate = (planName: string) => {
+            const date = new Date();
+            if (planName.includes('1 Ay')) date.setMonth(date.getMonth() + 1);
+            else if (planName.includes('6 Ay')) date.setMonth(date.getMonth() + 6);
+            else if (planName.includes('1 Sene')) date.setFullYear(date.getFullYear() + 1);
+            else if (planName.includes('7 Gün')) date.setDate(date.getDate() + 7);
+            return date.toISOString().split('T')[0];
+        };
+
+        setSubscription({
+            planName: plan.name,
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: calculateEndDate(plan.name),
+            willRenew: true,
+        });
+    };
 
 
     useEffect(() => {
         const handleHashChange = () => {
             setRouteInfo(getRouteInfo());
-            setSidebarOpen(false); // Close sidebar on navigation
+            setSidebarOpen(false);
         };
         window.addEventListener('hashchange', handleHashChange);
         return () => window.removeEventListener('hashchange', handleHashChange);
@@ -257,7 +280,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
         
         const ActivePageComponent = pageComponents[routeInfo.page] || DashboardHomePage;
         
-        const pageProps = {
+        const pageProps: any = {
             navigate,
             products,
             toggleFavorite,
@@ -268,16 +291,25 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout, mainNavItems })
             onPlaceOrder: handlePlaceOrder,
             orders,
             requests,
-            onAddRequest: handleAddRequest,
-            fees,
-            chatHistory: conversations.length > 0 ? conversations[0].messages : [],
-            onSendMessage: handleSendMessage,
-            announcements: initialAnnouncements,
+            onAddRequest,
+            fees: extraFees, // Pass down from props
+            onSaveFee: onSaveFee, // Pass down from props
+            announcements,
             favoriteCategories,
             onAddCategory: handleAddCategory,
             onDeleteCategory: handleDeleteCategory,
-            onAssignProduct: handleAssignProduct
+            onAssignProduct: handleAssignProduct,
+            subscription,
+            onToggleRenewal: handleToggleRenewal,
+            onUpdatePlan: handleUpdatePlan,
         };
+
+        if (routeInfo.page === 'support') {
+            pageProps.tickets = supportTickets;
+            pageProps.onSendMessage = onSendMessageToTicket;
+            pageProps.onCreateTicket = (subject: string, message: Pick<ChatMessage, 'text' | 'imageUrls'>) => 
+                onCreateTicket('user-1', subject, message); // Hardcoded userId for demo
+        }
         
         return <ActivePageComponent {...pageProps} />;
     };

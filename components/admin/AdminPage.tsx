@@ -7,27 +7,24 @@ import ManageProductsPage from './pages/ManageProductsPage';
 import ProductEditPage from './pages/ProductEditPage';
 import ManageOrdersPage from './pages/ManageOrdersPage';
 import ManageRequestsPage from './pages/ManageRequestsPage';
-import ManageSupportPage from './pages/ManageSupportPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import CreateUserModal from './shared/CreateUserModal';
 import SettingsPage from './pages/SettingsPage';
 import AdminMenuSettingsPage from './pages/AdminMenuSettingsPage'; // New
 import ManageExtraFeesPage from './pages/ManageExtraFeesPage'; // New
+import ManageSupportPage from './pages/ManageSupportPage'; // New
 
 import { 
-    Conversation, ConversationStatus, Order, OrderStatus, Request, RequestStatus, 
+    Order, OrderStatus, Request, RequestStatus, 
     RequestResult, Product, Announcement, Plan, EventPopup, InfluencerCode, NavItem, 
-    // FIX: Added initialRequests to the import to resolve the undefined error.
-    initialRequests,
-    ExtraFee
+    ExtraFee, SupportTicket, TicketStatus, ChatMessage
 } from '../dashboard/types';
-import { User, UserStatus, initialUsers, UserRole } from './types';
+import { User, UserStatus, UserRole } from './types';
 import { Category, initialCategories } from '../../data/categories';
 
 interface AdminPageProps {
   // Data props
-  conversations: Conversation[];
   announcements: Announcement[];
   products: Product[];
   orders: Order[];
@@ -37,11 +34,11 @@ interface AdminPageProps {
   mainNavItems: NavItem[];
   adminNavItems: NavItem[];
   extraFees: ExtraFee[];
+  supportTickets: SupportTicket[];
+  users: User[];
+  requests: Request[];
 
   // Handler props
-  onSendMessage: (conversationId: string, messageText: string, sender: 'user' | 'support') => void;
-  onSetConversationStatus: (conversationId: string, status: ConversationStatus) => void;
-  onToggleReadStatus: (conversationId: string, isRead: boolean) => void;
   onAddAnnouncement: (announcement: Omit<Announcement, 'id' | 'date'>) => void;
   onDeleteAnnouncement: (id: string) => void;
   onSaveProduct: (product: Product) => void;
@@ -56,6 +53,13 @@ interface AdminPageProps {
   onUpdateAdminNavItems: (items: NavItem[]) => void;
   onSaveFee: (fee: ExtraFee) => void;
   onDeleteFee: (feeId: string) => void;
+  onSendMessageToTicket: (ticketId: string, message: Pick<ChatMessage, 'text' | 'imageUrls'>, sender: 'user' | 'support') => void;
+  onChangeTicketStatus: (ticketId: string, status: TicketStatus) => void;
+  onMarkTicketAsRead: (ticketId: string) => void;
+  onCreateAdminUser: (newUser: { email: string; password?: string; role: UserRole; }) => void;
+  onUpdateUserStatus: (userId: string, newStatus: UserStatus) => void;
+  onUpdateSubscriptionEndDate: (userId: string, newEndDate: string) => void;
+  onRespondToRequest: (requestId: string, response: string, newStatus: RequestStatus, newResult: RequestResult) => void;
 }
 
 const pageComponents: { [key: string]: React.ComponentType<any> } = {
@@ -64,12 +68,12 @@ const pageComponents: { [key: string]: React.ComponentType<any> } = {
     'products': ManageProductsPage,
     'orders': ManageOrdersPage,
     'requests': ManageRequestsPage,
-    'support': ManageSupportPage,
     'categories': ManageCategoriesPage,
     'announcements': AnnouncementsPage,
     'settings': SettingsPage,
     'menu-settings': AdminMenuSettingsPage,
     'extra-fees': ManageExtraFeesPage, 
+    'support': ManageSupportPage,
 };
 
 const pageTitles: { [key: string]: string } = {
@@ -81,23 +85,25 @@ const pageTitles: { [key: string]: string } = {
     'product-edit': 'Ürünü Düzenle',
     'orders': 'Siparişleri Yönet',
     'requests': 'Talepleri Yönet',
-    'support': 'Destek Yönetimi',
     'categories': 'Kategorileri Yönet',
     'announcements': 'Duyuruları Yönet',
     'settings': 'Site Ayarları',
     'menu-settings': 'Admin Menü Yönetimi',
     'extra-fees': 'Ek Ücret Yönetimi',
+    'support': 'Destek Yönetimi',
 };
 
 const AdminPage: React.FC<AdminPageProps> = (props) => {
     const {
-        conversations, onSendMessage, onSetConversationStatus, onToggleReadStatus,
         announcements, onAddAnnouncement, onDeleteAnnouncement,
         products, onSaveProduct, onDeleteProduct,
         orders, onUpdateOrderStatus, onUpdateTrackingInfo,
         onLogout, plans, eventPopup, influencerCodes, mainNavItems, adminNavItems,
         onUpdatePlans, onUpdateEventPopup, onUpdateInfluencerCodes, onUpdateMainNavItems, onUpdateAdminNavItems,
-        extraFees, onSaveFee, onDeleteFee
+        extraFees, onSaveFee, onDeleteFee,
+        supportTickets, onSendMessageToTicket, onChangeTicketStatus, onMarkTicketAsRead,
+        users, onCreateAdminUser, onUpdateUserStatus, onUpdateSubscriptionEndDate,
+        requests, onRespondToRequest,
     } = props;
     
     const getRouteInfo = () => {
@@ -113,8 +119,6 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     // Admin-specific state (could be lifted to App.tsx if needed)
-    const [users, setUsers] = useState<User[]>(initialUsers);
-    const [requests, setRequests] = useState<Request[]>(initialRequests);
     const [categories, setCategories] = useState<Category[]>(initialCategories);
 
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
@@ -124,50 +128,10 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
         window.location.hash = path;
     }, []);
     
-    // Handlers
-    const handleAdminReply = (conversationId: string, messageText: string) => {
-        onSendMessage(conversationId, messageText, 'support');
-    };
-
-    const handleUpdateUserStatus = (userId: string, newStatus: UserStatus) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus } : u));
-    };
-
-    const handleUpdateSubscriptionEndDate = (userId: string, newEndDate: string) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscriptionEndDate: newEndDate } : u));
-    };
-    
-    const handleCreateUser = (newUser: { email: string; password?: string; role: UserRole; }) => {
-        setUsers(prev => {
-            const finalUser: User = {
-                id: `user-${Date.now()}`,
-                name: newUser.email.split('@')[0],
-                email: newUser.email,
-                password: newUser.password,
-                role: newUser.role,
-                plan: '1 Ay',
-                status: 'Aktif',
-                totalSpent: 0,
-                lastLogin: new Date().toISOString(),
-                registrationDate: new Date().toISOString().split('T')[0],
-                subscriptionStartDate: new Date().toISOString().split('T')[0],
-                subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                platforms: [],
-            };
-            return [...prev, finalUser];
-        });
-        setIsCreateUserModalOpen(false);
-    };
-
     const handleSaveProductAndNavigate = (product: Product) => {
         onSaveProduct(product);
         navigate('/admin/products');
     };
-    
-    const handleRespondToRequest = (requestId: string, response: string, newStatus: RequestStatus, newResult: RequestResult) => {
-        setRequests(prev => prev.map(r => r.id === requestId ? { ...r, response, status: newStatus, result: newResult } : r));
-    };
-
 
     useEffect(() => {
         const handleHashChange = () => setRouteInfo(getRouteInfo());
@@ -182,7 +146,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
         // Handle routes with params first
         if (page === 'user-detail' && param) {
             const user = users.find(u => u.id === param);
-            return <UserDetailPage user={user} navigate={navigate} onUpdateUserStatus={handleUpdateUserStatus} onUpdateSubscriptionEndDate={handleUpdateSubscriptionEndDate} />;
+            return <UserDetailPage user={user} navigate={navigate} onUpdateUserStatus={onUpdateUserStatus} onUpdateSubscriptionEndDate={onUpdateSubscriptionEndDate} />;
         }
         if (page === 'product-edit' && param) {
             const product = products.find(p => p.name === param);
@@ -194,21 +158,16 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
 
         const ActivePageComponent = pageComponents[page] || AdminHomePage;
         
-        const pageProps = {
-            navigate, users, products, orders, requests, conversations, announcements, categories,
+        const pageProps: any = {
+            navigate, users, products, orders, requests, announcements, categories,
             fees: extraFees,
-            onAdminReply: handleAdminReply,
-            onSetConversationStatus,
-            onToggleReadStatus,
             onDeleteProduct,
             onUpdateOrderStatus,
             onUpdateTrackingInfo,
-            // FIX: Passed the correct handler function `handleRespondToRequest` to the prop.
-            onRespondToRequest: handleRespondToRequest,
+            onRespondToRequest: onRespondToRequest,
             onAddAnnouncement,
             onDeleteAnnouncement,
-            // FIX: Passed the correct handler function `handleUpdateUserStatus` to the prop.
-            onUpdateUserStatus: handleUpdateUserStatus,
+            onUpdateUserStatus: onUpdateUserStatus,
             // Settings props
             plans, onUpdatePlans,
             eventPopup, onUpdateEventPopup,
@@ -217,7 +176,12 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
             adminNavItems, onUpdateAdminNavItems,
             // Fee props
             onSaveFee,
-            onDeleteFee
+            onDeleteFee,
+            // Support props
+            supportTickets,
+            onSendMessageToTicket,
+            onChangeTicketStatus,
+            onMarkTicketAsRead
         };
         
         return <ActivePageComponent {...pageProps} />;
@@ -227,7 +191,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
     
     return (
         <>
-            {isCreateUserModalOpen && <CreateUserModal onClose={() => setIsCreateUserModalOpen(false)} onSave={handleCreateUser} />}
+            {isCreateUserModalOpen && <CreateUserModal onClose={() => setIsCreateUserModalOpen(false)} onSave={onCreateAdminUser} />}
             <AdminLayout
                 pageTitle={pageTitle}
                 isSidebarOpen={isSidebarOpen}

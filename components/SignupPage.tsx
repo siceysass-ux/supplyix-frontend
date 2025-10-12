@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import PaymentFailureModal from './dashboard/shared/PaymentFailureModal';
+import { InfluencerCode } from './dashboard/types';
 
 interface SignupPageProps {
     navigate: (path: string) => void;
     plan: string | null;
     price: string | null;
+    influencerCodes: InfluencerCode[];
+    onCreateUser: (userData: {
+        fullName: string;
+        email: string;
+        password: string;
+        phone: string;
+        tcKimlik: string;
+        vergiKimlik: string;
+        referans: string;
+        platforms: string[];
+        plan: string;
+        price: number;
+    }) => void;
 }
 
 const platformsData = [
@@ -38,7 +52,7 @@ Ad, soyad, e-posta adresi, telefon numarası, IP bilgisi, ödeme bilgileri, işl
 - Hizmet kalitesinin artırılması ve kullanıcı deneyiminin geliştirilmesi.
 
 4. Aktarım:
-Veriler; yasal yükümlülüklerin gerektirdiği durumlarda resmi kurumlara, tedarikçilere, iş ortaklarına, ödeme kuruluşlarına ve yurt dışında veri saklama hizmeti sunan altyapı sağlayıcılara aktarılabilir.
+Veriler; yasal yükümlülüklerin gerektirdiği durumlarda resmi kurumlara, tedarikçilere, iş ortaklarına, ödeme kuruluşlarına ve yurt dışında veri saklama hizmeti sunan altopı sağlayıcılara aktarılabilir.
 
 5. Saklama Süresi:
 Veriler, ilgili mevzuatta öngörülen veya işleme amaçları için gerekli süre boyunca saklanır; sonrasında güvenli şekilde silinir veya anonimleştirilir.
@@ -169,7 +183,7 @@ const RegistrationSuccess: React.FC = () => {
 };
 
 
-const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
+const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influencerCodes, onCreateUser }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         fullName: '',
@@ -193,11 +207,40 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
     const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
     const [showPaymentFailure, setShowPaymentFailure] = useState(false);
 
+    // Discount state
+    const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; rate: number } | null>(null);
+    const [referralFeedback, setReferralFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    const originalPrice = price ? parseFloat(price) : 0;
+    const finalPrice = appliedDiscount 
+        ? originalPrice * (1 - appliedDiscount.rate / 100)
+        : originalPrice;
+
     useEffect(() => {
         if (!plan) {
             navigate('/'); // Redirect to home if no plan is selected
         }
     }, [plan, navigate]);
+
+    const handleReferralCodeCheck = (codeValue: string) => {
+        setReferralFeedback(null);
+        setAppliedDiscount(null);
+
+        if (!codeValue.trim()) {
+            return;
+        }
+
+        const code = influencerCodes.find(c => c.code.toLowerCase() === codeValue.trim().toLowerCase());
+
+        if (code && code.discountRate) {
+            setAppliedDiscount({ code: code.code, rate: code.discountRate });
+            setReferralFeedback({ message: `Başarılı! %${code.discountRate} indirim kazandınız.`, type: 'success' });
+        } else if (code) {
+             setReferralFeedback({ message: 'Referans kodu geçerli ancak indirim içermiyor.', type: 'error' });
+        } else {
+            setReferralFeedback({ message: 'Geçersiz referans kodu.', type: 'error' });
+        }
+    };
 
     const validateStep1 = () => {
         const newErrors: Record<string, string> = {};
@@ -255,6 +298,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
+        if (name === 'referans') {
+            setReferralFeedback(null);
+            setAppliedDiscount(null);
+        }
     };
     
     const handlePlatformChange = (platform: string) => {
@@ -281,9 +328,22 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
                 setShowPaymentFailure(true);
                 return;
             }
+            
+            // Create user by calling the prop function
+            onCreateUser({
+                fullName: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+                phone: formData.phone,
+                tcKimlik: formData.tcKimlik,
+                vergiKimlik: formData.vergiKimlik,
+                referans: formData.referans,
+                platforms: formData.platforms,
+                plan: plan || '',
+                price: finalPrice,
+            });
 
             // Simulate final submission
-            console.log("Form Submitted: ", formData);
             setIsRegistrationComplete(true);
             setTimeout(() => {
                 navigate('/login');
@@ -309,7 +369,14 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
                             <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Telefon Numarası *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
                             <input name="tcKimlik" value={formData.tcKimlik} onChange={handleChange} placeholder="T.C. Kimlik No *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.tcKimlik ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
                             <input name="vergiKimlik" value={formData.vergiKimlik} onChange={handleChange} placeholder="Vergi Kimlik No (Opsiyonel)" className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600" />
-                            <input name="referans" value={formData.referans} onChange={handleChange} placeholder="Referans Kodu (Opsiyonel)" className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600" />
+                            <div>
+                                <input name="referans" value={formData.referans} onChange={handleChange} onBlur={(e) => handleReferralCodeCheck(e.target.value)} placeholder="Referans Kodu (Opsiyonel)" className="w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border border-gray-300 dark:border-slate-600" />
+                                {referralFeedback && (
+                                    <p className={`text-xs mt-1 ${referralFeedback.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                        {referralFeedback.message}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                         <div className="mt-4 space-y-2">
                             <label className="flex items-start text-sm text-gray-600 dark:text-slate-300">
@@ -345,8 +412,31 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price }) => {
                     <div>
                          <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-6">Adım 3: Ödeme Bilgileri</h2>
                          <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg mb-6 text-center">
-                            <p className="font-bold text-dark-blue dark:text-slate-200">Seçilen Plan: <span className="text-primary">{plan}</span> - <span className="text-primary">${price}</span></p>
+                            {appliedDiscount ? (
+                                <>
+                                    <p className="font-bold text-dark-blue dark:text-slate-200">
+                                        Seçilen Plan: <span className="text-primary">{plan}</span>
+                                    </p>
+                                    <div className="mt-2 flex items-center justify-center gap-2">
+                                        <span className="text-xl line-through text-slate-500 dark:text-slate-400">${originalPrice.toFixed(2)}</span>
+                                        <span className="text-2xl font-extrabold text-dark-blue dark:text-slate-100">${finalPrice.toFixed(2)}</span>
+                                        <span className="bg-green-200 text-green-800 text-xs font-bold px-2 py-1 rounded-full">%{appliedDiscount.rate} İNDİRİM</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="font-bold text-dark-blue dark:text-slate-200">Seçilen Plan: <span className="text-primary">{plan}</span> - <span className="text-primary">${price}</span></p>
+                            )}
                          </div>
+
+                         {appliedDiscount && (
+                            <div className="mb-6 text-center">
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Uygulanan Referans Kodu</p>
+                                <p className="text-lg font-bold text-green-600 bg-green-100 dark:bg-green-500/20 px-3 py-1 rounded-md inline-block mt-1">
+                                    {appliedDiscount.code} (%{appliedDiscount.rate} İNDİRİM)
+                                </p>
+                            </div>
+                         )}
+
                          <div className="space-y-4">
                             <input name="cardName" value={formData.cardName} onChange={handleChange} placeholder="Kart Üzerindeki İsim *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardName ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
                             <input name="cardNumber" value={formData.cardNumber} onChange={handleChange} placeholder="Kart Numarası *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />

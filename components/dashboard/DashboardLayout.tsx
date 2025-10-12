@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
 import { CartItem, NavItem } from './types';
-import { Bars3Icon } from './icons/outline';
+import { ChevronRightIcon } from './icons/outline';
 
 interface DashboardLayoutProps {
   pageTitle: string;
@@ -39,21 +39,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         mainNavItems={mainNavItems}
       />
 
+      {/* Embedded menu button for mobile */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-1/2 left-0 -translate-y-1/2 z-30 bg-primary text-white py-4 pl-3 pr-2 rounded-r-full shadow-lg transition-transform duration-200 ease-in-out hover:translate-x-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-slate-900"
+          aria-label="Menüyü aç"
+        >
+          <ChevronRightIcon className="h-6 w-6" />
+        </button>
+      </div>
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="lg:hidden flex-shrink-0 bg-white dark:bg-slate-800 shadow-sm h-16 flex items-center justify-between px-4 z-10 border-b border-slate-200 dark:border-slate-700">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="text-slate-500 dark:text-slate-400 focus:outline-none"
-              aria-label="Open sidebar"
-            >
-              <Bars3Icon className="h-6 w-6" />
-            </button>
-            <a href="#/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-                <img src="/logo.png" alt="Supplyix Logo" className="h-10 w-auto" />
-            </a>
-            <div className="w-6"></div> {/* Spacer to balance the header */}
-        </header>
-        
         <div className="flex-1 flex items-stretch overflow-hidden">
           <main className="flex-1 overflow-y-auto">
             {/* The sticky header is now part of the scrollable main area */}

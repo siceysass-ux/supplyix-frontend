@@ -52,7 +52,13 @@ const ContactPage: React.FC<ContactPageProps> = ({ navigate }) => {
                 } else {
                     const data = await response.json();
                     if (data.errors) {
-                        setError(data.errors.map((err: { message: string }) => err.message).join(', '));
+                        const translatedErrors = data.errors.map((err: { message: string }) => {
+                            if (err.message && err.message.toLowerCase().includes('email')) {
+                                return 'Lütfen geçerli bir e-posta adresi girin.';
+                            }
+                            return err.message;
+                        }).join(', ');
+                        setError(translatedErrors);
                     } else {
                         setError('Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
                     }

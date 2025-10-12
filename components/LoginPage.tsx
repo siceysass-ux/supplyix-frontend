@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { User } from './admin/types';
 
 interface LoginPageProps {
     navigate: (path: string) => void;
+    users: User[];
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
@@ -33,28 +35,39 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
         setIsLoading(true);
         // Simulate API call
         setTimeout(() => {
-            // Admin user check
+            // Hardcoded Admin user check
             if (email === 'admin@gmail.com' && password === '12345678') {
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
+                if (rememberMe) localStorage.setItem('rememberedEmail', email);
+                else localStorage.removeItem('rememberedEmail');
                 navigate('/admin');
+                return;
             } 
-            // Regular user check
-            else if (email === 'supplyix@supplyix.com' && password === '12345678') {
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
+            
+            // Hardcoded Regular user check
+            if (email === 'supplyix@supplyix.com' && password === '12345678') {
+                if (rememberMe) localStorage.setItem('rememberedEmail', email);
+                else localStorage.removeItem('rememberedEmail');
                 navigate('/dashboard');
-            } 
-            // Invalid credentials
-            else {
-                setError('Geçersiz e-posta adresi veya şifre.');
+                return;
             }
+
+            // Check dynamically created users from the state
+            const dynamicUser = users.find(u => u.email === email && u.password === password);
+            if (dynamicUser) {
+                if (rememberMe) localStorage.setItem('rememberedEmail', email);
+                else localStorage.removeItem('rememberedEmail');
+                
+                // Navigate based on role. All dynamically created users are 'member' for now.
+                if (dynamicUser.role === 'admin' || dynamicUser.role === 'product lister') {
+                    navigate('/admin');
+                } else {
+                    navigate('/dashboard');
+                }
+                return;
+            }
+            
+            // If no user found
+            setError('Geçersiz e-posta adresi veya şifre.');
             setIsLoading(false);
         }, 1500);
     };
