@@ -30,6 +30,29 @@ import EventPopup from './components/EventPopup';
 import LogoutAnimation from './components/LogoutAnimation';
 import { User, UserStatus, initialUsers, UserRole } from './components/admin/types';
 
+// Custom hook for persisting state to localStorage
+function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+    const [state, setState] = useState<T>(() => {
+        try {
+            const storedValue = window.localStorage.getItem(key);
+            return storedValue ? JSON.parse(storedValue) : defaultValue;
+        } catch (error) {
+            console.error(`Error reading localStorage key “${key}”:`, error);
+            return defaultValue;
+        }
+    });
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(key, JSON.stringify(state));
+        } catch (error) {
+            console.error(`Error setting localStorage key “${key}”:`, error);
+        }
+    }, [key, state]);
+
+    return [state, setState];
+}
+
 
 const App: React.FC = () => {
     // A simple hash-based router
@@ -37,20 +60,20 @@ const App: React.FC = () => {
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     
     // Centralized state
-    const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [orders, setOrders] = useState<Order[]>(initialOrders);
-    const [requests, setRequests] = useState<Request[]>(initialRequests);
-    const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
-    const [extraFees, setExtraFees] = useState<ExtraFee[]>(initialFees);
-    const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(initialSupportTickets);
-    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [products, setProducts] = usePersistentState<Product[]>('app_products', initialProducts);
+    const [orders, setOrders] = usePersistentState<Order[]>('app_orders', initialOrders);
+    const [requests, setRequests] = usePersistentState<Request[]>('app_requests', initialRequests);
+    const [announcements, setAnnouncements] = usePersistentState<Announcement[]>('app_announcements', initialAnnouncements);
+    const [extraFees, setExtraFees] = usePersistentState<ExtraFee[]>('app_extraFees', initialFees);
+    const [supportTickets, setSupportTickets] = usePersistentState<SupportTicket[]>('app_supportTickets', initialSupportTickets);
+    const [users, setUsers] = usePersistentState<User[]>('app_users', initialUsers);
 
-    // Site Settings State
-    const [plans, setPlans] = useState<Plan[]>(initialPlans);
-    const [eventPopup, setEventPopup] = useState<EventPopupType>(initialEventPopup);
-    const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>(initialInfluencerCodes);
-    const [mainNavItems, setMainNavItems] = useState<NavItem[]>(initialMainNavItems);
-    const [adminNavItems, setAdminNavItems] = useState<NavItem[]>(initialAdminNavItems);
+    // Site Settings State - Now Persistent
+    const [plans, setPlans] = usePersistentState<Plan[]>('site_plans', initialPlans);
+    const [eventPopup, setEventPopup] = usePersistentState<EventPopupType>('site_eventPopup', initialEventPopup);
+    const [influencerCodes, setInfluencerCodes] = usePersistentState<InfluencerCode[]>('site_influencerCodes', initialInfluencerCodes);
+    const [mainNavItems, setMainNavItems] = usePersistentState<NavItem[]>('site_mainNavItems', initialMainNavItems);
+    const [adminNavItems, setAdminNavItems] = usePersistentState<NavItem[]>('site_adminNavItems', initialAdminNavItems);
 
     useEffect(() => {
         const handleHashChange = () => {
@@ -127,11 +150,11 @@ const App: React.FC = () => {
             setRequests(prev => [newRequest, ...prev].sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime()));
             resolve();
         });
-    }, []);
+    }, [setRequests]);
 
     const handleRespondToRequest = useCallback((requestId: string, response: string, newStatus: RequestStatus, newResult: RequestResult) => {
         setRequests(prev => prev.map(r => r.id === requestId ? { ...r, response, status: newStatus, result: newResult, updated: new Date().toLocaleDateString('tr-TR') } : r));
-    }, []);
+    }, [setRequests]);
 
     // --- Support Ticket Handlers ---
     const handleCreateTicket = useCallback((userId: string, subject: string, initialMessage: Pick<ChatMessage, 'text' | 'imageUrls'>) => {
@@ -153,7 +176,7 @@ const App: React.FC = () => {
             ]
         };
         setSupportTickets(prev => [newTicket, ...prev]);
-    }, []);
+    }, [setSupportTickets]);
 
     const handleSendMessageToTicket = useCallback((ticketId: string, message: Pick<ChatMessage, 'text' | 'imageUrls'>, sender: 'user' | 'support') => {
         setSupportTickets(prevTickets =>
@@ -176,7 +199,7 @@ const App: React.FC = () => {
                 return ticket;
             })
         );
-    }, []);
+    }, [setSupportTickets]);
 
     const handleChangeTicketStatus = useCallback((ticketId: string, status: TicketStatus) => {
         setSupportTickets(prevTickets =>
@@ -184,7 +207,7 @@ const App: React.FC = () => {
                 ticket.id === ticketId ? { ...ticket, status, lastUpdate: new Date().toISOString() } : ticket
             )
         );
-    }, []);
+    }, [setSupportTickets]);
 
     const handleMarkTicketAsRead = useCallback((ticketId: string) => {
         setSupportTickets(prevTickets =>
@@ -192,7 +215,7 @@ const App: React.FC = () => {
                 ticket.id === ticketId ? { ...ticket, isReadByAdmin: true } : ticket
             )
         );
-    }, []);
+    }, [setSupportTickets]);
     
     // --- Settings Handlers ---
     const handleUpdatePlans = (updatedPlans: Plan[]) => setPlans(updatedPlans);
