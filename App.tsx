@@ -15,11 +15,11 @@ import SignupPage from './components/SignupPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import DashboardPage from './components/dashboard/pages/DashboardPage'; // This is a main entry for dashboard
 import AdminPage from './components/admin/AdminPage'; // This is a main entry for admin
-import { 
-    Plan, initialProducts, initialOrders, initialRequests, initialFees, 
-    initialAnnouncements, EventPopup as EventPopupType, 
-    Product, Order, Request, ExtraFee, Announcement, NavItem, 
-    initialPlans, initialEventPopup, initialInfluencerCodes, InfluencerCode, 
+import {
+    Plan, initialProducts, initialOrders, initialRequests, initialFees,
+    initialAnnouncements, EventPopup as EventPopupType,
+    Product, Order, Request, ExtraFee, Announcement, NavItem,
+    initialPlans, initialEventPopup, initialInfluencerCodes, InfluencerCode,
     initialMainNavItems, initialAdminNavItems, SupportTicket, TicketStatus,
     initialSupportTickets, ChatMessage, RequestStatus, RequestResult
 } from './components/dashboard/types';
@@ -29,6 +29,7 @@ import FeatureSteps from './components/FeatureSteps';
 import EventPopup from './components/EventPopup';
 import LogoutAnimation from './components/LogoutAnimation';
 import { User, UserStatus, initialUsers, UserRole } from './components/admin/types';
+import * as api from './src/services/api';
 
 // Custom hook for persisting state to localStorage
 function usePersistentState<T>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
@@ -58,15 +59,15 @@ const App: React.FC = () => {
     // A simple hash-based router
     const [currentPath, setCurrentPath] = useState(window.location.hash.substring(1) || '/');
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    
+
     // Centralized state
-    const [products, setProducts] = usePersistentState<Product[]>('app_products', initialProducts);
-    const [orders, setOrders] = usePersistentState<Order[]>('app_orders', initialOrders);
-    const [requests, setRequests] = usePersistentState<Request[]>('app_requests', initialRequests);
-    const [announcements, setAnnouncements] = usePersistentState<Announcement[]>('app_announcements', initialAnnouncements);
-    const [extraFees, setExtraFees] = usePersistentState<ExtraFee[]>('app_extraFees', initialFees);
-    const [supportTickets, setSupportTickets] = usePersistentState<SupportTicket[]>('app_supportTickets', initialSupportTickets);
-    const [users, setUsers] = usePersistentState<User[]>('app_users', initialUsers);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [requests, setRequests] = usePersistentState<Request[]>('app_requests', initialRequests); // Keep local for now
+    const [announcements, setAnnouncements] = usePersistentState<Announcement[]>('app_announcements', initialAnnouncements); // Keep local for now
+    const [extraFees, setExtraFees] = usePersistentState<ExtraFee[]>('app_extraFees', initialFees); // Keep local for now
+    const [supportTickets, setSupportTickets] = usePersistentState<SupportTicket[]>('app_supportTickets', initialSupportTickets); // Keep local for now
+    const [users, setUsers] = useState<User[]>([]);
 
     // Site Settings State - Now Persistent
     const [plans, setPlans] = usePersistentState<Plan[]>('site_plans', initialPlans);
@@ -74,6 +75,25 @@ const App: React.FC = () => {
     const [influencerCodes, setInfluencerCodes] = usePersistentState<InfluencerCode[]>('site_influencerCodes', initialInfluencerCodes);
     const [mainNavItems, setMainNavItems] = usePersistentState<NavItem[]>('site_mainNavItems', initialMainNavItems);
     const [adminNavItems, setAdminNavItems] = usePersistentState<NavItem[]>('site_adminNavItems', initialAdminNavItems);
+
+    // Fetch initial data
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [fetchedProducts, fetchedOrders, fetchedUsers] = await Promise.all([
+                    api.getProducts(),
+                    api.getOrders(),
+                    api.getUsers()
+                ]);
+                setProducts(fetchedProducts);
+                setOrders(fetchedOrders);
+                setUsers(fetchedUsers);
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         const handleHashChange = () => {
@@ -97,30 +117,61 @@ const App: React.FC = () => {
     };
 
     // --- Product Handlers ---
-    const handleSaveProduct = (productToSave: Product) => {
-        setProducts(prev => {
-            const exists = prev.some(p => p.name === productToSave.name);
+    const handleSaveProduct = async (productToSave: Product) => {
+        try {
+            const exists = products.some(p => p.id === productToSave.id); // Use ID check
+            let savedProduct;
             if (exists) {
-                return prev.map(p => p.name === productToSave.name ? productToSave : p);
+                savedProduct = await api.updateProduct(productToSave.id, productToSave);
+                setProducts(prev => prev.map(p => p.id === productToSave.id ? savedProduct : p));
+            } else {
+                // Remove ID if it's a temp one or let backend handle it? 
+                // For now assuming backend generates UUID if not present, but we pass it.
+                // Actually Prisma generates UUID.
+                const { id, ...rest } = productToSave; // Remove ID to let backend generate it for new products
+                savedProduct = await api.createProduct(rest as Product);
+                setProducts(prev => [...prev, savedProduct]);
             }
-            return [...prev, productToSave];
-        });
+        } catch (error) {
+            console.error("Failed to save product:", error);
+        }
     };
-    const handleDeleteProduct = (productName: string) => {
-        setProducts(prev => prev.filter(p => p.name !== productName));
+    const handleDeleteProduct = async (productId: string) => {
+        try {
+            await api.deleteProduct(productId);
+            setProducts(prev => prev.filter(p => p.id !== productId));
+        } catch (error) {
+            console.error("Failed to delete product:", error);
+        }
     };
 
     // --- Order Handlers ---
-    const handleCreateOrder = (newOrder: Order) => {
-        setOrders(prev => [newOrder, ...prev].sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()));
+    const handleCreateOrder = async (newOrder: Order) => {
+        try {
+            const { id, ...rest } = newOrder;
+            const createdOrder = await api.createOrder(rest as Order);
+            setOrders(prev => [createdOrder, ...prev]);
+        } catch (error) {
+            console.error("Failed to create order:", error);
+        }
     };
-    const handleUpdateOrderStatus = (orderId: string, newStatus: Order['status']) => {
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
+        try {
+            const updatedOrder = await api.updateOrderStatus(orderId, newStatus);
+            setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+        } catch (error) {
+            console.error("Failed to update order status:", error);
+        }
     };
-    const handleUpdateTrackingInfo = (orderId: string, carrier: string, trackingNo: string) => {
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, shippingCarrier: carrier, trackingNumber: trackingNo, status: 'Kargoda' } : o));
+    const handleUpdateTrackingInfo = async (orderId: string, carrier: string, trackingNo: string) => {
+        try {
+            const updatedOrder = await api.updateTrackingInfo(orderId, carrier, trackingNo);
+            setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+        } catch (error) {
+            console.error("Failed to update tracking info:", error);
+        }
     };
-    
+
     // --- Fee Handlers ---
     const handleSaveFee = (feeToSave: ExtraFee) => {
         setExtraFees(prev => {
@@ -128,7 +179,7 @@ const App: React.FC = () => {
             if (exists) {
                 return prev.map(f => f.id === feeToSave.id ? feeToSave : f);
             }
-            return [feeToSave, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            return [feeToSave, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         });
     };
     const handleDeleteFee = (feeId: string) => {
@@ -216,7 +267,7 @@ const App: React.FC = () => {
             )
         );
     }, [setSupportTickets]);
-    
+
     // --- Settings Handlers ---
     const handleUpdatePlans = (updatedPlans: Plan[]) => setPlans(updatedPlans);
     const handleUpdateEventPopup = (updatedPopup: EventPopupType) => setEventPopup(updatedPopup);
@@ -225,12 +276,22 @@ const App: React.FC = () => {
     const handleUpdateAdminNavItems = (updatedItems: NavItem[]) => setAdminNavItems(updatedItems);
 
     // --- User Handlers ---
-    const handleUpdateUserStatus = (userId: string, newStatus: UserStatus) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus } : u));
+    const handleUpdateUserStatus = async (userId: string, newStatus: UserStatus) => {
+        try {
+            const updatedUser = await api.updateUserStatus(userId, newStatus);
+            setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+        } catch (error) {
+            console.error("Failed to update user status:", error);
+        }
     };
 
-    const handleUpdateSubscriptionEndDate = (userId: string, newEndDate: string) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscriptionEndDate: newEndDate } : u));
+    const handleUpdateSubscriptionEndDate = async (userId: string, newEndDate: string) => {
+        try {
+            const updatedUser = await api.updateSubscription(userId, newEndDate);
+            setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+        } catch (error) {
+            console.error("Failed to update subscription:", error);
+        }
     };
 
     const handleCreateAdminUser = (newUser: { email: string; password?: string; role: UserRole; }) => {
@@ -251,7 +312,7 @@ const App: React.FC = () => {
         };
         setUsers(prev => [finalUser, ...prev]);
     };
-    
+
     const calculateEndDate = (planName: string) => {
         const date = new Date();
         if (planName.includes('1 Ay')) date.setMonth(date.getMonth() + 1);
@@ -292,19 +353,19 @@ const App: React.FC = () => {
             platforms: userData.platforms,
             lastLogin: new Date().toISOString(),
         };
-        setUsers(prev => [newUser, ...prev].sort((a,b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()));
+        setUsers(prev => [newUser, ...prev].sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()));
     };
 
     const renderPage = () => {
         if (isLoggingOut) {
             return <LogoutAnimation />;
         }
-        
+
         const urlParams = new URLSearchParams(currentPath.split('?')[1]);
 
         if (currentPath.startsWith('/dashboard')) {
-            return <DashboardPage 
-                onLogout={handleLogout} 
+            return <DashboardPage
+                onLogout={handleLogout}
                 mainNavItems={mainNavItems}
                 // Pass all relevant central state to dashboard
                 orders={orders}
@@ -338,7 +399,7 @@ const App: React.FC = () => {
                 requests={requests}
                 // Handlers
                 onAddAnnouncement={(ann) => {
-                    setAnnouncements(prev => [{...ann, id: `ann-${Date.now()}`, date: new Date().toLocaleDateString('tr-TR')}, ...prev]);
+                    setAnnouncements(prev => [{ ...ann, id: `ann-${Date.now()}`, date: new Date().toLocaleDateString('tr-TR') }, ...prev]);
                 }}
                 onDeleteAnnouncement={(id) => {
                     setAnnouncements(prev => prev.filter(a => a.id !== id));

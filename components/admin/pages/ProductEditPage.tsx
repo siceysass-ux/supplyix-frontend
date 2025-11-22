@@ -38,12 +38,12 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({ onClose, onSave }) 
                             value={value}
                             onChange={e => setValue(e.target.value)}
                             className="w-16 h-16 rounded-full border-none cursor-pointer p-0 bg-transparent"
-                            style={{'backgroundColor': value}}
-                         />
-                         <div className="flex-grow">
-                             <label className="block text-sm font-medium text-slate-700">Renk Kodu (HEX)</label>
+                            style={{ 'backgroundColor': value }}
+                        />
+                        <div className="flex-grow">
+                            <label className="block text-sm font-medium text-slate-700">Renk Kodu (HEX)</label>
                             <input type="text" value={value} onChange={e => setValue(e.target.value)} className="w-full bg-slate-50 mt-1 p-2 rounded-md border border-slate-300" />
-                         </div>
+                        </div>
                     </div>
                     <div><label className="block text-sm font-medium text-slate-700">Renk Adı *</label><input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Örn: Gece Mavisi" className="w-full bg-slate-50 mt-1 p-2 rounded-md border border-slate-300" required /></div>
                     <div><label className="block text-sm font-medium text-slate-700">SKU (Opsiyonel)</label><input type="text" value={sku} onChange={e => setSku(e.target.value)} placeholder="Örn: BLK" className="w-full bg-slate-50 mt-1 p-2 rounded-md border border-slate-300" /></div>
@@ -90,7 +90,7 @@ const VariationModal: React.FC<VariationModalProps> = ({ variation, onClose, onS
     };
 
     const handleSave = () => {
-        if(localVariation.type.trim() && localVariation.options.length > 0) {
+        if (localVariation.type.trim() && localVariation.options.length > 0) {
             onSave(localVariation);
         }
     };
@@ -140,7 +140,7 @@ const VariationModal: React.FC<VariationModalProps> = ({ variation, onClose, onS
                                 </div>
                             </div>
                             <div className="text-right">
-                               <button type="button" onClick={handleAddOption} className="bg-primary text-white font-semibold px-4 py-2 rounded-lg text-sm mt-2">Seçenek Ekle</button>
+                                <button type="button" onClick={handleAddOption} className="bg-primary text-white font-semibold px-4 py-2 rounded-lg text-sm mt-2">Seçenek Ekle</button>
                             </div>
                         </div>
                     </div>
@@ -162,6 +162,7 @@ interface ProductEditPageProps {
 }
 
 const defaultProduct: Product = {
+    id: '',
     name: '', sku: '', images: [], category: '', subcategory: '', tags: [],
     price: { min: 0, max: 0 }, isFavorite: false, description: '',
     isPOD: false,
@@ -170,17 +171,17 @@ const defaultProduct: Product = {
 };
 
 const presetVariations: Record<string, Variation> = {
-  'Renk': {
-    type: 'Renk',
-    options: [
-      { name: 'Siyah', value: '#000000' }, { name: 'Beyaz', value: '#FFFFFF' },
-      { name: 'Kırmızı', value: '#FF0000' }, { name: 'Mavi', value: '#0000FF' },
-      { name: 'Yeşil', value: '#008000' }, { name: 'Sarı', value: '#FFFF00' },
-      { name: 'Gri', value: '#808080' },
-    ].map(opt => ({ ...opt, price: 0, stock: 0, sku: '' })),
-  },
-  'Beden': { type: 'Beden', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => ({ name: size, value: size, price: 0, stock: 0, sku: '' })) },
-  'Ayakkabı Numarası': { type: 'Ayakkabı Numarası', options: Array.from({ length: 11 }, (_, i) => 36 + i).map(num => ({ name: String(num), value: String(num), price: 0, stock: 0, sku: '' })) }
+    'Renk': {
+        type: 'Renk',
+        options: [
+            { name: 'Siyah', value: '#000000' }, { name: 'Beyaz', value: '#FFFFFF' },
+            { name: 'Kırmızı', value: '#FF0000' }, { name: 'Mavi', value: '#0000FF' },
+            { name: 'Yeşil', value: '#008000' }, { name: 'Sarı', value: '#FFFF00' },
+            { name: 'Gri', value: '#808080' },
+        ].map(opt => ({ ...opt, price: 0, stock: 0, sku: '' })),
+    },
+    'Beden': { type: 'Beden', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => ({ name: size, value: size, price: 0, stock: 0, sku: '' })) },
+    'Ayakkabı Numarası': { type: 'Ayakkabı Numarası', options: Array.from({ length: 11 }, (_, i) => 36 + i).map(num => ({ name: String(num), value: String(num), price: 0, stock: 0, sku: '' })) }
 };
 
 // FIX: Switched prop type definitions from `interface` with `extends` to `type` with an intersection (&).
@@ -196,7 +197,7 @@ const Select = ({ hasError, className, children, ...props }: SelectProps) => <se
 
 const Label = (props: React.LabelHTMLAttributes<HTMLLabelElement>) => <label {...props} className={`text-sm font-bold text-slate-700 mb-1 block ${props.className || ''}`}>{props.children}</label>;
 
-const Card = ({children, title, hasError}: {children?: React.ReactNode, title: string, hasError?: boolean}) => (
+const Card = ({ children, title, hasError }: { children?: React.ReactNode, title: string, hasError?: boolean }) => (
     <div className={`bg-white p-6 rounded-xl shadow-sm border ${hasError ? 'border-red-500' : 'border-slate-200'}`}>
         <h2 className="text-lg font-bold text-dark-blue border-b border-slate-200 pb-3 mb-4">{title}</h2>
         <div className="space-y-4">{children}</div>
@@ -216,7 +217,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
     const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 
     const isEditMode = Boolean(product);
-    
+
     const validate = (): boolean => {
         const newErrors: Partial<Record<string, string>> = {};
 
@@ -241,7 +242,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             if (editingVariationIndex !== null) {
                 newVariations[editingVariationIndex] = variation;
             } else {
-                 if (!newVariations.some(v => v.type === variation.type)) {
+                if (!newVariations.some(v => v.type === variation.type)) {
                     newVariations.push(variation);
                 }
             }
@@ -250,7 +251,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
         setIsVariationModalOpen(false);
         setEditingVariationIndex(null);
     };
-    
+
     const handleAddPresetVariation = (presetType: string) => {
         if (formData.variations?.some(v => v.type === presetType)) return;
         const preset = presetVariations[presetType];
@@ -258,7 +259,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             setFormData(prev => ({ ...prev, variations: [...(prev.variations || []), JSON.parse(JSON.stringify(preset))] }));
         }
     };
-    
+
     const handleOptionChange = (variationIndex: number, optionName: string, field: keyof VariationOption, value: any) => {
         setFormData(prev => {
             const newVariations = [...(prev.variations || [])];
@@ -283,16 +284,16 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             return { ...prev, variations: newVariations };
         });
     };
-    
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        
+
         if (type === 'checkbox') {
             const { checked } = e.target as HTMLInputElement;
             setFormData(prev => ({ ...prev, [name]: checked }));
         } else {
             setFormData(prev => {
-                 const newState = { ...prev, [name]: value };
+                const newState = { ...prev, [name]: value };
                 if (name === 'category') {
                     newState.subcategory = ''; // Reset subcategory when main category changes
                 }
@@ -304,26 +305,26 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
     const handleNestedChange = (e: React.ChangeEvent<HTMLInputElement>, ...path: (string | number)[]) => {
         const { name, value } = e.target;
         const val = e.target.type === 'number' ? parseFloat(value) || 0 : value;
-    
+
         setFormData(prev => {
             const newState = JSON.parse(JSON.stringify(prev));
             let current: any = newState;
-    
+
             for (let i = 0; i < path.length; i++) {
                 current = current[path[i]];
             }
-    
+
             current[name] = val;
-    
+
             if (path.length === 1 && path[0] === 'price' && name === 'min' && (!newState.variations || newState.variations.length === 0)) {
                 newState.price.max = val;
             }
-    
+
             return newState;
         });
     };
-    
-     const handleAddImage = () => {
+
+    const handleAddImage = () => {
         if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
             setFormData(prev => ({ ...prev, images: [...prev.images, imageInput.trim()] }));
             setImageInput('');
@@ -333,7 +334,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
         if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files);
             const newImageUrls = files.map(file => URL.createObjectURL(file as Blob));
-            setFormData(prev => ({...prev, images: [...prev.images, ...newImageUrls]}));
+            setFormData(prev => ({ ...prev, images: [...prev.images, ...newImageUrls] }));
         }
     };
     const handleRemoveImage = (imageToRemove: string) => {
@@ -350,10 +351,10 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             alert("Lütfen tüm zorunlu (*) alanları doğru bir şekilde doldurun.");
             return;
         }
-    
+
         const finalData = { ...formData };
         const variationsWithOptions = finalData.variations?.filter(v => v.options && v.options.length > 0) || [];
-    
+
         if (variationsWithOptions.length > 0) {
             const combinations = variationsWithOptions.reduce((acc, variation) => {
                 const res: any[] = [];
@@ -367,20 +368,20 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                 });
                 return res;
             }, [] as any[]);
-    
+
             finalData.variants = combinations.map((combo: { type: string; option: VariationOption }[]) => {
                 const attributes: Record<string, string> = {};
                 const skuParts: string[] = [];
                 let price = 0;
                 let stock = Infinity;
-    
+
                 combo.forEach(item => {
                     attributes[item.type] = item.option.name;
                     skuParts.push(item.option.sku || item.option.name.substring(0, 3).toUpperCase());
                     price += item.option.price;
                     stock = Math.min(stock, item.option.stock);
                 });
-    
+
                 return {
                     sku: (finalData.sku || 'PROD') + '-' + skuParts.join('-'),
                     attributes,
@@ -389,7 +390,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                     shippingCostModifier: 0,
                 };
             });
-    
+
             const allPrices = finalData.variants.map(v => v.price);
             if (allPrices.length > 0) {
                 finalData.price.min = Math.min(...allPrices);
@@ -405,10 +406,10 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                 shippingCostModifier: 0,
             }];
         }
-        
+
         onSave(finalData);
     };
-    
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {isVariationModalOpen && (
@@ -419,7 +420,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                 />
             )}
             {isColorModalOpen && <ColorPickerModal onClose={() => setIsColorModalOpen(false)} onSave={handleSaveColor} />}
-            
+
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-dark-blue">{isEditMode ? `Ürünü Düzenle` : 'Yeni Ürün Oluştur'}</h1>
                 <div className="flex justify-end gap-4">
@@ -453,7 +454,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                         )}
                         <div><Label>Açıklama</Label><Textarea name="description" value={formData.description} onChange={handleChange} rows={8}></Textarea></div>
                         <div className="pt-4 border-t border-slate-200">
-                             <label className="flex items-center gap-3 cursor-pointer">
+                            <label className="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" name="isPOD" checked={formData.isPOD} onChange={handleChange} className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
                                 <span className="font-semibold text-dark-blue">Bu bir POD (İsteğe Bağlı Baskı) ürünü mü?</span>
                             </label>
@@ -468,8 +469,8 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="font-bold text-dark-blue">{v.type}</span>
                                         <div className="flex items-center gap-2">
-                                            <button type="button" onClick={() => handleOpenVariationModal(index)} className="p-2 text-slate-600 hover:text-primary"><PencilIcon className="w-5 h-5"/></button>
-                                            <button type="button" onClick={() => removeVariation(index)} className="p-2 text-slate-600 hover:text-red-500"><TrashIcon className="w-5 h-5"/></button>
+                                            <button type="button" onClick={() => handleOpenVariationModal(index)} className="p-2 text-slate-600 hover:text-primary"><PencilIcon className="w-5 h-5" /></button>
+                                            <button type="button" onClick={() => removeVariation(index)} className="p-2 text-slate-600 hover:text-red-500"><TrashIcon className="w-5 h-5" /></button>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-600 px-2 pb-1 border-b">
@@ -480,9 +481,9 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                                             <div key={opt.name} className="grid grid-cols-12 gap-2 items-center px-2 py-1 hover:bg-slate-100 rounded">
                                                 <div className="col-span-3 font-medium text-sm">{opt.name}</div>
                                                 {v.type === 'Renk' && (<div className="col-span-1 flex justify-center"><div className="w-5 h-5 rounded-full border border-slate-300" style={{ backgroundColor: opt.value }} /></div>)}
-                                                <div className="col-span-3"><input type="text" placeholder="Opsiyonel" value={opt.sku || ''} onChange={(e) => handleOptionChange(index, opt.name, 'sku', e.target.value)} className="w-full text-xs p-1 rounded bg-white border border-slate-300"/></div>
-                                                <div className="col-span-2"><input type="number" step="0.01" required value={opt.price} onChange={(e) => handleOptionChange(index, opt.name, 'price', parseFloat(e.target.value))} className="w-full text-xs p-1 rounded bg-white border border-slate-300"/></div>
-                                                <div className="col-span-2"><input type="number" required value={opt.stock} onChange={(e) => handleOptionChange(index, opt.name, 'stock', parseInt(e.target.value))} className="w-full text-xs p-1 rounded bg-white border border-slate-300"/></div>
+                                                <div className="col-span-3"><input type="text" placeholder="Opsiyonel" value={opt.sku || ''} onChange={(e) => handleOptionChange(index, opt.name, 'sku', e.target.value)} className="w-full text-xs p-1 rounded bg-white border border-slate-300" /></div>
+                                                <div className="col-span-2"><input type="number" step="0.01" required value={opt.price} onChange={(e) => handleOptionChange(index, opt.name, 'price', parseFloat(e.target.value))} className="w-full text-xs p-1 rounded bg-white border border-slate-300" /></div>
+                                                <div className="col-span-2"><input type="number" required value={opt.stock} onChange={(e) => handleOptionChange(index, opt.name, 'stock', parseInt(e.target.value))} className="w-full text-xs p-1 rounded bg-white border border-slate-300" /></div>
                                             </div>
                                         ))}
                                         {v.type === 'Renk' && (<button type="button" onClick={() => setIsColorModalOpen(true)} className="text-sm font-semibold text-primary hover:underline mt-2 ml-2">+ Renk Ekle</button>)}
@@ -513,7 +514,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                         </div>
                         <div>
                             <label htmlFor="file-upload" className="w-full text-center cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-md border border-slate-300 flex items-center justify-center gap-2">
-                                <CameraIcon className="w-5 h-5"/> Bilgisayardan Yükle
+                                <CameraIcon className="w-5 h-5" /> Bilgisayardan Yükle
                             </label>
                             <input id="file-upload" type="file" className="hidden" onChange={handleImageFileChange} accept="image/*" multiple />
                         </div>
@@ -527,14 +528,14 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                             ))}
                         </div>
                     </Card>
-                     <Card title="Kategorizasyon">
+                    <Card title="Kategorizasyon">
                         <div>
                             <Label>Kategori *</Label>
                             <Select name="category" value={formData.category} onChange={handleChange} required hasError={!!errors.category}>
                                 <option value="">Kategori Seçin</option>
                                 {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                             </Select>
-                             <FieldError message={errors.category} />
+                            <FieldError message={errors.category} />
                         </div>
                         <div>
                             <Label>Alt Kategori</Label>
@@ -553,11 +554,11 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                     </Card>
                     <Card title="Kargo Ücretleri *" hasError={!!errors.shipping}>
                         <div className="grid grid-cols-2 gap-4">
-                           <div>
+                            <div>
                                 <Label>Kargo Ücreti (EU)</Label>
                                 <Input type="number" step="0.01" name="eu" value={formData.shippingInfo.shippingCosts.eu} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} hasError={!!errors.shipping} />
                             </div>
-                           <div>
+                            <div>
                                 <Label>Kargo Ücreti (USA)</Label>
                                 <Input type="number" step="0.01" name="usa" value={formData.shippingInfo.shippingCosts.usa} onChange={(e) => handleNestedChange(e, 'shippingInfo', 'shippingCosts')} hasError={!!errors.shipping} />
                             </div>
@@ -566,7 +567,7 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                     </Card>
                 </div>
             </div>
-            
+
             <div className="flex justify-end gap-4 mt-6">
                 <button type="button" onClick={() => navigate('/admin/products')} className="bg-slate-200 text-dark-blue font-bold py-2 px-6 rounded-lg hover:bg-slate-300">İptal</button>
                 <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-focus">{isEditMode ? 'Değişiklikleri Kaydet' : 'Ürünü Oluştur'}</button>

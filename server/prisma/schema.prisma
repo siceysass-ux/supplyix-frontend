@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String   @id @default(uuid())
+  name                  String
+  email                 String   @unique
+  password              String
+  role                  String   // "admin" | "member"
+  phone                 String?
+  tcKimlik              String?
+  vergiKimlik           String?
+  referans              String?
+  plan                  String?
+  status                String   // "Aktif" | "Pasif"
+  registrationDate      String
+  subscriptionStartDate String
+  subscriptionEndDate   String
+  totalSpent            Float    @default(0)
+  lastLogin             String
+  platforms             String   // Stored as JSON string
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  category    String
+  price       Float
+  stock       Int
+  imageUrl    String
+  description String
+  status      String   // "Aktif" | "Pasif"
+  minOrder    Int      @default(1)
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
+  customerName    String
+  productName     String
+  quantity        Int
+  totalPrice      Float
+  status          String   // "Hazırlanıyor" | "Kargoda" | "Teslim Edildi" | "İptal"
+  creationDate    String
+  shippingAddress String
+  shippingCarrier String?
+  trackingNumber  String?
+}
+
+model Request {
+  id        String   @id @default(uuid())
+  type      String   // "Tedarik" | "Destek"
+  details   String
+  status    String   // "Bekliyor" | "Tamamlandı" | "Reddedildi"
+  result    String?
+  updated   String
+  userName  String
+  userEmail String
+  imageUrl  String?
+}
+
+model Announcement {
+  id      String @id @default(uuid())
+  title   String
+  content String
+  date    String
+  type    String // "Duyuru" | "Bakım" | "Güncelleme"
+}
+
+model SupportTicket {
+  id            String @id @default(uuid())
+  userId        String
+  userName      String
+  userEmail     String
+  subject       String
+  status        String // "Açık" | "Kapalı" | "Yanıt Bekleniyor"
+  isReadByAdmin Boolean @default(false)
+  lastUpdate    String
+  messages      String // Stored as JSON string
+}
+
+model ExtraFee {
+  id          String @id @default(uuid())
+  userId      String
+  amount      Float
+  description String
+  date        String
+  isPaid      Boolean @default(false)
+}
+
+// Site Settings
+model Plan {
+  id       String @id @default(uuid())
+  name     String
+  price    Float
+  features String // Stored as JSON string
+  popular  Boolean @default(false)
+}
+
+model EventPopup {
+  id       String  @id @default(uuid())
+  isActive Boolean @default(false)
+  imageUrl String
+  link     String
+}
+
+model InfluencerCode {
+  id             String @id @default(uuid())
+  code           String @unique
+  discountRate   Float
+  affiliateRate  Float
+  usageCount     Int    @default(0)
+  totalEarnings  Float  @default(0)
+}
+
+model NavItem {
+  id       String @id @default(uuid())
+  label    String
+  path     String
+  type     String // "main" | "admin"
+  order    Int
+}

@@ -12,11 +12,11 @@ export interface NavItem {
 }
 
 export interface Plan {
-  name: string;
-  price: number;
-  durationText: string;
-  popular?: boolean;
-  buttonText: string;
+    name: string;
+    price: number;
+    durationText: string;
+    popular?: boolean;
+    buttonText: string;
 }
 
 export interface EventPopup {
@@ -71,6 +71,7 @@ export interface ProductVariant {
 }
 
 export interface Product {
+    id: string;
     name: string;
     sku: string;
     images: string[];
@@ -249,6 +250,7 @@ export const initialInfluencerCodes: InfluencerCode[] = [
 
 export const initialProducts: Product[] = [
     {
+        id: 'prod-1',
         name: 'Ergonomik Ofis Sandalyesi',
         sku: 'CHR-001',
         images: ['https://picsum.photos/seed/chair1/800/800', 'https://picsum.photos/seed/chair2/800/800', 'https://picsum.photos/seed/chair3/800/800'],
@@ -263,14 +265,18 @@ export const initialProducts: Product[] = [
 - Nefes alabilen file sırtlık
 - 4D ayarlanabilir kolçaklar`,
         variations: [
-            { type: 'Renk', options: [
-                { name: 'Siyah', value: '#000000', price: 120, stock: 50, sku: 'BLK' },
-                { name: 'Gri', value: '#808080', price: 125, stock: 30, sku: 'GRY' },
-            ]},
-            { type: 'Malzeme', options: [
-                { name: 'Kumaş', value: 'Kumaş', price: 0, stock: 100, sku: 'FAB' },
-                { name: 'Deri', value: 'Deri', price: 10, stock: 100, sku: 'LTH' },
-            ]}
+            {
+                type: 'Renk', options: [
+                    { name: 'Siyah', value: '#000000', price: 120, stock: 50, sku: 'BLK' },
+                    { name: 'Gri', value: '#808080', price: 125, stock: 30, sku: 'GRY' },
+                ]
+            },
+            {
+                type: 'Malzeme', options: [
+                    { name: 'Kumaş', value: 'Kumaş', price: 0, stock: 100, sku: 'FAB' },
+                    { name: 'Deri', value: 'Deri', price: 10, stock: 100, sku: 'LTH' },
+                ]
+            }
         ],
         variants: [
             { sku: 'CHR-001-BLK-FAB', attributes: { 'Renk': 'Siyah', 'Malzeme': 'Kumaş' }, price: 120.00, stock: 50, shippingCostModifier: 0 },
@@ -281,6 +287,7 @@ export const initialProducts: Product[] = [
         shippingInfo: { weight: '15kg', dimensions: '60x60x90cm', shippingCosts: { eu: 15.00, usa: 35.00 } },
     },
     {
+        id: 'prod-2',
         name: 'Özelleştirilebilir T-Shirt',
         sku: 'TSH-POD-01',
         images: ['https://picsum.photos/seed/tshirt1/800/800', 'https://picsum.photos/seed/tshirt2/800/800'],
@@ -295,10 +302,12 @@ export const initialProducts: Product[] = [
 - Modern kesim
 - Dayanıklı baskı`,
         variations: [
-            { type: 'Renk', options: [
-                { name: 'Beyaz', value: '#FFFFFF', price: 15, stock: 1000, sku: 'WHT' },
-                { name: 'Siyah', value: '#000000', price: 16, stock: 1000, sku: 'BLK' },
-            ]},
+            {
+                type: 'Renk', options: [
+                    { name: 'Beyaz', value: '#FFFFFF', price: 15, stock: 1000, sku: 'WHT' },
+                    { name: 'Siyah', value: '#000000', price: 16, stock: 1000, sku: 'BLK' },
+                ]
+            },
             { type: 'Beden', options: ['S', 'M', 'L', 'XL'].map(s => ({ name: s, value: s, price: s === 'XL' ? 2 : 0, stock: 1000, sku: s })) },
         ],
         variants: [
@@ -310,6 +319,7 @@ export const initialProducts: Product[] = [
         shippingInfo: { weight: '0.3kg', dimensions: '30x20x3cm', shippingCosts: { eu: 5.00, usa: 10.00 } },
     },
     {
+        id: 'prod-3',
         name: 'Akıllı Saat',
         sku: 'WTCH-01',
         images: ['https://picsum.photos/seed/watch01/800/800'],
@@ -331,7 +341,7 @@ const defaultShippingAddress: ShippingAddress = {
 
 export const initialOrders: Order[] = [
     { id: '#S001', creationDate: '2025-10-10', status: 'Teslim Edildi', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', sku: 'CHR-001-BLK-LTH', variationDetails: 'Siyah, Deri', quantity: 1, price: '$130.00', destination: 'eu' }], subtotal: '$130.00', shippingTotal: '$20.00', total: '$150.00', shippingCarrier: 'UPS', trackingNumber: '1Z9999999999999999' },
-    { id: '#S002', creationDate: '2025-10-11', status: 'Kargoda', shippingAddress: {...defaultShippingAddress, consignee: 'Ayşe Kaya'}, products: [{ name: 'Akıllı Saat', sku: 'WTCH-01', variationDetails: '', quantity: 2, price: '$179.80', destination: 'usa' }], subtotal: '$179.80', shippingTotal: '$15.00', total: '$194.80', shippingCarrier: 'FedEx', trackingNumber: '999999999999' },
+    { id: '#S002', creationDate: '2025-10-11', status: 'Kargoda', shippingAddress: { ...defaultShippingAddress, consignee: 'Ayşe Kaya' }, products: [{ name: 'Akıllı Saat', sku: 'WTCH-01', variationDetails: '', quantity: 2, price: '$179.80', destination: 'usa' }], subtotal: '$179.80', shippingTotal: '$15.00', total: '$194.80', shippingCarrier: 'FedEx', trackingNumber: '999999999999' },
     { id: '#S003', creationDate: '2025-10-12', status: 'Hazırlanıyor', shippingAddress: defaultShippingAddress, products: [{ name: 'Ergonomik Ofis Sandalyesi', sku: 'CHR-001-GRY-FAB', variationDetails: 'Gri, Kumaş', quantity: 1, price: '$125.00', destination: 'eu' }], subtotal: '$125.00', shippingTotal: '$15.00', total: '$140.00' },
     { id: '#S004', creationDate: '2025-10-13', status: 'Beklemede', shippingAddress: defaultShippingAddress, products: [{ name: 'Özelleştirilebilir T-Shirt', sku: 'TSH-POD-01-WHT-M', variationDetails: 'Beyaz, M', quantity: 1, price: '$15.00', destination: 'eu', podFileUrl: '/logo.png', podFileName: 'musteri_tasarimi.png' }], subtotal: '$15.00', shippingTotal: '$5.00', total: '$20.00' },
 ];
@@ -380,7 +390,7 @@ export const initialSupportTickets: SupportTicket[] = [
             { sender: 'user', text: 'Ürün iadesi yapmak istiyorum, süreci anlatabilir misiniz?', timestamp: '1 saat önce' },
         ]
     },
-     {
+    {
         id: 'DSTK-003',
         userId: 'user-1',
         userName: 'Ahmet Yılmaz',
