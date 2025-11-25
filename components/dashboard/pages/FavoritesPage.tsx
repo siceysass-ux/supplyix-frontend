@@ -15,6 +15,9 @@ interface FavoritesPageProps {
 }
 
 const formatPrice = (price: Price): string => {
+    if (!price || price.min === null || price.max === null || price.min === undefined || price.max === undefined) {
+        return '';
+    }
     if (price.min === price.max) {
         return `$${price.min.toFixed(2)}`;
     }
