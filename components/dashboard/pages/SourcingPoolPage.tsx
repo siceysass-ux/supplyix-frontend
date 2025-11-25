@@ -5,11 +5,17 @@ import { Product, Price } from '../types';
 import { StarIcon as StarIconOutline, SearchIcon } from '../icons/outline';
 import { StarIcon as StarIconSolid } from '../icons/solid';
 
-const formatPrice = (price: Price): string => {
-    if (price.min === price.max) {
-        return `$${price.min.toFixed(2)}`;
+const formatPrice = (price: Price | string | number): string => {
+    if (typeof price === 'object' && price.min !== undefined && price.max !== undefined) {
+        const min = parseFloat(String(price.min));
+        const max = parseFloat(String(price.max));
+        if (min === max) {
+            return `$${min.toFixed(2)}`;
+        }
+        return `$${min.toFixed(2)} - $${max.toFixed(2)}`;
     }
-    return `$${price.min.toFixed(2)} - $${price.max.toFixed(2)}`;
+    const numPrice = parseFloat(String(price)) || 0;
+    return `$${numPrice.toFixed(2)}`;
 };
 
 import { normalizeText } from '../shared/utils';
@@ -37,7 +43,17 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
 
     const maxProductPrice = useMemo(() => {
         if (products.length === 0) return 1000;
-        return Math.ceil(Math.max(...products.map(p => p.price.max)));
+        const prices = products
+            .map(p => {
+                if (typeof p.price === 'object' && p.price.max !== undefined) {
+                    return parseFloat(String(p.price.max));
+                }
+                return parseFloat(String(p.price)) || 0;
+            })
+            .filter(price => !isNaN(price) && price > 0);
+
+        if (prices.length === 0) return 1000;
+        return Math.ceil(Math.max(...prices));
     }, [products]);
 
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
@@ -47,8 +63,19 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
     // Update max price when products change
     useEffect(() => {
         if (products.length > 0) {
-            const max = Math.ceil(Math.max(...products.map(p => p.price.max)));
-            setPriceRange([0, max]);
+            const prices = products
+                .map(p => {
+                    if (typeof p.price === 'object' && p.price.max !== undefined) {
+                        return parseFloat(String(p.price.max));
+                    }
+                    return parseFloat(String(p.price)) || 0;
+                })
+                .filter(price => !isNaN(price) && price > 0);
+
+            if (prices.length > 0) {
+                const max = Math.ceil(Math.max(...prices));
+                setPriceRange([0, max]);
+            }
         }
     }, [products]);
 
@@ -110,7 +137,6 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
 
     const filteredProducts = useMemo(() => {
         return products.filter(product => {
-            // ... (keep existing filter logic)
             const normalizedSearchTerm = normalizeText(searchTerm);
             const matchesSearch = normalizedSearchTerm === '' ||
                 normalizeText(product.name).includes(normalizedSearchTerm) ||
@@ -119,7 +145,20 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
             const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
             const matchesSubcategory = subcategoryFilter === 'All' || product.subcategory === subcategoryFilter;
 
-            const matchesPrice = product.price.max >= priceRange[0] && product.price.min <= priceRange[1];
+            // Handle both object and string price formats
+            let productMin = 0;
+            let productMax = 0;
+
+            if (typeof product.price === 'object' && product.price.max !== undefined) {
+                productMin = parseFloat(String(product.price.min)) || 0;
+                productMax = parseFloat(String(product.price.max)) || 0;
+            } else {
+                const price = parseFloat(String(product.price)) || 0;
+                productMin = price;
+                productMax = price;
+            }
+
+            const matchesPrice = productMax >= priceRange[0] && productMin <= priceRange[1];
 
             return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice;
         });
