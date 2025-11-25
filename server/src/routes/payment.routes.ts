@@ -134,18 +134,43 @@ router.post('/initialize', async (req: Request, res: Response) => {
     }
 });
 
-// Payment callback endpoint (after 3D Secure)
-router.post('/callback', async (req: Request, res: Response) => {
+
+// Payment callback handler function
+const handlePaymentCallback = async (req: Request, res: Response) => {
     try {
-        const { paymentId, conversationId, mdStatus, conversationData } = req.body;
+        console.log('📥 Payment callback received');
+        console.log('Method:', req.method);
+        console.log('Body:', req.body);
+        console.log('Query:', req.query);
+
+        // Get data from either body (POST) or query (GET)
+        const data = req.method === 'POST' ? req.body : req.query;
+        const { paymentId, conversationId, mdStatus, conversationData } = data;
+
+        console.log('Payment Data:', { paymentId, conversationId, mdStatus });
 
         if (!iyzipay) {
-            console.error('Iyzico client is not initialized');
-            return res.status(500).send('Ödeme sistemi hatası');
+            console.error('❌ Iyzico client is not initialized');
+            return res.status(500).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Ödeme Hatası</title>
+                    <script>
+                        window.parent.postMessage({ type: 'PAYMENT_FAILED', message: 'Ödeme sistemi hatası' }, '*');
+                    </script>
+                </head>
+                <body>
+                    <h1>Ödeme Sistemi Hatası</h1>
+                    <p>Lütfen daha sonra tekrar deneyin.</p>
+                </body>
+                </html>
+            `);
         }
 
         // Verify 3D Secure authentication
         if (mdStatus !== '1') {
+            console.log('❌ 3D Secure verification failed. mdStatus:', mdStatus);
             return res.send(`
                 <!DOCTYPE html>
                 <html>
@@ -170,53 +195,89 @@ router.post('/callback', async (req: Request, res: Response) => {
             conversationData: conversationData || null
         };
 
+        console.log('🔄 Processing 3D Secure payment...');
+
         iyzipay.threedsPayment.create(request, (err: any, result: any) => {
             if (err) {
-                console.error('3D Secure Payment Error:', err);
+                console.error('❌ 3D Secure Payment Error:', err);
                 return res.send(`
                     <!DOCTYPE html>
                     <html>
                     <head>
+                        <title>Ödeme Başarısız</title>
                         <script>
                             window.parent.postMessage({ type: 'PAYMENT_FAILED', message: 'Ödeme tamamlanamadı.' }, '*');
                         </script>
                     </head>
-                    <body><h1>Ödeme Başarısız</h1></body>
+                    <body>
+                        <h1>Ödeme Başarısız</h1>
+                        <p>Ödeme işlemi tamamlanamadı.</p>
+                    </body>
                     </html>
                 `);
             }
 
+            console.log('✅ Payment Result:', result);
+
             if (result.status === 'success') {
+                console.log('✅ Payment successful!');
                 res.send(`
                     <!DOCTYPE html>
                     <html>
                     <head>
+                        <title>Ödeme Başarılı</title>
                         <script>
                             window.parent.postMessage({ type: 'PAYMENT_SUCCESS', paymentId: '${result.paymentId || conversationId}' }, '*');
                         </script>
                     </head>
-                    <body><h1>Ödeme Başarılı</h1></body>
+                    <body>
+                        <h1>Ödeme Başarılı</h1>
+                        <p>Ödemeniz başarıyla tamamlandı.</p>
+                    </body>
                     </html>
                 `);
             } else {
+                console.log('❌ Payment failed:', result.errorMessage);
                 res.send(`
                     <!DOCTYPE html>
                     <html>
                     <head>
+                        <title>Ödeme Başarısız</title>
                         <script>
                             window.parent.postMessage({ type: 'PAYMENT_FAILED', message: '${result.errorMessage}' }, '*');
                         </script>
                     </head>
-                    <body><h1>Ödeme Başarısız</h1><p>${result.errorMessage}</p></body>
+                    <body>
+                        <h1>Ödeme Başarısız</h1>
+                        <p>${result.errorMessage}</p>
+                    </body>
                     </html>
                 `);
             }
         });
 
     } catch (error) {
-        console.error('Callback error:', error);
-        res.status(500).send('Sunucu hatası');
+        console.error('❌ Callback error:', error);
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Sunucu Hatası</title>
+                <script>
+                    window.parent.postMessage({ type: 'PAYMENT_FAILED', message: 'Sunucu hatası' }, '*');
+                </script>
+            </head>
+            <body>
+                <h1>Sunucu Hatası</h1>
+                <p>Lütfen daha sonra tekrar deneyin.</p>
+            </body>
+            </html>
+        `);
     }
-});
+};
+
+// Payment callback endpoint (after 3D Secure) - supports both GET and POST
+router.post('/callback', handlePaymentCallback);
+router.get('/callback', handlePaymentCallback);
 
 export default router;

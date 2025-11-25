@@ -80,53 +80,96 @@ router.post('/login', async (req, res) => {
 // Register
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, referralCode, ...otherData } = req.body;
+        console.log('📝 Registration attempt with data:', JSON.stringify(req.body, null, 2));
+
+        const { name, email, password, referralCode, platforms, ...otherData } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !password) {
+            console.error('❌ Missing required fields');
+            return res.status(400).json({ error: 'Ad, email ve şifre zorunludur' });
+        }
+
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (existingUser) {
+            console.error('❌ User already exists:', email);
+            return res.status(400).json({ error: 'Bu email adresi zaten kayıtlı' });
+        }
 
         // Generate unique referral code for new user
         const userReferralCode = await generateUniqueReferralCode(name);
+        console.log('✅ Generated referral code:', userReferralCode);
 
         // Hash password before storing
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('✅ Password hashed');
 
         // Generate email verification token
         const emailVerificationToken = crypto.randomBytes(32).toString('hex');
         const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-        // Create user
+        // Convert platforms array to JSON string if it's an array
+        const platformsString = Array.isArray(platforms)
+            ? JSON.stringify(platforms)
+            : (platforms || JSON.stringify([]));
+
+        console.log('📦 Platforms:', platformsString);
+
+        // Create user with all data
+        const userData = {
+            name,
+            email,
+            password: hashedPassword,
+            platforms: platformsString,
+            ...otherData,
+            referralCode: userReferralCode,
+            referredBy: referralCode || null,
+            referralCount: 0,
+            referralRewards: 0,
+            emailVerified: false,
+            emailVerificationToken,
+            emailVerificationExpires
+        };
+
+        console.log('💾 Creating user with data:', JSON.stringify(userData, null, 2));
+
         const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                ...otherData,
-                referralCode: userReferralCode,
-                referredBy: referralCode || null,
-                referralCount: 0,
-                referralRewards: 0,
-                emailVerified: false,
-                emailVerificationToken,
-                emailVerificationExpires
-            }
+            data: userData
         });
+
+        console.log('✅ User created successfully:', user.id);
 
         // If user was referred, handle reward
         if (referralCode) {
             await handleReferralReward(referralCode);
+            console.log('🎁 Referral reward handled');
         }
 
         // Send verification email
         try {
             await sendEmailVerification(email, name, emailVerificationToken);
-            console.log('Verification email sent to:', email);
+            console.log('📧 Verification email sent to:', email);
         } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+            console.error('⚠️ Failed to send verification email:', emailError);
             // Don't fail registration if email fails
         }
 
         res.json(user);
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ error: 'Kayıt başarısız oldu' });
+    } catch (error: any) {
+        console.error('❌ Registration error:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
+
+        // Send more specific error message
+        const errorMessage = error.message || 'Kayıt başarısız oldu';
+        res.status(500).json({
+            error: 'Kayıt başarısız oldu',
+            details: errorMessage
+        });
     }
 });
 
