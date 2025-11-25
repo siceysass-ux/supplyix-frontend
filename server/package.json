@@ -7,7 +7,8 @@
         "start": "node dist/index.js",
         "dev": "nodemon src/index.ts",
         "build": "tsc",
-        "seed": "ts-node prisma/seed.ts"
+        "seed": "ts-node prisma/seed.ts",
+        "db:fresh": "npx prisma migrate reset --force --skip-generate --skip-seed && ts-node prisma/seed.ts"
     },
     "keywords": [],
     "author": "",
