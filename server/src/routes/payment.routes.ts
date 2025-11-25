@@ -35,7 +35,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
             conversationId: `conv_${Date.now()}`,
             price: item.price.toString(),
             paidPrice: item.price.toString(),
-            currency: Iyzipay.CURRENCY.TRY,
+            currency: Iyzipay.CURRENCY.USD,
             installment: '1',
             basketId: `basket_${Date.now()}`,
             paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
