@@ -36,6 +36,21 @@ router.put('/:id/status', async (req, res) => {
             where: { id: req.params.id },
             data: { status },
         });
+
+        // Create notification for status change
+        try {
+            await prisma.notification.create({
+                data: {
+                    userId: order.userId,
+                    title: 'Sipariş Durumu Güncellendi',
+                    message: `Siparişinizin durumu güncellendi: ${status}`,
+                    type: 'info',
+                    link: '/dashboard/orders'
+                }
+            });
+        } catch (notifError) {
+            console.error('Failed to create notification:', notifError);
+        }
         res.json(order);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update order status' });
@@ -54,9 +69,37 @@ router.put('/:id/tracking', async (req, res) => {
                 status: 'Kargoda'
             },
         });
+
+        // Create notification for tracking update
+        try {
+            await prisma.notification.create({
+                data: {
+                    userId: order.userId,
+                    title: 'Siparişiniz Kargoya Verildi',
+                    message: `Siparişiniz kargoya verildi. Takip Numarası: ${trackingNumber}`,
+                    type: 'success',
+                    link: '/dashboard/orders'
+                }
+            });
+        } catch (notifError) {
+            console.error('Failed to create notification:', notifError);
+        }
         res.json(order);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update tracking info' });
+    }
+});
+
+// Delete order
+router.delete('/:id', async (req, res) => {
+    try {
+        await prisma.order.delete({
+            where: { id: req.params.id }
+        });
+        res.json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({ error: 'Failed to delete order' });
     }
 });
 

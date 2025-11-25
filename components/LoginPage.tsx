@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from './admin/types';
+import * as api from '../src/services/api';
 
 interface LoginPageProps {
     navigate: (path: string) => void;
@@ -15,6 +16,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
 
     // On component mount, check for a remembered email in localStorage
     useEffect(() => {
+        document.title = 'Supplyix - Giriş Yap';
         const rememberedEmail = localStorage.getItem('rememberedEmail');
         if (rememberedEmail) {
             setEmail(rememberedEmail);
@@ -23,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
     }, []);
 
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
@@ -33,30 +35,34 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
         }
 
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            const user = users.find(u => u.email === email && u.password === password);
+        try {
+            const user = await api.login(email, password);
 
-            if (user) {
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
+            // Store user in localStorage for session management
+            localStorage.setItem('currentUser', JSON.stringify(user));
 
-                // Navigate based on user role
-                if (user.role === 'admin' || user.role === 'product lister') {
-                    navigate('/admin');
-                } else {
-                    navigate('/dashboard');
-                }
-                return; // Important to stop execution here
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
             }
-            
-            // If no user found
-            setError('Geçersiz e-posta adresi veya şifre.');
+
+            // Navigate based on user role
+            // All admin roles go to admin panel
+            if (user.role === 'admin' || user.role === 'product_admin' || user.role === 'support_admin' || user.role === 'product lister') {
+                navigate('/admin');
+            } else {
+                // Regular members go to dashboard
+                navigate('/dashboard');
+            }
+        } catch (err: any) {
+            console.error(err);
+            // Show specific error message from backend if available
+            const errorMessage = err?.response?.data?.error || err?.message || 'Geçersiz e-posta adresi veya şifre.';
+            setError(errorMessage);
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -110,16 +116,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
                         </div>
                         <div className="flex items-center justify-between mb-6">
                             <label className="flex items-center text-sm text-gray-600 dark:text-slate-300 cursor-pointer">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary" 
+                                    className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
                                 />
                                 <span className="ml-2">Beni Hatırla</span>
                             </label>
-                            <a href="#/forgot-password" onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }} className="text-sm text-primary hover:underline">
-                                Şifremi Unuttum?
+                            <a
+                                href="#"
+                                onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }}
+                                className="text-sm text-primary hover:text-primary-focus font-semibold"
+                            >
+                                Şifremi Unuttum
                             </a>
                         </div>
                         <button
@@ -129,6 +139,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigate, users }) => {
                         >
                             {isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
                         </button>
+
+                        {/* Signup Button */}
+                        <div className="mt-4 text-center">
+                            <p className="text-sm text-gray-600 dark:text-slate-400 mb-3">
+                                Henüz hesabınız yok mu?
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    navigate('/');
+                                    setTimeout(() => {
+                                        const pricingSection = document.getElementById('pricing');
+                                        if (pricingSection) {
+                                            pricingSection.scrollIntoView({ behavior: 'smooth' });
+                                        }
+                                    }, 100);
+                                }}
+                                className="bg-white dark:bg-slate-700 text-primary border-2 border-primary font-bold py-3 px-8 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-300 w-full"
+                            >
+                                Üye Ol
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

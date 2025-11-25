@@ -1,7 +1,7 @@
 import { Category } from "../../data/categories";
 
 export type UserStatus = 'Aktif' | 'Askıya Alındı' | 'İnceleniyor';
-export type UserRole = 'member' | 'admin' | 'product lister' | 'influencer';
+export type UserRole = 'member' | 'admin' | 'product_admin' | 'support_admin' | 'product lister' | 'influencer';
 
 export interface User {
     id: string;

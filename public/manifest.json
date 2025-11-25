@@ -1,0 +1,31 @@
+{
+    "name": "Supplyix - Dropshipping Türkiye",
+    "short_name": "Supplyix",
+    "description": "Türkiye'nin en güvenilir dropshipping ve toptan ürün tedarik platformu",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ff6a00",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.png",
+            "sizes": "32x32",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "shopping",
+        "productivity"
+    ],
+    "lang": "tr",
+    "dir": "ltr"
+}

@@ -1,0 +1,116 @@
+MESAFELİ SATIŞ SÖZLEŞMESİ
+
+Yürürlük Tarihi: 05.11.2025
+
+1. Taraflar
+
+Satıcı (Hizmet Sağlayıcı):
+Unvan: Supplyix
+Adres: YESILTEPE MAH. 57/1. SK. YESIL NO: 21 IÇ KAPI NO: 7 ZEYTINBURNU / İSTANBUL / TÜRKİYE
+E-posta: supplyix@supplyix.com
+
+Bu sözleşmede “Satıcı” olarak anılacaktır.
+
+Alıcı (Tüketici / Kullanıcı):
+Supplyix platformu üzerinden elektronik ortamda alışveriş yapan kişi veya kurumu ifade eder.
+
+2. Sözleşmenin Konusu
+
+Bu sözleşme, Alıcı’nın Supplyix platformu üzerinden elektronik ortamda siparişini verdiği ürünün satışı, teslimi, ödeme koşulları ve tarafların yükümlülüklerini düzenler.
+
+3. Sözleşmenin Kurulması
+
+Alıcı, siparişini tamamlayıp onayladığında, bu sözleşmenin tüm koşullarını kabul etmiş sayılır.
+
+Satıcı, sipariş onayını verdikten sonra sözleşme yürürlüğe girer.
+
+Satıcı, ürün stok veya tedarik sorunları nedeniyle siparişi iptal etme veya teslim süresini uzatma hakkını saklı tutar.
+
+4. Ürün Bilgileri ve Fiyatlandırma
+
+Ürünlerin nitelikleri, satış fiyatları ve teslimat koşulları sipariş ekranında belirtilmiştir.
+
+Fiyatlar, ödeme anındaki döviz kuru üzerinden hesaplanır.
+
+Teknik veya sistemsel hatalardan kaynaklanan fiyat yanlışlıklarında Satıcı siparişi iptal edebilir; bu durumda ücret iadesi yapılır.
+
+5. Teslimat ve Gönderim Şartları
+
+Teslimat, Alıcı’nın belirttiği adrese uluslararası kargo firması aracılığıyla yapılır.
+
+Ortalama teslimat süresi 7 ila 21 iş günü arasındadır; ülkeye ve kargo sürecine göre değişiklik gösterebilir.
+
+Gümrük, ithalat vergileri veya ek masraflar Alıcı’ya aittir.
+
+Kargoya verilen ürünlerde iptal veya iade yapılamaz.
+
+Teslimat sırasında ürünün hasarsız olduğunun kontrolü Alıcı’ya aittir; teslimden sonra bildirilmeyen hasarlardan Satıcı sorumlu değildir.
+
+Alıcı’nın adres hatası, gümrük ödemesi yapmaması veya teslimatı reddetmesi nedeniyle gönderi geri dönerse, yeniden gönderim veya iade masrafları Alıcı’ya yansıtılır.
+
+6. Ödeme Koşulları
+
+Ödeme, platformda sunulan yöntemlerle yapılır (kredi kartı, sanal POS, transfer vb.).
+
+Satıcı, ödemesi tamamlanmayan siparişleri onaylamama hakkını saklı tutar.
+
+Döviz kuru farkı, banka ve ödeme sağlayıcı politikalarına tabidir; Satıcı bu farklardan sorumlu değildir.
+
+7. Cayma Hakkı ve İade Şartları
+
+7.1. Cayma Hakkı
+Alıcı, ürünü teslim aldıktan sonra 14 gün içinde cayma hakkını kullanabilir. Ancak bu hak aşağıdaki durumlarda geçerli değildir:
+
+Kişisel kullanım veya hijyen gerektiren ürünler (iç giyim, kozmetik, sağlık ürünleri),
+
+Gıda, takviye veya taze ürünler,
+
+Kişiye özel veya siparişe göre üretilen ürünler,
+
+Kargoya verilmiş veya sevkiyat sürecine alınmış ürünler.
+
+7.2. İade Süreci
+
+İade talebi supplyix@supplyix.com
+ adresine yazılı olarak yapılır.
+
+İade onayı verilmeden gönderilen ürünler kabul edilmez.
+
+İade kargo bedeli, ürün hatalı değilse Alıcı’ya aittir.
+
+İade edilen ürün tedarikçiye ulaştıktan sonra incelenir; kullanılmamış, hasarsız ve orijinal ambalajında ise 7–10 iş günü içinde iade bedeli yapılır.
+
+Ürün iade şartlarına uymuyorsa Satıcı, ürünü Alıcı’ya geri gönderme hakkını saklı tutar.
+
+7.3. İade Edilemeyen Durumlar
+
+Ürün kullanılmış, hasar görmüş veya ambalajı açılmışsa iade kabul edilmez.
+
+Uluslararası gönderimlerde gümrük işlemleri tamamlanmış veya teslim sürecinde olan ürünler geri alınamaz.
+
+8. Garanti ve Sorumluluk
+
+Satıcı, ürünün sipariş formunda belirtilen özelliklere uygun olmasını sağlar.
+
+Üretici veya tedarikçiden kaynaklanan kusurlarda Satıcı, yeni ürün gönderme veya iade seçeneği sunabilir.
+
+Satıcı, üçüncü taraf kargo veya gümrük gecikmelerinden sorumlu değildir.
+
+9. Mücbir Sebepler
+
+Doğal afet, savaş, grev, ithalat yasağı, uluslararası taşıma kısıtlamaları, gümrük yoğunluğu veya resmi engeller nedeniyle yaşanabilecek gecikme ve aksaklıklardan Satıcı sorumlu tutulamaz.
+
+10. Yetki ve Uygulanacak Hukuk
+
+Bu sözleşmeden doğan uyuşmazlıklarda Türk Hukuku uygulanır.
+Yetkili mahkeme İstanbul Merkez (Çağlayan) Mahkemeleri ve İcra Daireleridir.
+
+11. Yürürlük ve Kabul
+
+Alıcı, siparişi onaylayarak bu sözleşmenin tüm koşullarını okuduğunu, anladığını ve kabul ettiğini beyan eder.
+Bu sözleşme elektronik ortamda kurulmuş olup ayrıca fiziki imza gerektirmez.
+
+Supplyix
+YESILTEPE MAH. 57/1. SK. YESIL NO: 21 IÇ KAPI NO: 7
+ZEYTINBURNU / İSTANBUL / TÜRKİYE
+📧 supplyix@supplyix.com

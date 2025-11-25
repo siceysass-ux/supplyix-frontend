@@ -17,19 +17,19 @@ const announcementTypeOptions: { value: Announcement['type']; label: string }[] 
 
 const AnnouncementsPage: React.FC<AnnouncementsPageProps> = ({ announcements, onAddAnnouncement, onDeleteAnnouncement }) => {
     const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
+    const [content, setContent] = useState('');
     const [type, setType] = useState<Announcement['type']>('primary');
     const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !description.trim()) {
+        if (!title.trim() || !content.trim()) {
             setError('Başlık ve açıklama alanları zorunludur.');
             return;
         }
-        onAddAnnouncement({ title, description, type });
+        onAddAnnouncement({ title, content, type });
         setTitle('');
-        setDescription('');
+        setContent('');
         setType('primary');
         setError('');
     };
@@ -53,8 +53,8 @@ const AnnouncementsPage: React.FC<AnnouncementsPageProps> = ({ announcements, on
                     <div>
                         <label className="text-sm font-bold text-slate-700 mb-1 block">Açıklama *</label>
                         <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
                             rows={3}
                             className="w-full bg-slate-50 p-2 rounded-md border border-slate-300"
                             required
@@ -98,11 +98,10 @@ const AnnouncementsPage: React.FC<AnnouncementsPageProps> = ({ announcements, on
                                     <td className="px-6 py-4 font-medium text-dark-blue">{announcement.title}</td>
                                     <td className="px-6 py-4">{announcement.date}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            announcement.type === 'primary' ? 'bg-orange-100 text-orange-800' :
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${announcement.type === 'primary' ? 'bg-orange-100 text-orange-800' :
                                             announcement.type === 'blue' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-green-100 text-green-800'
-                                        }`}>
+                                                'bg-green-100 text-green-800'
+                                            }`}>
                                             {announcementTypeOptions.find(o => o.value === announcement.type)?.label.split(' ')[0]}
                                         </span>
                                     </td>

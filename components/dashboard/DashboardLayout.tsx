@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
-import { CartItem, NavItem } from './types';
+import ExpiredSubscriptionBanner from './shared/ExpiredSubscriptionBanner';
+import { CartItem, NavItem, Announcement } from './types';
 import { ChevronRightIcon } from './icons/outline';
 
 interface DashboardLayoutProps {
@@ -15,27 +16,35 @@ interface DashboardLayoutProps {
   onRemoveFromCart: (cartItemId: string) => void;
   children: ReactNode;
   mainNavItems: NavItem[];
+  isSubscriptionExpired?: boolean;
+  announcements: Announcement[];
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ 
-    pageTitle, 
-    isSidebarOpen, 
-    setSidebarOpen, 
-    navigate, 
-    onLogout,
-    cart,
-    onUpdateCartQuantity,
-    onRemoveFromCart,
-    children,
-    mainNavItems
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+  pageTitle,
+  isSidebarOpen,
+  setSidebarOpen,
+  navigate,
+  onLogout,
+  cart,
+  onUpdateCartQuantity,
+  onRemoveFromCart,
+  children,
+  mainNavItems,
+  isSubscriptionExpired = false,
+  announcements
 }) => {
+  React.useEffect(() => {
+    document.title = `Supplyix - ${pageTitle}`;
+  }, [pageTitle]);
+
   return (
     <div className="flex h-screen bg-slate-100 dark:bg-slate-900 font-sans">
-      <DashboardSidebar 
-        isSidebarOpen={isSidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-        navigate={navigate} 
-        onLogout={onLogout} 
+      <DashboardSidebar
+        isSidebarOpen={isSidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        navigate={navigate}
+        onLogout={onLogout}
         mainNavItems={mainNavItems}
       />
 
@@ -55,16 +64,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <main className="flex-1 overflow-y-auto">
             {/* The sticky header is now part of the scrollable main area */}
             <div className="sticky top-0 z-10">
-                <DashboardHeader 
-                    pageTitle={pageTitle}
-                    navigate={navigate}
-                    onLogout={onLogout}
-                    cart={cart}
-                    onUpdateCartQuantity={onUpdateCartQuantity}
-                    onRemoveFromCart={onRemoveFromCart}
-                />
+              <DashboardHeader
+                pageTitle={pageTitle}
+                navigate={navigate}
+                onLogout={onLogout}
+                cart={cart}
+                onUpdateCartQuantity={onUpdateCartQuantity}
+                onRemoveFromCart={onRemoveFromCart}
+                announcements={announcements}
+              />
             </div>
             <div className="p-4 sm:p-6 lg:p-8">
+              {isSubscriptionExpired && (
+                <ExpiredSubscriptionBanner
+                  onRenew={() => navigate('/dashboard/membership')}
+                />
+              )}
               {children}
             </div>
           </main>

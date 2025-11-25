@@ -1,0 +1,13 @@
+// Add this to the end of schema.prisma
+
+model FavoriteCategory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  productIds  String   // JSON array of product IDs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, name])
+}

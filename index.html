@@ -1,41 +1,98 @@
 <!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Supplyix</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class', // Enable dark mode
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Montserrat', 'sans-serif'],
-            },
-            colors: {
-              'primary': '#ff6a00',
-              'primary-focus': '#e65c00', // Darker orange for hover
-              'dark-blue': '#042d4d',
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supplyix - Dropshipping Platformu</title>
+  <!-- Quill Editor CSS -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Supplyix - Dropshipping Türkiye | Stoksuz E-Ticaret Çözümü" />
+  <meta name="description"
+    content="Supplyix ile dropshipping yapmak artık çok kolay! Çin'den toptan ürün tedarik, stoksuz satış, 1688 ve Taobao entegrasyonu. Türkiye'nin en güvenilir dropshipping platformu." />
+  <meta name="keywords"
+    content="dropshipping türkiye, toptan ürün tedarik, çin'den toptan alışveriş, 1688 türkiye, taobao türkiye, alibaba türkiye, stoksuz satış, e-ticaret tedarikçi, dropshipping nedir" />
+  <meta name="author" content="Supplyix" />
+  <meta name="language" content="Turkish" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <!-- Geo Tags -->
+  <meta name="geo.region" content="TR" />
+  <meta name="geo.placename" content="Türkiye" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.supplyix.com/" />
+  <meta property="og:title" content="Supplyix - Dropshipping Türkiye | Stoksuz E-Ticaret Çözümü" />
+  <meta property="og:description"
+    content="Supplyix ile dropshipping yapmak artık çok kolay! Çin'den toptan ürün tedarik, stoksuz satış, 1688 ve Taobao entegrasyonu." />
+  <meta property="og:image" content="https://www.supplyix.com/logo.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Supplyix - Dropshipping Türkiye" />
+  <meta property="og:locale" content="tr_TR" />
+  <meta property="og:site_name" content="Supplyix" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://www.supplyix.com/" />
+  <meta name="twitter:title" content="Supplyix - Dropshipping Türkiye | Stoksuz E-Ticaret Çözümü" />
+  <meta name="twitter:description"
+    content="Supplyix ile dropshipping yapmak artık çok kolay! Çin'den toptan ürün tedarik, stoksuz satış, 1688 ve Taobao entegrasyonu." />
+  <meta name="twitter:image" content="https://www.supplyix.com/logo.png" />
+  <meta name="twitter:image:alt" content="Supplyix - Dropshipping Türkiye" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://www.supplyix.com/" />
+
+  <!-- Hreflang for Turkish -->
+  <link rel="alternate" hreflang="tr" href="https://www.supplyix.com/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.supplyix.com/" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#ff6a00" />
+  <meta name="msapplication-TileColor" content="#ff6a00" />
+
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="/logo.png" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Enable dark mode
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+          },
+          colors: {
+            'primary': '#ff6a00',
+            'primary-focus': '#e65c00', // Darker orange for hover
+            'dark-blue': '#042d4d',
           }
         }
       }
-    </script>
-    <script>
-      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    }
+  </script>
+  <script>
+    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
   <script type="importmap">
 {
   "imports": {
@@ -45,19 +102,21 @@
   }
 }
 </script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-3NXHD7RSRK"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NXHD7RSRK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  gtag('config', 'G-3NXHD7RSRK');
-</script>
-<link rel="stylesheet" href="/index.css">
+    gtag('config', 'G-3NXHD7RSRK');
+  </script>
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="font-sans">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body class="font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

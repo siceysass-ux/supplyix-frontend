@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PaymentFailureModal from './dashboard/shared/PaymentFailureModal';
+import PaymentModal from './dashboard/shared/PaymentModal';
 import { InfluencerCode } from './dashboard/types';
 
 interface SignupPageProps {
@@ -119,10 +120,10 @@ const LegalModal: React.FC<LegalModalProps> = ({ title, content, onClose }) => {
                     ))}
                 </div>
                 <div className="p-4 border-t border-gray-200 dark:border-slate-700 text-right">
-                     <button onClick={onClose} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-focus transition-colors">Kapat</button>
+                    <button onClick={onClose} className="bg-primary text-white font-bold py-2 px-6 rounded-lg hover:bg-primary-focus transition-colors">Kapat</button>
                 </div>
             </div>
-             <style>{`
+            <style>{`
                 @keyframes fade-in-fast {
                     from { opacity: 0; }
                     to { opacity: 1; }
@@ -197,26 +198,24 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
         acceptTerms: false,
         acceptPrivacy: false,
         platforms: [] as string[],
-        cardName: '',
-        cardNumber: '',
-        cardExpiry: '',
-        cardCVC: ''
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [modalContent, setModalContent] = useState<{title: string, content: string} | null>(null);
+    const [modalContent, setModalContent] = useState<{ title: string, content: string } | null>(null);
     const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
     const [showPaymentFailure, setShowPaymentFailure] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     // Discount state
     const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; rate: number } | null>(null);
     const [referralFeedback, setReferralFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const originalPrice = price ? parseFloat(price) : 0;
-    const finalPrice = appliedDiscount 
+    const finalPrice = appliedDiscount
         ? originalPrice * (1 - appliedDiscount.rate / 100)
         : originalPrice;
 
     useEffect(() => {
+        document.title = 'Supplyix - Kayıt Ol';
         if (!plan) {
             navigate('/'); // Redirect to home if no plan is selected
         }
@@ -232,16 +231,26 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
 
         const code = influencerCodes.find(c => c.code.toLowerCase() === codeValue.trim().toLowerCase());
 
-        if (code && code.discountRate) {
-            setAppliedDiscount({ code: code.code, rate: code.discountRate });
-            setReferralFeedback({ message: `Başarılı! %${code.discountRate} indirim kazandınız.`, type: 'success' });
-        } else if (code) {
-             setReferralFeedback({ message: 'Referans kodu geçerli ancak indirim içermiyor.', type: 'error' });
+        if (code) {
+            // Check if code is valid for the selected plan
+            if (code.validPlans && code.validPlans.length > 0 && plan && !code.validPlans.includes(plan)) {
+                setReferralFeedback({
+                    message: `Bu kod seçtiğiniz "${plan}" paketi için geçerli değildir.`,
+                    type: 'error'
+                });
+                return;
+            }
+
+            if (code.discountRate) {
+                setAppliedDiscount({ code: code.code, rate: code.discountRate });
+                setReferralFeedback({ message: `Başarılı! %${code.discountRate} indirim kazandınız.`, type: 'success' });
+            } else {
+                setReferralFeedback({ message: 'Referans kodu geçerli ancak indirim içermiyor.', type: 'error' });
+            }
         } else {
             setReferralFeedback({ message: 'Geçersiz referans kodu.', type: 'error' });
         }
     };
-
     const validateStep1 = () => {
         const newErrors: Record<string, string> = {};
         if (!formData.fullName.trim()) newErrors.fullName = 'Ad Soyad zorunludur.';
@@ -252,11 +261,11 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
         if (!formData.phone.trim()) newErrors.phone = 'Telefon numarası zorunludur.';
         if (!formData.tcKimlik.trim()) newErrors.tcKimlik = 'T.C. Kimlik No zorunludur.';
         if (!formData.acceptTerms || !formData.acceptPrivacy) newErrors.agreements = 'Sözleşmeleri kabul etmelisiniz.';
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-    
+
     const validateStep2 = () => {
         const newErrors: Record<string, string> = {};
         if (formData.platforms.length === 0) {
@@ -267,26 +276,20 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
     }
 
     const validateStep3 = () => {
-        const newErrors: Record<string, string> = {};
-        if (!formData.cardName.trim()) newErrors.cardName = 'Kart sahibi adı zorunludur.';
-        if (!formData.cardNumber.trim()) newErrors.cardNumber = 'Kart numarası zorunludur.';
-        if (!formData.cardExpiry.trim()) newErrors.cardExpiry = 'Son kullanma tarihi zorunludur.';
-        if (!formData.cardCVC.trim()) newErrors.cardCVC = 'CVC zorunludur.';
-        
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // No validation needed, PaymentModal handles card validation
+        return true;
     }
 
     const handleNext = () => {
         let isValid = false;
         if (step === 1) isValid = validateStep1();
         if (step === 2) isValid = validateStep2();
-        
+
         if (isValid) {
             setStep(s => s + 1);
         }
     };
-    
+
     const handleBack = () => {
         setErrors({});
         setStep(s => s - 1);
@@ -294,6 +297,40 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
+
+        // Format card number with spaces
+        if (name === 'cardNumber') {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            const matches = v.match(/\d{4,16}/g);
+            const match = (matches && matches[0]) || '';
+            const parts = [];
+            for (let i = 0, len = match.length; i < len; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            const formatted = parts.length ? parts.join(' ') : value;
+            if (formatted.length <= 19) { // 16 digits + 3 spaces
+                setFormData(prev => ({ ...prev, cardNumber: formatted }));
+            }
+            return;
+        }
+
+        // Format expiry date with slash
+        if (name === 'cardExpiry') {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            const formatted = v.length >= 2 ? v.substring(0, 2) + '/' + v.substring(2, 4) : v;
+            if (formatted.length <= 5) {
+                setFormData(prev => ({ ...prev, cardExpiry: formatted }));
+            }
+            return;
+        }
+
+        // Format CVC (only numbers, max 3 digits)
+        if (name === 'cardCVC') {
+            const formatted = value.replace(/\D/g, '').substring(0, 3);
+            setFormData(prev => ({ ...prev, cardCVC: formatted }));
+            return;
+        }
+
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
@@ -303,7 +340,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
             setAppliedDiscount(null);
         }
     };
-    
+
     const handlePlatformChange = (platform: string) => {
         setFormData(prev => {
             const newPlatforms = prev.platforms.includes(platform)
@@ -311,7 +348,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
                 : [...prev.platforms, platform];
             return { ...prev, platforms: newPlatforms };
         });
-         if (errors.platforms) {
+        if (errors.platforms) {
             setErrors(prevErrors => {
                 const newErrors = { ...prevErrors };
                 delete newErrors.platforms;
@@ -319,38 +356,58 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
             });
         }
     };
-    
-    const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validateStep3()) {
-            // DEMO: Simulate payment failure if CVC is not '123'
-            if (formData.cardCVC !== '123') {
-                setShowPaymentFailure(true);
-                return;
-            }
-            
-            // Create user by calling the prop function
-            onCreateUser({
-                fullName: formData.fullName,
-                email: formData.email,
-                password: formData.password,
-                phone: formData.phone,
-                tcKimlik: formData.tcKimlik,
-                vergiKimlik: formData.vergiKimlik,
-                referans: formData.referans,
-                platforms: formData.platforms,
-                plan: plan || '',
-                price: finalPrice,
-            });
-
-            // Simulate final submission
-            setIsRegistrationComplete(true);
-            setTimeout(() => {
-                navigate('/login');
-            }, 5000); // Redirect after 5 seconds
+            // Just open payment modal, let it handle the payment
+            setShowPaymentModal(true);
         }
     };
-    
+
+    const handlePaymentSuccess = async (paymentId: string) => {
+        console.log('Payment successful:', paymentId);
+        setShowPaymentModal(false);
+
+        // Track influencer code usage if applied
+        if (appliedDiscount) {
+            try {
+                await fetch('/api/settings/influencer-codes/use/' + appliedDiscount.code, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: finalPrice })
+                });
+            } catch (error) {
+                console.error('Failed to track code usage:', error);
+            }
+        }
+
+        // Create user
+        onCreateUser({
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            tcKimlik: formData.tcKimlik,
+            vergiKimlik: formData.vergiKimlik,
+            referans: formData.referans,
+            platforms: formData.platforms,
+            plan: plan || '',
+            price: finalPrice,
+        });
+
+        setIsRegistrationComplete(true);
+        setTimeout(() => {
+            navigate('/giris');
+        }, 5000);
+    };
+
+    const handlePaymentFailure = (error: string) => {
+        console.error('Payment failed:', error);
+        setShowPaymentModal(false);
+        setShowPaymentFailure(true);
+    };
+
     if (isRegistrationComplete) {
         return <RegistrationSuccess />;
     }
@@ -404,14 +461,14 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
                                 </label>
                             ))}
                         </div>
-                         {errors.platforms && <p className="text-red-500 text-sm mt-4 text-center">{errors.platforms}</p>}
+                        {errors.platforms && <p className="text-red-500 text-sm mt-4 text-center">{errors.platforms}</p>}
                     </div>
                 );
             case 3:
                 return (
                     <div>
-                         <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-6">Adım 3: Ödeme Bilgileri</h2>
-                         <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg mb-6 text-center">
+                        <h2 className="text-xl font-bold text-dark-blue dark:text-slate-100 mb-6">Adım 3: Ödeme Onayı</h2>
+                        <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg mb-6 text-center">
                             {appliedDiscount ? (
                                 <>
                                     <p className="font-bold text-dark-blue dark:text-slate-200">
@@ -426,43 +483,73 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
                             ) : (
                                 <p className="font-bold text-dark-blue dark:text-slate-200">Seçilen Plan: <span className="text-primary">{plan}</span> - <span className="text-primary">${price}</span></p>
                             )}
-                         </div>
+                        </div>
 
-                         {appliedDiscount && (
+                        {appliedDiscount && (
                             <div className="mb-6 text-center">
                                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Uygulanan Referans Kodu</p>
                                 <p className="text-lg font-bold text-green-600 bg-green-100 dark:bg-green-500/20 px-3 py-1 rounded-md inline-block mt-1">
                                     {appliedDiscount.code} (%{appliedDiscount.rate} İNDİRİM)
                                 </p>
                             </div>
-                         )}
+                        )}
 
-                         <div className="space-y-4">
-                            <input name="cardName" value={formData.cardName} onChange={handleChange} placeholder="Kart Üzerindeki İsim *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardName ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
-                            <input name="cardNumber" value={formData.cardNumber} onChange={handleChange} placeholder="Kart Numarası *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
-                            <div className="grid grid-cols-2 gap-4">
-                                <input name="cardExpiry" value={formData.cardExpiry} onChange={handleChange} placeholder="MM/YY *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardExpiry ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
-                                <input name="cardCVC" value={formData.cardCVC} onChange={handleChange} placeholder="CVC *" className={`w-full bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-3 rounded-lg border ${errors.cardCVC ? 'border-red-500' : 'border-gray-300 dark:border-slate-600'}`} />
-                            </div>
-                         </div>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg text-center">
+                            <p className="text-sm text-blue-800 dark:text-blue-300 mb-2">
+                                "Kaydı Tamamla" butonuna tıkladığınızda güvenli ödeme sayfası açılacaktır.
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                                Ödeme işlemi İyzico güvenli ödeme sistemi ile gerçekleştirilecektir.
+                            </p>
+                        </div>
                     </div>
                 );
         }
     };
-    
+
     const steps = ['Kişisel Bilgiler', 'Platformlar', 'Ödeme'];
+
+    // Prepare buyer data for payment
+    const buyerData = {
+        id: `user-${Date.now()}`,
+        name: formData.fullName.split(' ')[0] || 'Ad',
+        surname: formData.fullName.split(' ').slice(1).join(' ') || 'Soyad',
+        email: formData.email,
+        gsmNumber: formData.phone || '+905350000000',
+        address: 'Adres bilgisi',
+        city: 'Istanbul',
+        country: 'Turkey',
+        zipCode: '34732',
+        identityNumber: formData.tcKimlik || '11111111111',
+        registrationDate: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    };
+
+    const paymentItem = {
+        name: plan || 'Plan',
+        price: finalPrice,
+        description: `${plan} üyelik paketi`
+    };
 
     return (
         <main className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4">
             {modalContent && <LegalModal title={modalContent.title} content={modalContent.content} onClose={() => setModalContent(null)} />}
             {showPaymentFailure && <PaymentFailureModal onClose={() => setShowPaymentFailure(false)} />}
+            {showPaymentModal && (
+                <PaymentModal
+                    item={paymentItem}
+                    buyer={buyerData}
+                    onClose={() => setShowPaymentModal(false)}
+                    onSuccess={handlePaymentSuccess}
+                    onFailure={handlePaymentFailure}
+                />
+            )}
             <div className="w-full max-w-2xl">
                 <div className="text-center mb-8">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                         <img src="/logo.png" alt="Supplyix Logo" className="h-16 w-auto mx-auto" />
                     </a>
                 </div>
-                
+
                 {/* Stepper */}
                 <div className="flex justify-between items-center mb-8 px-4">
                     {steps.map((s, i) => (
@@ -485,7 +572,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
                             {step > 1 ? (
                                 <button type="button" onClick={handleBack} className="bg-gray-200 dark:bg-slate-600 text-dark-blue dark:text-slate-100 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-500">Geri</button>
                             ) : <div></div>}
-                            
+
                             {step < 3 ? (
                                 <button type="button" onClick={handleNext} className="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-focus">Devam</button>
                             ) : (

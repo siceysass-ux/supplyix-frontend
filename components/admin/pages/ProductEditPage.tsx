@@ -159,6 +159,7 @@ interface ProductEditPageProps {
     product?: Product;
     onSave: (product: Product) => void;
     navigate: (path: string) => void;
+    categories: any[];
 }
 
 const defaultProduct: Product = {
@@ -206,10 +207,9 @@ const Card = ({ children, title, hasError }: { children?: React.ReactNode, title
 
 const FieldError = ({ message }: { message?: string }) => message ? <p className="text-red-500 text-xs mt-1">{message}</p> : null;
 
-const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navigate }) => {
+const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navigate, categories }) => {
     const [formData, setFormData] = useState<Product>(product || defaultProduct);
     const [imageInput, setImageInput] = useState('');
-    const [categories] = useState<CategoryType[]>(initialCategories);
     const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
     const [isVariationModalOpen, setIsVariationModalOpen] = useState(false);
@@ -330,11 +330,34 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             setImageInput('');
         }
     };
-    const handleImageFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleImageFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files);
-            const newImageUrls = files.map(file => URL.createObjectURL(file as Blob));
-            setFormData(prev => ({ ...prev, images: [...prev.images, ...newImageUrls] }));
+
+            try {
+                // Show loading state
+                const loadingUrls = files.map(() => 'uploading...');
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...loadingUrls] }));
+
+                // Upload to R2
+                const { uploadImages } = await import('../../../src/services/api');
+                const result = await uploadImages(files);
+
+                // Replace loading placeholders with actual URLs
+                setFormData(prev => {
+                    const newImages = prev.images.filter(img => img !== 'uploading...');
+                    const uploadedUrls = result.files.map((f: any) => f.url);
+                    return { ...prev, images: [...newImages, ...uploadedUrls] };
+                });
+            } catch (error) {
+                console.error('Image upload failed:', error);
+                alert('Görseller yüklenemedi. Lütfen tekrar deneyin.');
+                // Remove loading placeholders
+                setFormData(prev => ({
+                    ...prev,
+                    images: prev.images.filter(img => img !== 'uploading...')
+                }));
+            }
         }
     };
     const handleRemoveImage = (imageToRemove: string) => {
@@ -398,11 +421,12 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
             }
         } else {
             finalData.price.max = finalData.price.min;
+            const stock = finalData.variants?.[0]?.stock || 0;
             finalData.variants = [{
                 sku: finalData.sku || `SKU-${Date.now()}`,
                 attributes: {},
                 price: finalData.price.min,
-                stock: 100,
+                stock: stock,
                 shippingCostModifier: 0,
             }];
         }
@@ -449,6 +473,19 @@ const ProductEditPage: React.FC<ProductEditPageProps> = ({ product, onSave, navi
                                     <Label>Fiyat *</Label>
                                     <Input type="number" step="0.01" name="min" value={formData.price.min} onChange={(e) => handleNestedChange(e, 'price')} required hasError={!!errors.price} />
                                     <FieldError message={errors.price} />
+                                </div>
+                                <div>
+                                    <Label>Stok *</Label>
+                                    <Input type="number" name="stock" value={(formData.variants && formData.variants[0]?.stock) || 0} onChange={(e) => {
+                                        const stock = parseInt(e.target.value) || 0;
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            variants: [{
+                                                ...(prev.variants?.[0] || { sku: '', attributes: {}, price: 0, shippingCostModifier: 0 }),
+                                                stock
+                                            }]
+                                        }));
+                                    }} required />
                                 </div>
                             </div>
                         )}

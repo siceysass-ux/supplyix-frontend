@@ -204,13 +204,13 @@ export interface SupportTicket {
 // --- INITIAL MOCK DATA ---
 
 export const initialMainNavItems: NavItem[] = [
-    { name: 'Panel Ana Sayfa', path: '/dashboard', icon: DuotoneHomeIcon },
-    { name: 'Tedarik Havuzu', path: '/dashboard/sourcing-pool', icon: DuotoneCubeIcon },
-    { name: 'Siparişlerim', path: '/dashboard/orders', icon: DuotoneDocumentTextIcon },
-    { name: 'Sepetim', path: '/dashboard/cart', icon: DuotoneShoppingCartIcon },
-    { name: 'Favorilerim', path: '/dashboard/favorites', icon: StarIcon },
-    { name: 'Taleplerim', path: '/dashboard/requests', icon: DuotoneDocumentTextIcon },
-    { name: 'Ek Ücretler', path: '/dashboard/extra-fees', icon: BanknotesIcon },
+    { name: 'Panel Ana Sayfa', path: '/dashboard', icon: '/icons8-home-page-96.webp' },
+    { name: 'Tedarik Havuzu', path: '/dashboard/sourcing-pool', icon: '/icons8-item-100_1.webp' },
+    { name: 'Siparişlerim', path: '/dashboard/orders', icon: '/icons8-order-history-64.webp' },
+    { name: 'Sepetim', path: '/dashboard/cart', icon: '/White__Pink_Simple_Reminder_Instagram_Post_2_1.webp' },
+    { name: 'Favorilerim', path: '/dashboard/favorites', icon: '/icons8-star-100.webp' },
+    { name: 'Taleplerim', path: '/dashboard/requests', icon: '/icons8-sidebar-menu-100.webp' },
+    { name: 'Ek Ücretler', path: '/dashboard/extra-fees', icon: '/icons8-cash-and-credit-card-100.webp' },
 ];
 
 export const initialAdminNavItems: NavItem[] = [

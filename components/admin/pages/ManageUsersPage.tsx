@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { User, UserStatus } from '../types';
 import StatusBadge from '../../dashboard/shared/StatusBadge';
 import { ArrowDownTrayIcon } from '../../dashboard/icons/outline';
-
-declare const saveAs: any;
+import CreateUserModal from '../modals/CreateUserModal';
+import { exportToExcel, formatDateForExcel } from '../utils/excelExport';
 
 interface ManageUsersPageProps {
     users: User[];
@@ -18,6 +18,8 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
     const [endDateStart, setEndDateStart] = useState('');
     const [endDateEnd, setEndDateEnd] = useState('');
     const [isFilterVisible, setIsFilterVisible] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [roleFilter, setRoleFilter] = useState('all');
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -32,18 +34,20 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
 
             const matchesPlan = planFilter === 'all' || user.plan === planFilter;
             const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-            
-            const matchesEndDate = (!endDateStart || new Date(user.subscriptionEndDate) >= new Date(endDateStart)) &&
-                                   (!endDateEnd || new Date(user.subscriptionEndDate) <= new Date(endDateEnd));
+            const matchesRole = roleFilter === 'all' || user.role === roleFilter;
 
-            return matchesSearch && matchesPlan && matchesStatus && matchesEndDate;
+            const matchesEndDate = (!endDateStart || new Date(user.subscriptionEndDate) >= new Date(endDateStart)) &&
+                (!endDateEnd || new Date(user.subscriptionEndDate) <= new Date(endDateEnd));
+
+            return matchesSearch && matchesPlan && matchesStatus && matchesRole && matchesEndDate;
         });
-    }, [users, searchTerm, planFilter, statusFilter, endDateStart, endDateEnd]);
-    
+    }, [users, searchTerm, planFilter, statusFilter, roleFilter, endDateStart, endDateEnd]);
+
     const handleClearFilters = () => {
         setSearchTerm('');
         setPlanFilter('all');
         setStatusFilter('all');
+        setRoleFilter('all');
         setEndDateStart('');
         setEndDateEnd('');
     };
@@ -51,45 +55,38 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
     const handleViewDetails = (userId: string) => {
         navigate(`/admin/user-detail/${userId}`);
     };
-    
-    const handleExportToExcel = () => {
-        const headers = [
-            "ID", "Ad Soyad", "E-posta", "Telefon", "T.C. Kimlik No", "Vergi Kimlik No", 
-            "Referans Kodu", "Plan", "Durum", "Kayıt Tarihi", "Abonelik Başlangıcı", 
-            "Abonelik Bitişi", "Toplam Harcama"
-        ];
-        
-        const csvRows = [headers.join(',')];
-        
-        users.forEach(user => {
-            const row = [
-                user.id,
-                `"${user.name}"`,
-                user.email,
-                user.phone || '',
-                user.tcKimlik || '',
-                user.vergiKimlik || '',
-                user.referans || '',
-                user.plan,
-                user.status,
-                user.registrationDate,
-                user.subscriptionStartDate,
-                user.subscriptionEndDate,
-                user.totalSpent
-            ];
-            csvRows.push(row.join(','));
-        });
 
-        const csvString = "\uFEFF" + csvRows.join('\n');
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-        saveAs(blob, 'kullanicilar.csv');
+    const handleExportToExcel = () => {
+        // Export filtered users, not all users
+        const dataToExport = filteredUsers.map(user => ({
+            'ID': user.id,
+            'Ad Soyad': user.name,
+            'E-posta': user.email,
+            'Telefon': user.phone || '-',
+            'T.C. Kimlik No': user.tcKimlik || '-',
+            'Vergi Kimlik No': user.vergiKimlik || '-',
+            'Referans Kodu': user.referans || '-',
+            'Plan': user.plan,
+            'Rol': user.role === 'admin' ? 'Admin' : user.role === 'product_admin' ? 'Ürün Yöneticisi' : user.role === 'support_admin' ? 'Destek Yöneticisi' : 'Kullanıcı',
+            'Durum': user.status,
+            'Kayıt Tarihi': formatDateForExcel(user.registrationDate),
+            'Abonelik Başlangıcı': formatDateForExcel(user.subscriptionStartDate),
+            'Abonelik Bitişi': formatDateForExcel(user.subscriptionEndDate),
+            'Toplam Harcama': user.totalSpent
+        }));
+
+        const filename = `kullanicilar_${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}`;
+        exportToExcel(dataToExport, filename, 'Kullanıcılar');
     };
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-2xl font-bold text-dark-blue">Kullanıcıları Yönet</h1>
-                 <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setShowCreateModal(true)} className="font-semibold text-sm bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-focus">
+                        + Kullanıcı Ekle
+                    </button>
                     <button onClick={() => setIsFilterVisible(!isFilterVisible)} className="font-semibold text-sm bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-md hover:bg-slate-50">
                         {isFilterVisible ? 'Filtreyi Gizle' : 'Filtrele'}
                     </button>
@@ -100,7 +97,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
             </div>
 
             {isFilterVisible && (
-                 <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div className="lg:col-span-2">
                             <label className="text-xs font-semibold text-slate-500">Genel Arama</label>
@@ -125,13 +122,23 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
                                 <option value="İnceleniyor">İnceleniyor</option>
                             </select>
                         </div>
-                         <div className="lg:col-span-2">
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500">Rol</label>
+                            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="w-full bg-slate-100 p-2 mt-1 rounded-md border border-slate-200 text-sm focus:ring-primary focus:border-primary">
+                                <option value="all">Tüm Roller</option>
+                                <option value="member">Kullanıcı</option>
+                                <option value="admin">Admin</option>
+                                <option value="product_admin">Ürün Yöneticisi</option>
+                                <option value="support_admin">Destek Yöneticisi</option>
+                            </select>
+                        </div>
+                        <div className="lg:col-span-2">
                             <label className="text-xs font-semibold text-slate-500">Abonelik Bitiş Tarihi Aralığı</label>
-                             <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1">
                                 <input type="date" value={endDateStart} onChange={e => setEndDateStart(e.target.value)} className="w-full bg-slate-100 p-2 rounded-md border border-slate-200 text-sm text-slate-500 focus:ring-primary focus:border-primary" />
                                 <span className="text-slate-500">-</span>
                                 <input type="date" value={endDateEnd} onChange={e => setEndDateEnd(e.target.value)} className="w-full bg-slate-100 p-2 rounded-md border border-slate-200 text-sm text-slate-500 focus:ring-primary focus:border-primary" />
-                             </div>
+                            </div>
                         </div>
                         <div className="lg:col-span-2 flex items-end">
                             <button onClick={handleClearFilters} className="bg-dark-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-dark-blue/90 text-sm w-full">Filtreleri Temizle</button>
@@ -139,7 +146,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
                     </div>
                 </div>
             )}
-            
+
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-500 dark:text-slate-400">
                     <thead className="text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-700/50">
@@ -148,6 +155,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
                             <th className="px-4 py-3">İletişim</th>
                             <th className="px-4 py-3">Kimlik Bilgileri</th>
                             <th className="px-4 py-3">Referans Kodu</th>
+                            <th className="px-4 py-3">Rol</th>
                             <th className="px-4 py-3">Abonelik Başlangıcı</th>
                             <th className="px-4 py-3">Abonelik Bitişi</th>
                             <th className="px-4 py-3">Durum</th>
@@ -167,6 +175,18 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
                                     <div className="text-xs">Vergi: {user.vergiKimlik || '-'}</div>
                                 </td>
                                 <td className="px-4 py-3">{user.referans || '-'}</td>
+                                <td className="px-4 py-3">
+                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
+                                        user.role === 'product_admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                            user.role === 'support_admin' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
+                                                'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                                        }`}>
+                                        {user.role === 'admin' ? 'Admin' :
+                                            user.role === 'product_admin' ? 'Ürün Yöneticisi' :
+                                                user.role === 'support_admin' ? 'Destek Yöneticisi' :
+                                                    'Kullanıcı'}
+                                    </span>
+                                </td>
                                 <td className="px-4 py-3">{new Date(user.subscriptionStartDate).toLocaleDateString('tr-TR')}</td>
                                 <td className="px-4 py-3">{new Date(user.subscriptionEndDate).toLocaleDateString('tr-TR')}</td>
                                 <td className="px-4 py-3">
@@ -182,6 +202,14 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ users, navigate, onUp
                     </tbody>
                 </table>
             </div>
+
+            {/* Create User Modal */}
+            {showCreateModal && (
+                <CreateUserModal
+                    onClose={() => setShowCreateModal(false)}
+                    onUserCreated={() => window.location.reload()}
+                />
+            )}
         </div>
     );
 };

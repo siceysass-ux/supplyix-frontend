@@ -22,10 +22,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
 
   const getItemClasses = (item: NavItem, isActive: boolean) => {
     if (isActive) {
-        return {
-            link: 'bg-primary text-white',
-            icon: 'text-white'
-        };
+      return {
+        link: 'bg-primary text-white',
+        icon: 'text-white'
+      };
     }
 
     // Default item style
@@ -35,8 +35,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
     const iconHover = 'group-hover:text-primary';
 
     return {
-        link: `${baseLink} ${hoverClasses}`,
-        icon: `${baseIcon} ${iconHover}`
+      link: `${baseLink} ${hoverClasses}`,
+      icon: `${baseIcon} ${iconHover}`
     };
   };
 
@@ -44,7 +44,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700">
       <div className="flex h-16 shrink-0 items-center">
         <a href="#/dashboard" onClick={(e) => handleNavigation(e, '/dashboard')}>
-          <img className="h-12 w-auto" src="/logo.png" alt="Supplyix" />
+          <img className="h-10 w-auto" src="/logo.png" alt="Supplyix" />
         </a>
       </div>
       <nav className="flex flex-1 flex-col">
@@ -62,7 +62,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
                       onClick={(e) => handleNavigation(e, item.path)}
                       className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${classes.link}`}
                     >
-                      <item.icon className={`h-6 w-6 shrink-0 ${classes.icon}`} aria-hidden="true" />
+                      {typeof item.icon === 'string' ? (
+                        <img
+                          src={item.icon}
+                          alt={item.name}
+                          className={`shrink-0 ${item.path === '/dashboard' ? 'h-7 w-7' : 'h-6 w-6'} ${classes.icon} ${isActive ? 'brightness-110 drop-shadow-[0_0_12px_rgba(249,115,22,0.8)]' : ''}`}
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <item.icon className={`h-6 w-6 shrink-0 ${classes.icon} ${isActive ? 'brightness-110 drop-shadow-[0_0_12px_rgba(249,115,22,0.8)]' : ''}`} aria-hidden="true" />
+                      )}
                       {item.name}
                     </a>
                   </li>
@@ -71,7 +80,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
             </ul>
           </li>
           <li className="mt-auto">
-             <div className="text-xs font-semibold leading-6 text-slate-400">Hesap</div>
+            <div className="text-xs font-semibold leading-6 text-slate-400">Hesap</div>
             <ul role="list" className="-mx-2 mt-2 space-y-1">
               {secondaryNavItems.map((item) => (
                 <li key={item.name}>
@@ -80,9 +89,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
                     onClick={(e) => {
                       e.preventDefault();
                       if (item.name === 'Çıkış Yap') {
-                          onLogout();
+                        onLogout();
                       } else {
-                          handleNavigation(e, item.path);
+                        handleNavigation(e, item.path);
                       }
                       setSidebarOpen(false);
                     }}
@@ -117,12 +126,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isSidebarOpen, setS
           </div>
         </div>
       </div>
-      
+
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <SidebarContent />
       </div>
-       <div className="hidden lg:block lg:w-72"></div>
+      <div className="hidden lg:block lg:w-72"></div>
     </>
   );
 };

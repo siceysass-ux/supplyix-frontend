@@ -22,7 +22,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
     const [zoomPosition, setZoomPosition] = useState('50% 50%');
     const [addSuccess, setAddSuccess] = useState(false);
     const [podFile, setPodFile] = useState<File | null>(null);
-    
+
     const addToCartButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -44,7 +44,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
             );
         }) || product.variants[0]; // Fallback to the first variant
     }, [product, selectedVariations]);
-    
+
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
         const x = ((e.pageX - left - window.scrollX) / width) * 100;
@@ -54,8 +54,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
 
     if (!product || !selectedVariant) {
         return (
-            <div className="text-center p-12 bg-white rounded-xl shadow-sm border border-slate-200">
-                <h2 className="text-2xl font-bold text-dark-blue">Ürün Bulunamadı</h2>
+            <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <h2 className="text-2xl font-bold text-dark-blue dark:text-slate-100">Ürün Bulunamadı</h2>
                 <p className="text-slate-600 mt-2">Aradığınız ürün mevcut değil veya kaldırılmış.</p>
                 <button
                     onClick={() => navigate('/dashboard/sourcing-pool')}
@@ -73,79 +73,78 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
 
     const handleAddToCart = () => {
         if (product && selectedVariant) {
-             if (product.isPOD && !podFile) {
+            if (product.isPOD && !podFile) {
                 alert("Lütfen baskı için bir dosya yükleyin.");
                 return;
             }
             addToCart(product, selectedVariant, selectedDestination, 1, podFile || undefined);
-    
+
             setAddSuccess(true);
             setTimeout(() => setAddSuccess(false), 3000);
         }
     };
-    
+
     const handleVariationSelect = (type: string, option: VariationOption) => {
         setSelectedVariations(prev => ({ ...prev, [type]: option.name }));
         if (option.image) setMainImage(option.image);
     };
-    
+
     const handleDownloadImages = async () => {
         setIsDownloading(true);
         try {
             const zip = new JSZip();
-            
-            const convertToPngBlob = (blob: Blob): Promise<Blob> => {
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    const url = URL.createObjectURL(blob);
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        if (!ctx) {
-                            reject(new Error('Could not get canvas context'));
-                            return;
-                        }
-                        ctx.drawImage(img, 0, 0);
-                        canvas.toBlob((pngBlob) => {
-                            if (pngBlob) {
-                                resolve(pngBlob);
-                            } else {
-                                reject(new Error('Canvas to Blob conversion failed'));
-                            }
-                            URL.revokeObjectURL(url);
-                        }, 'image/png');
-                    };
-                    img.onerror = () => {
-                        reject(new Error('Image loading failed'));
-                        URL.revokeObjectURL(url);
-                    };
-                    img.src = url;
-                });
-            };
 
             const imagePromises = product.images.map(async (imgUrl, index) => {
-                const originalBlob = await fetch(imgUrl).then(res => res.blob());
-                const pngBlob = await convertToPngBlob(originalBlob);
-                return {
-                    blob: pngBlob,
-                    name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.png`
-                };
+                try {
+                    // Use backend proxy to bypass CORS
+                    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imgUrl)}`;
+                    const response = await fetch(proxyUrl);
+
+                    if (!response.ok) throw new Error(`Failed to fetch ${imgUrl}`);
+                    const blob = await response.blob();
+
+                    // Determine extension from content-type or url
+                    let extension = 'jpg';
+                    const contentType = response.headers.get('content-type');
+                    if (contentType) {
+                        if (contentType.includes('png')) extension = 'png';
+                        else if (contentType.includes('webp')) extension = 'webp';
+                        else if (contentType.includes('jpeg')) extension = 'jpg';
+                    } else {
+                        const urlExt = imgUrl.split('.').pop();
+                        if (urlExt && ['jpg', 'jpeg', 'png', 'webp'].includes(urlExt.toLowerCase())) {
+                            extension = urlExt.toLowerCase();
+                        }
+                    }
+
+                    return {
+                        blob: blob,
+                        name: `${product.name.replace(/\s+/g, '_')}_${index + 1}.${extension}`
+                    };
+                } catch (err) {
+                    console.error(`Failed to download image ${imgUrl}:`, err);
+                    return null;
+                }
             });
-    
-            const imageBlobs = await Promise.all(imagePromises);
-            imageBlobs.forEach(({ blob, name }) => zip.file(name, blob));
+
+            const results = await Promise.all(imagePromises);
+            const successfulImages = results.filter((img): img is { blob: Blob; name: string } => img !== null);
+
+            if (successfulImages.length === 0) {
+                throw new Error("No images could be downloaded");
+            }
+
+            successfulImages.forEach(({ blob, name }) => zip.file(name, blob));
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${product.name.replace(/\s+/g, '_')}_images.zip`);
         } catch (error) {
             console.error("Error downloading images:", error);
-            alert("Görseller indirilirken bir hata oluştu.");
+            alert("Görseller indirilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.");
         } finally {
             setIsDownloading(false);
         }
     };
-    
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text).then(() => {
             setCopySuccess(text);
@@ -158,13 +157,13 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
         if (stock > 0) return <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">Az Adet</span>;
         return <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Tükendi</span>;
     };
-    
+
     const shippingCost = product.shippingInfo.shippingCosts[selectedDestination] + selectedVariant.shippingCostModifier;
     const totalCost = selectedVariant.price + shippingCost;
 
     return (
         <div className="space-y-8">
-             <style>{`
+            <style>{`
                 @keyframes fade-in-fast {
                     from { opacity: 0; }
                     to { opacity: 1; }
@@ -173,7 +172,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                     animation: fade-in-fast 0.3s ease-out;
                 }
             `}</style>
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Thumbnails */}
                     <div className="lg:col-span-1 order-first lg:order-none">
@@ -188,14 +187,14 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
 
                     {/* Main Image */}
                     <div className="lg:col-span-6">
-                        <div onMouseMove={handleMouseMove} onMouseLeave={() => setZoomPosition('50% 50%')} className="aspect-square w-full bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-zoom-in">
-                            <img src={mainImage} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-150" style={{ transformOrigin: zoomPosition }}/>
+                        <div onMouseMove={handleMouseMove} onMouseLeave={() => setZoomPosition('50% 50%')} className="aspect-square w-full bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden border border-slate-200 cursor-zoom-in">
+                            <img src={mainImage} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-150" style={{ transformOrigin: zoomPosition }} />
                         </div>
                     </div>
 
                     {/* Product Details & Actions */}
                     <div className="lg:col-span-5">
-                        <h1 className="text-2xl lg:text-3xl font-bold text-dark-blue">{product.name}</h1>
+                        <h1 className="text-2xl lg:text-3xl font-bold text-dark-blue dark:text-slate-100">{product.name}</h1>
                         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
                             <span>SKU: {selectedVariant.sku}</span>
                             <span className="h-4 border-l border-slate-300"></span>
@@ -206,14 +205,14 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                                 <span className="font-medium">({selectedVariant.stock} adet)</span>
                             </div>
                         </div>
-                        
-                        <div className="mt-4 pt-4 border-t border-slate-200">
-                             <span className="text-4xl font-extrabold text-dark-blue">${selectedVariant.price.toFixed(2)}</span>
+
+                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <span className="text-4xl font-extrabold text-dark-blue dark:text-slate-100">${selectedVariant.price.toFixed(2)}</span>
                         </div>
 
                         {product.variations?.map(variation => (
                             <div key={variation.type} className="mt-4">
-                                <h3 className="text-sm font-semibold text-slate-700 mb-2">{variation.type}: <span className="font-normal text-slate-600">{selectedVariations[variation.type]}</span></h3>
+                                <h3 className="text-sm font-semibold text-slate-700 mb-2">{variation.type}: <span className="font-normal text-slate-600 dark:text-slate-400">{selectedVariations[variation.type]}</span></h3>
                                 <div className="flex flex-wrap gap-2">
                                     {variation.options.map(option => variation.type === 'Renk' ? (
                                         <button key={option.name} onClick={() => handleVariationSelect(variation.type, option)} title={option.name} className={`w-8 h-8 rounded-full border-2 transition-all ${selectedVariations[variation.type] === option.name ? 'border-primary' : 'border-transparent hover:border-slate-400'}`} style={{ backgroundColor: option.value }}>
@@ -227,15 +226,15 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                                 </div>
                             </div>
                         ))}
-                        
+
                         {/* Destination Selector */}
                         <div className="mt-4">
-                            <h3 className="text-sm font-semibold text-slate-700 mb-2">Hedef: <span className="font-normal text-slate-600">{selectedDestination === 'eu' ? 'Avrupa (EU)' : 'Amerika (USA)'}</span></h3>
+                            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Hedef: <span className="font-normal text-slate-600 dark:text-slate-400">{selectedDestination === 'eu' ? 'Avrupa (EU)' : 'Amerika (USA)'}</span></h3>
                             <div className="flex flex-wrap gap-2">
-                                <button onClick={() => setSelectedDestination('eu')} className={`px-4 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${selectedDestination === 'eu' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 bg-white hover:border-slate-400'}`}>
+                                <button onClick={() => setSelectedDestination('eu')} className={`px-4 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${selectedDestination === 'eu' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                     Avrupa (EU)
                                 </button>
-                                <button onClick={() => setSelectedDestination('usa')} className={`px-4 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${selectedDestination === 'usa' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 bg-white hover:border-slate-400'}`}>
+                                <button onClick={() => setSelectedDestination('usa')} className={`px-4 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${selectedDestination === 'usa' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                                     Amerika (USA)
                                 </button>
                             </div>
@@ -245,14 +244,14 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                             <div className="mt-6">
                                 <h3 className="text-sm font-semibold text-slate-700 mb-2">Baskı Dosyası Yükle *</h3>
                                 {podFile ? (
-                                    <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50">
+                                    <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50 dark:bg-slate-700">
                                         <p className="text-sm font-medium text-slate-700 truncate flex-grow">{podFile.name}</p>
                                         <button onClick={() => setPodFile(null)} className="text-xs font-semibold text-red-500 hover:underline flex-shrink-0">Kaldır</button>
                                     </div>
                                 ) : (
                                     <div>
-                                        <label htmlFor="pod-upload" className="cursor-pointer bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary block transition-colors">
-                                            <p className="text-sm text-slate-600">Dosya seçmek için tıklayın veya sürükleyip bırakın.</p>
+                                        <label htmlFor="pod-upload" className="cursor-pointer bg-slate-100 dark:bg-slate-700 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary block transition-colors">
+                                            <p className="text-sm text-slate-600 dark:text-slate-400">Dosya seçmek için tıklayın veya sürükleyip bırakın.</p>
                                         </label>
                                         <input type="file" id="pod-upload" className="hidden" onChange={handlePodFileChange} accept="image/png, image/jpeg, image/svg+xml, image/webp, .psd, .ai" />
                                     </div>
@@ -263,8 +262,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                         <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
                             <div className="flex gap-3">
                                 <button ref={addToCartButtonRef} onClick={handleAddToCart} disabled={addSuccess || selectedVariant.stock === 0 || (product.isPOD && !podFile)} className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-focus transition-colors flex items-center justify-center text-base disabled:bg-primary/50 disabled:cursor-not-allowed">
-                                   <ShoppingCartIcon className="w-5 h-5 mr-2" /> 
-                                   {selectedVariant.stock === 0 ? 'Tükendi' : (product.isPOD && !podFile) ? 'Dosya Yüklemeniz Gerekli' : (addSuccess ? 'Sepete Eklendi!' : 'Sepete Ekle')}
+                                    <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                                    {selectedVariant.stock === 0 ? 'Tükendi' : (product.isPOD && !podFile) ? 'Dosya Yüklemeniz Gerekli' : (addSuccess ? 'Sepete Eklendi!' : 'Sepete Ekle')}
                                 </button>
                                 {addSuccess && (
                                     <button onClick={() => navigate('/dashboard/cart')} className="w-full bg-dark-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-dark-blue/80 transition-all text-base flex items-center justify-center animate-fade-in-fast">
@@ -277,25 +276,25 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                                     {product.isFavorite ? <StarIconSolid className="w-5 h-5 mr-2" /> : <StarIconOutline className="w-5 h-5 mr-2" />}
                                     Favori
                                 </button>
-                                <button onClick={handleDownloadImages} disabled={isDownloading} className="font-bold py-3 rounded-lg transition-colors flex items-center justify-center border-2 bg-white border-slate-300 text-slate-700 hover:bg-slate-50 disabled:bg-slate-200">
-                                   <ArrowDownTrayIcon className="w-5 h-5 mr-2" /> 
-                                   {isDownloading ? 'İndiriliyor...' : 'Görseller'}
+                                <button onClick={handleDownloadImages} disabled={isDownloading} className="font-bold py-3 rounded-lg transition-colors flex items-center justify-center border-2 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:bg-slate-200 dark:disabled:bg-slate-700">
+                                    <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                                    {isDownloading ? 'İndiriliyor...' : 'Görseller'}
                                 </button>
                             </div>
                         </div>
 
                         {/* Cost Breakdown */}
-                        <div className="mt-6 pt-6 border-t border-slate-200">
+                        <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
                             <div className="text-sm space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-medium text-slate-600">Ürün Maliyeti</span>
-                                    <span className="font-semibold text-dark-blue">${selectedVariant.price.toFixed(2)}</span>
+                                    <span className="font-medium text-slate-600 dark:text-slate-400">Ürün Maliyeti</span>
+                                    <span className="font-semibold text-dark-blue dark:text-slate-100">${selectedVariant.price.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="font-medium text-slate-600">Kargo Ücreti ({selectedDestination.toUpperCase()})</span>
-                                    <span className="font-semibold text-dark-blue">${shippingCost.toFixed(2)}</span>
+                                    <span className="font-medium text-slate-600 dark:text-slate-400">Kargo Ücreti ({selectedDestination.toUpperCase()})</span>
+                                    <span className="font-semibold text-dark-blue dark:text-slate-100">${shippingCost.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between items-center text-lg font-bold text-primary pt-3 mt-3 border-t border-slate-200">
+                                <div className="flex justify-between items-center text-lg font-bold text-primary pt-3 mt-3 border-t border-slate-200 dark:border-slate-700">
                                     <span>Toplam Maliyet</span>
                                     <span>${totalCost.toFixed(2)}</span>
                                 </div>
@@ -306,10 +305,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, toggleFa
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <h3 className="text-lg font-semibold text-dark-blue border-b border-slate-200 pb-3 mb-4">Ürün Açıklaması</h3>
                 <div className="relative">
-                    <button onClick={() => copyToClipboard(product.description)} className="absolute top-0 right-0 text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold py-1 px-2 rounded-md flex items-center transition-colors">
+                    <button onClick={() => copyToClipboard(product.description)} className="absolute top-0 right-0 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 hover:bg-slate-200 font-semibold py-1 px-2 rounded-md flex items-center transition-colors">
                         <ClipboardIcon className="w-3 h-3 mr-1.5" />
                         {copySuccess === product.description ? 'Kopyalandı!' : 'Kopyala'}
                     </button>

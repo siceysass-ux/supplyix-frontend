@@ -17,14 +17,40 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOpen, navigate, onLogout, onCreateUser, currentUserRole, adminNavItems }) => {
   const currentPath = window.location.hash.substring(1);
-  
+
   const mainNavItems = useMemo(() => {
-      if (currentUserRole === 'product lister') {
-          return adminNavItems.filter(item => 
-              item.name === 'Ürünleri Yönet' || item.name === 'Kategorileri Yönet'
-          );
-      }
+    console.log('Current user role:', currentUserRole);
+    console.log('All admin nav items:', adminNavItems.map(i => i.name));
+
+    // Full admin - see everything
+    if (currentUserRole === 'admin') {
       return adminNavItems;
+    }
+
+    // Product admin - only products and categories
+    if (currentUserRole === 'product_admin' || currentUserRole === 'product lister') {
+      const filtered = adminNavItems.filter(item =>
+        item.path === '/admin' || // Home page
+        item.name.includes('Ürün') ||
+        item.name.includes('Kategori')
+      );
+      console.log('Product admin filtered items:', filtered.map(i => i.name));
+      return filtered;
+    }
+
+    // Support admin - only requests and support
+    if (currentUserRole === 'support_admin') {
+      const filtered = adminNavItems.filter(item =>
+        item.path === '/admin' || // Home page
+        item.name.includes('Talep') ||
+        item.name.includes('Destek')
+      );
+      console.log('Support admin filtered items:', filtered.map(i => i.name));
+      return filtered;
+    }
+
+    // Default - show all (fallback)
+    return adminNavItems;
   }, [adminNavItems, currentUserRole]);
 
   const handleNavigation = (e: React.MouseEvent, path: string) => {
@@ -32,7 +58,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
     navigate(path);
     setSidebarOpen(false);
   };
-  
+
   const handleCreateUser = (e: React.MouseEvent) => {
     e.preventDefault();
     onCreateUser();
@@ -42,8 +68,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
   const SidebarContent = () => (
     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700">
       <div className="flex h-16 shrink-0 items-center">
-        <a href="#/admin" onClick={(e) => handleNavigation(e, '/admin')}>
-          <img className="h-12 w-auto" src="/logo.png" alt="Supplyix Admin" />
+        <a href="#/admin" onClick={(e) => handleNavigation(e, '/admin')} className="bg-white rounded-lg p-2 shadow-sm">
+          <img className="h-10 w-auto" src="/logo.png" alt="Supplyix Admin" />
         </a>
       </div>
       <nav className="flex flex-1 flex-col">
@@ -57,9 +83,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
                     <a
                       href={`#${item.path}`}
                       onClick={(e) => handleNavigation(e, item.path)}
-                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
-                        isActive ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'
-                      }`}
+                      className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${isActive ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700'
+                        }`}
                     >
                       <item.icon className={`h-6 w-6 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`} aria-hidden="true" />
                       {item.name}
@@ -69,17 +94,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
               })}
             </ul>
           </li>
-           {currentUserRole === 'admin' && (
-             <li>
-                <button
-                    onClick={handleCreateUser}
-                    className="w-full group flex items-center justify-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold bg-primary/10 text-primary hover:bg-primary/20"
-                >
-                    <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                    Yeni Kullanıcı Ekle
-                </button>
+          {currentUserRole === 'admin' && (
+            <li>
+              <button
+                onClick={handleCreateUser}
+                className="w-full group flex items-center justify-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold bg-primary/10 text-primary hover:bg-primary/20"
+              >
+                <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                Yeni Kullanıcı Ekle
+              </button>
             </li>
-           )}
+          )}
           <li className="mt-auto">
             <ul role="list" className="-mx-2 space-y-1">
               <li>
@@ -99,9 +124,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
                     onClick={(e) => {
                       e.preventDefault();
                       if (item.name === 'Çıkış Yap') {
-                          onLogout();
+                        onLogout();
                       } else {
-                          handleNavigation(e, item.path);
+                        handleNavigation(e, item.path);
                       }
                       setSidebarOpen(false);
                     }}
@@ -135,7 +160,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isSidebarOpen, setSidebarOp
           </div>
         </div>
       </div>
-      
+
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <SidebarContent />
       </div>

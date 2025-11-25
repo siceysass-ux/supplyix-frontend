@@ -1,0 +1,106 @@
+Gizlilik Politikası
+
+Yürürlük Tarihi: 05.11.2025
+
+Bu Gizlilik Politikası, Supplyix (“Şirket”) tarafından işletilen hizmetlerde, kullanıcıların (“Kullanıcı”) kişisel verilerinin toplanması, kullanılması, saklanması ve korunmasına ilişkin esasları açıklamaktadır.
+
+1. Veri Sorumlusu Bilgileri
+
+Şirket Adı: Supplyix
+Adres: YESILTEPE MAH. 57/1. SK. YESIL NO: 21 IÇ KAPI NO: 7 ZEYTINBURNU / İSTANBUL
+E-posta: supplyix@supplyix.com
+
+Supplyix, 6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında “Veri Sorumlusu” sıfatını taşır.
+
+2. Toplanan Kişisel Veriler ve Toplama Yöntemi
+
+Supplyix, kullanıcıların hizmetlerden yararlanması sırasında aşağıdaki kişisel verileri toplayabilir:
+
+Kimlik Bilgileri: Ad, soyad, T.C. kimlik numarası (gerekliyse), firma bilgileri
+
+İletişim Bilgileri: E-posta adresi, telefon numarası, adres bilgisi
+
+Finansal Bilgiler: Fatura ve ödeme bilgileri (ödeme sağlayıcılar aracılığıyla)
+
+İşlem Bilgileri: Sipariş geçmişi, tedarik talepleri, platform içi mesajlaşma kayıtları
+
+Teknik Veriler: IP adresi, tarayıcı tipi, cihaz bilgileri, çerez (cookie) verileri
+
+Bu veriler; kullanıcı kayıt formları, sipariş süreçleri, destek talepleri ve çerezler aracılığıyla otomatik veya manuel yollarla toplanabilir.
+
+3. Kişisel Verilerin İşlenme Amaçları
+
+Toplanan kişisel veriler şu amaçlarla işlenebilir:
+
+Hizmetin sunulması, yönetilmesi ve geliştirilmesi,
+
+Sipariş, ödeme ve teslimat süreçlerinin yürütülmesi,
+
+Kullanıcı destek hizmetlerinin sağlanması,
+
+Yasal yükümlülüklerin yerine getirilmesi,
+
+Güvenlik ve dolandırıcılığın önlenmesi,
+
+Kullanıcı memnuniyetinin ölçülmesi ve platform deneyiminin iyileştirilmesi,
+
+Tanıtım, kampanya ve bilgilendirme faaliyetlerinin yürütülmesi (onay verilmesi halinde).
+
+4. Kişisel Verilerin Aktarımı
+
+Kullanıcı verileri, aşağıdaki durumlarda üçüncü taraflarla paylaşılabilir:
+
+Hizmetin sağlanması için iş ortakları, tedarikçiler ve teknik altyapı sağlayıcılarla,
+
+Ödeme işlemleri için yetkili finansal kuruluşlarla,
+
+Yasal zorunluluk durumlarında yetkili kamu kurumlarıyla,
+
+Kullanıcının açık rızası alınmak suretiyle iş ortaklarıyla.
+
+Supplyix, kişisel verileri hiçbir koşulda ticari amaçla satmaz veya izinsiz paylaşmaz.
+
+5. Kişisel Verilerin Saklanma Süresi
+
+Kişisel veriler, işleme amacının ortadan kalkması veya yasal saklama süresinin sona ermesiyle birlikte güvenli bir şekilde silinir, yok edilir veya anonim hale getirilir.
+
+6. Veri Güvenliği Önlemleri
+
+Supplyix, kişisel verilerin gizliliğini ve bütünlüğünü korumak amacıyla uygun teknik ve idari tedbirleri alır. Bu önlemler; şifreleme, erişim kısıtlamaları, güvenlik duvarları ve düzenli güvenlik testlerini içerir.
+
+7. Çerez (Cookie) Kullanımı
+
+Supplyix, kullanıcı deneyimini geliştirmek amacıyla çerezler kullanabilir.
+Kullanıcılar, tarayıcı ayarlarından çerez tercihlerini değiştirebilir veya devre dışı bırakabilir. Ancak bu durumda bazı hizmetlerin doğru çalışmaması mümkündür.
+
+8. Kullanıcı Hakları (KVKK Madde 11)
+
+Kullanıcılar, Supplyix’e başvurarak aşağıdaki haklara sahiptir:
+
+Kişisel verilerinin işlenip işlenmediğini öğrenme,
+
+İşlenmişse buna ilişkin bilgi talep etme,
+
+İşleme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme,
+
+Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme,
+
+Verilerin eksik veya yanlış işlenmiş olması hâlinde düzeltilmesini isteme,
+
+Verilerin silinmesini veya yok edilmesini talep etme,
+
+İşlemenin yalnızca otomatik sistemler aracılığıyla analiz edilmesi sonucu aleyhine bir sonucun ortaya çıkmasına itiraz etme,
+
+Kanuna aykırı işleme nedeniyle zarara uğraması hâlinde tazminat talep etme.
+
+Bu haklarınızı kullanmak için supplyix@supplyix.com
+ adresine e-posta gönderebilirsiniz.
+
+9. Gizlilik Politikasındaki Değişiklikler
+
+Supplyix, bu politikada değişiklik yapma hakkını saklı tutar. Güncellenmiş politika, yürürlük tarihinin güncellenmesiyle birlikte web sitesinde yayımlandığında geçerli olur.
+
+Supplyix
+YESILTEPE MAH. 57/1. SK. YESIL NO: 21 IÇ KAPI NO: 7
+ZEYTINBURNU / İSTANBUL
+📧 supplyix@supplyix.com

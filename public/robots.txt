@@ -1,0 +1,32 @@
+# Supplyix - Robots.txt
+# https://www.supplyix.com/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /giris
+Disallow: /sifremi-unuttum
+Disallow: /sifre-sifirla/
+
+# Sitemap location
+Sitemap: https://www.supplyix.com/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+
+User-agent: Yandex
+Allow: /
+Disallow: /dashboard
+Disallow: /admin

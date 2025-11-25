@@ -8,7 +8,7 @@ interface HeroSectionProps {
 const ConfettiBurst: React.FC = () => {
     const confettiCount = 60;
     const colors = ['#ff6a00', '#042d4d', '#FBBF24', '#36D399', '#3ABFF8'];
-    
+
     const pieces = Array.from({ length: confettiCount }).map((_, i) => {
         const style = {
             '--translate-x': `${Math.random() * 400 - 200}px`, // Horizontal spread
@@ -58,23 +58,35 @@ const FlyingLogos: React.FC = () => {
 
 const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
     const products = [
-        { imageUrl: 'https://picsum.photos/seed/p1/200/200', price: '$29.99' },
-        { imageUrl: 'https://picsum.photos/seed/p2/200/200', price: '$34.90' },
-        { imageUrl: 'https://picsum.photos/seed/p3/200/200', price: '$19.00' },
-        { imageUrl: 'https://picsum.photos/seed/p4/200/200', price: '$42.50' },
-        { imageUrl: 'https://picsum.photos/seed/p5/200/200', price: '$12.99' },
-        { imageUrl: 'https://picsum.photos/seed/p6/200/200', price: '$55.00' },
-        { imageUrl: 'https://picsum.photos/seed/p7/200/200', price: '$27.90' },
-        { imageUrl: 'https://picsum.photos/seed/p8/200/200', price: '$39.00' },
-        { imageUrl: 'https://picsum.photos/seed/p9/200/200', price: '$14.99' },
-        { imageUrl: 'https://picsum.photos/seed/p10/200/200', price: '$18.00' },
-        { imageUrl: 'https://picsum.photos/seed/p11/200/200', price: '$69.90' },
-        { imageUrl: 'https://picsum.photos/seed/p12/200/200', price: '$9.50' },
+        { imageUrl: '/product-images/1.png', price: '$12.99' },
+        { imageUrl: '/product-images/2.png', price: '$8.50' },
+        { imageUrl: '/product-images/3.png', price: '$14.90' },
+        { imageUrl: '/product-images/4.png', price: '$6.75' },
+        { imageUrl: '/product-images/5.png', price: '$11.20' },
+        { imageUrl: '/product-images/6.png', price: '$9.99' },
+        { imageUrl: '/product-images/7.png', price: '$13.45' },
+        { imageUrl: '/product-images/8.png', price: '$7.80' },
+        { imageUrl: '/product-images/9.png', price: '$10.50' },
+        { imageUrl: '/product-images/10.png', price: '$5.99' },
+        { imageUrl: '/product-images/11.png', price: '$14.25' },
+        { imageUrl: '/product-images/12.png', price: '$8.90' },
+        { imageUrl: '/product-images/13.png', price: '$12.40' },
+        { imageUrl: '/product-images/14.png', price: '$6.50' },
+        { imageUrl: '/product-images/15.png', price: '$11.75' },
+        { imageUrl: '/product-images/1_1387213615438.jpg', price: '$9.25' },
+        { imageUrl: '/product-images/1_1905720621116.jpg', price: '$13.90' },
+        { imageUrl: '/product-images/1_2224fcb2-f40e-4b48-b524-0019b1152c2e.jpg', price: '$7.50' },
+        { imageUrl: '/product-images/2_4739765b-cfca-40d6-b1d3-6b662478c8fc.jpg', price: '$10.99' },
+        { imageUrl: '/product-images/3_2edeaef7-57b2-4554-a362-656d001dd9b2.jpg', price: '$5.75' },
+        { imageUrl: '/product-images/4_6f466ebe-69a4-463e-90da-246b3d2c1f1e.png', price: '$14.50' },
+        { imageUrl: '/product-images/5_48106c86-2713-41b7-a064-76551d0acb9c.jpg', price: '$8.25' },
+        { imageUrl: '/product-images/078d6b98-c82d-49c0-8a15-7d4a305f46b6.webp', price: '$12.10' },
+        { imageUrl: '/product-images/1623810948043.webp', price: '$9.60' },
     ];
     const displayedProducts = [...products, ...products, ...products, ...products];
 
     const turkishCities = ['Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Aksaray', 'Amasya', 'Ankara', 'Antalya', 'Ardahan', 'Artvin', 'Aydın', 'Balıkesir', 'Bartın', 'Batman', 'Bayburt', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa', 'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Düzce', 'Edirne', 'Elazığ', 'Erzincan', 'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkâri', 'Hatay', 'Iğdır', 'Isparta', 'İstanbul', 'İzmir', 'Kahramanmaraş', 'Karabük', 'Karaman', 'Kars', 'Kastamonu', 'Kayseri', 'Kilis', 'Kırıkkale', 'Kırklareli', 'Kırşehir', 'Kocaeli', 'Konya', 'Kütahyav', 'Malatya', 'Manisa', 'Mardin', 'Mersin', 'Muğla', 'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Osmaniye', 'Rize', 'Sakarya', 'Samsun', 'Şanlıurfa', 'Siirt', 'Sinop', 'Sivas', 'Şırnak', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Uşak', 'Van', 'Yalova', 'Yozgat', 'Zonguldak'];
-    
+
     const [notification, setNotification] = useState<{
         location: string;
         price: string;
@@ -86,7 +98,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
         const showRandomNotification = () => {
             const randomCity = turkishCities[Math.floor(Math.random() * turkishCities.length)];
             const randomPrice = (Math.random() * 65 + 5).toFixed(2);
-            
+
             setNotification({
                 location: randomCity,
                 price: `$${randomPrice}`,
@@ -100,7 +112,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
 
         return () => clearInterval(intervalId);
     }, []);
-    
+
     useEffect(() => {
         if (notification) {
             setShowConfetti(true);
@@ -117,37 +129,37 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
             pricingSection.scrollIntoView({ behavior: 'smooth' });
         }
     };
-    
+
     const handleContactClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         navigate('/contact');
     };
 
     return (
-        <section className="relative bg-white dark:bg-slate-900 overflow-hidden pb-20 md:pb-0">
-             {showConfetti && <ConfettiBurst />}
-             <FlyingLogos />
+        <section className="relative bg-white overflow-hidden pb-20 md:pb-0">
+            {showConfetti && <ConfettiBurst />}
+            <FlyingLogos />
 
-             <div 
-                className="hidden md:block absolute top-0 right-0 h-full w-1/2 bg-primary" 
+            <div
+                className="hidden md:block absolute top-0 right-0 h-full w-1/2 bg-primary"
                 style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 100%, 0% 100%, 8% 80%, 2% 60%, 12% 40%, 4% 20%)' }}
-             ></div>
+            ></div>
 
             <div className="relative grid grid-cols-1 md:grid-cols-2">
 
-                <div className="text-dark-blue dark:text-slate-200 flex items-center justify-center">
-                    <div className="px-6 py-20 md:py-28 lg:py-32 max-w-2xl text-center md:text-left">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-up text-primary" style={{ animationDelay: '0.2s' }}>
-                            Supplyix ile e-ticaret zahmetsiz: Stok Yok, Kargo Yok, Sadece Satış Var!
+                <div className="text-dark-blue flex items-center justify-center">
+                    <div className="px-4 md:px-6 py-16 md:py-20 lg:py-28 xl:py-32 max-w-2xl text-center md:text-left">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight mb-4 md:mb-6 animate-fade-in-up text-primary" style={{ animationDelay: '0.2s' }}>
+                            Dropshipping Türkiye ile Stoksuz Satış: Çin'den Toptan Ürün Tedarik
                         </h1>
-                        <p className="text-lg md:text-xl text-dark-blue dark:text-slate-300 mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-                            Ürünlerini seç, listele, satış yaptıkça biz gönderelim. Sen sadece kazancına odaklan.
+                        <p className="text-base md:text-lg lg:text-xl text-dark-blue mb-8 md:mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                            1688, Taobao ve Alibaba entegrasyonu ile binlerce ürüne anında erişim. Stoksuz e-ticaret çözümü ile sen sadece sat, biz gönderelim!
                         </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 animate-fade-in-up" style={{ animationDelay: '1s' }}>
-                            <a href="#pricing" onClick={handleScrollToPricing} className="bg-primary text-white font-bold py-4 px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30 inline-block w-full sm:w-auto text-center">
+                        <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 md:gap-4 animate-fade-in-up" style={{ animationDelay: '1s' }}>
+                            <a href="#pricing" onClick={handleScrollToPricing} className="btn-shimmer btn-pulse bg-primary text-white font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg hover:bg-primary-focus transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30 inline-block w-full sm:w-auto text-center text-sm md:text-base">
                                 Şimdi Başla!
                             </a>
-                            <a href="#/contact" onClick={handleContactClick} className="bg-white dark:bg-slate-800 text-primary border-2 border-primary font-bold py-4 px-10 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/10 inline-block w-full sm:w-auto text-center">
+                            <a href="#/contact" onClick={handleContactClick} className="bg-white text-primary border-2 border-primary font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg hover:bg-primary/10 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/10 inline-block w-full sm:w-auto text-center text-sm md:text-base">
                                 İletişime Geç
                             </a>
                         </div>
@@ -155,9 +167,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
                 </div>
 
                 <div className="hidden md:flex items-center justify-center p-8 sm:p-12">
-                     <div className="relative mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                        <div className="w-full max-w-lg h-[550px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-slate-700">
-                            <div className="h-10 bg-white dark:bg-slate-800 flex items-center justify-between px-4 border-b border-gray-200 dark:border-slate-700">
+                    <div className="relative mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="w-full max-w-lg h-[550px] bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+                            <div className="h-10 bg-white flex items-center justify-between px-4 border-b border-gray-200">
                                 <img
                                     src="/logo.png"
                                     alt="Supplyix Logo"
@@ -167,17 +179,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
                                     Giriş Yap
                                 </div>
                             </div>
-                            <div className="h-[calc(100%-2.5rem)] overflow-hidden p-2 bg-neutral-50 dark:bg-slate-700">
+                            <div className="h-[calc(100%-2.5rem)] overflow-hidden p-2 bg-neutral-50">
                                 <div className="animate-scroll-products">
                                     <div className="grid grid-cols-3 gap-2">
                                         {displayedProducts.map((product, index) => (
-                                            <div key={index} className="bg-white dark:bg-slate-600 p-2 rounded-lg shadow-md flex flex-col">
+                                            <div key={index} className="bg-white p-2 rounded-lg shadow-md flex flex-col">
                                                 <img src={product.imageUrl} alt={`Product showcase ${index + 1}`} className="w-full object-cover rounded-md aspect-square" />
                                                 <div className="pt-2 flex-grow flex flex-col justify-between">
-                                                     <p className="font-bold text-dark-blue dark:text-white text-center text-sm mb-1">{product.price}</p>
-                                                     <button className="w-full text-xs bg-primary text-white font-semibold py-1 px-2 rounded-md hover:bg-primary-focus transition-colors duration-300">
+                                                    <p className="font-bold text-dark-blue text-center text-sm mb-1">{product.price}</p>
+                                                    <button className="w-full text-xs bg-primary text-white font-semibold py-1 px-2 rounded-md hover:bg-primary-focus transition-colors duration-300">
                                                         Satmaya Başla
-                                                     </button>
+                                                    </button>
                                                 </div>
                                             </div>
                                         ))}
@@ -188,15 +200,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ navigate }) => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="md:hidden absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none w-max">
                 {notification && (
-                     <div
+                    <div
                         key={notification.key}
-                        className="animate-pop-in-out bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg py-2 px-4 border border-gray-200 dark:border-slate-600"
-                     >
-                        <p className="text-gray-600 dark:text-slate-300 text-sm text-center">
-                            <span className="font-bold text-dark-blue dark:text-slate-100">{notification.location}</span>'dan bir satış: <span className="font-bold text-primary">{notification.price}</span>!
+                        className="animate-pop-in-out bg-white/90 backdrop-blur-sm rounded-lg shadow-lg py-2 px-4 border border-gray-200"
+                    >
+                        <p className="text-gray-600 text-sm text-center">
+                            <span className="font-bold text-dark-blue">{notification.location}</span>'dan bir satış: <span className="font-bold text-primary">{notification.price}</span>!
                         </p>
                     </div>
                 )}

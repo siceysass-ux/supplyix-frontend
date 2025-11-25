@@ -7,6 +7,9 @@ interface ChatViewProps {
     onSendMessage: (message: Pick<ChatMessage, 'text' | 'imageUrls'>) => void;
     isUserMessage: (sender: 'user' | 'support') => boolean;
     isClosed: boolean;
+    onUploadFile?: (file: File) => Promise<string>;
+    userLabel?: string;
+    adminLabel?: string;
 }
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -18,7 +21,7 @@ const fileToBase64 = (file: File): Promise<string> => {
     });
 };
 
-const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMessage, isClosed }) => {
+const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMessage, isClosed, onUploadFile, userLabel = 'Siz', adminLabel = 'Destek Ekibi' }) => {
     const [newMessage, setNewMessage] = useState('');
     const [attachments, setAttachments] = useState<File[]>([]);
     const [isReplying, setIsReplying] = useState(false);
@@ -36,7 +39,22 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMess
 
     const handleSendMessage = async () => {
         if (newMessage.trim() || attachments.length > 0) {
-            const imageUrls = await Promise.all(attachments.map(fileToBase64));
+            let imageUrls: string[] = [];
+
+            if (attachments.length > 0) {
+                if (onUploadFile) {
+                    try {
+                        imageUrls = await Promise.all(attachments.map(onUploadFile));
+                    } catch (error) {
+                        console.error("Failed to upload files:", error);
+                        alert("Dosya yüklenirken bir hata oluştu.");
+                        return;
+                    }
+                } else {
+                    imageUrls = await Promise.all(attachments.map(fileToBase64));
+                }
+            }
+
             onSendMessage({
                 text: newMessage.trim(),
                 imageUrls,
@@ -54,10 +72,10 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMess
                     const isUser = isUserMessage(msg.sender);
                     return (
                         <div key={index} className="flex flex-col">
-                             <div className={`w-full p-4 rounded-lg border ${isUser ? 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700' : 'bg-primary/10 border-primary/20'}`}>
+                            <div className={`w-full p-4 rounded-lg border ${isUser ? 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700' : 'bg-primary/10 border-primary/20'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <p className={`text-sm font-bold ${isUser ? 'text-dark-blue dark:text-slate-100' : 'text-primary'}`}>
-                                        {isUser ? 'Siz' : 'Destek Ekibi'}
+                                        {isUser ? userLabel : adminLabel}
                                     </p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">{msg.timestamp}</p>
                                 </div>
@@ -66,7 +84,7 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMess
                                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {msg.imageUrls.map((url, i) => (
                                             <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block aspect-square">
-                                                <img src={url} alt={`Ek ${i+1}`} className="w-full h-full object-cover rounded-md border border-slate-300 dark:border-slate-600" />
+                                                <img src={url} alt={`Ek ${i + 1}`} className="w-full h-full object-cover rounded-md border border-slate-300 dark:border-slate-600" />
                                             </a>
                                         ))}
                                     </div>
@@ -91,7 +109,7 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isUserMess
                             rows={5}
                             className="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-primary focus:border-primary"
                         />
-                         {attachments.length > 0 && (
+                        {attachments.length > 0 && (
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                 {attachments.map((file, index) => (
                                     <div key={index} className="relative aspect-square">

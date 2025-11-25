@@ -23,7 +23,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ category, onClose, onSave
             setNewSubCategoryName('');
         }
     };
-    
+
     const handleRemoveSubcategory = (id: string) => {
         setSubcategories(subcategories.filter(sc => sc.id !== id));
     };
@@ -76,10 +76,11 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ category, onClose, onSave
 
 interface ManageCategoriesPageProps {
     categories: Category[];
+    onSaveCategory: (category: Category) => Promise<void>;
+    onDeleteCategory: (id: string) => Promise<void>;
 }
 
-const ManageCategoriesPage: React.FC<ManageCategoriesPageProps> = ({ categories: initialCategories }) => {
-    const [categories, setCategories] = useState(initialCategories);
+const ManageCategoriesPage: React.FC<ManageCategoriesPageProps> = ({ categories, onSaveCategory, onDeleteCategory }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
@@ -92,67 +93,65 @@ const ManageCategoriesPage: React.FC<ManageCategoriesPageProps> = ({ categories:
         setIsModalOpen(false);
         setEditingCategory(null);
     };
-    
-    const handleSaveCategory = (category: Category) => {
-        if (editingCategory) { // Update existing
-            setCategories(categories.map(c => c.id === category.id ? category : c));
-        } else { // Add new
-            setCategories([...categories, category]);
-        }
+
+    const handleSaveCategory = async (category: Category) => {
+        await onSaveCategory(category);
         handleCloseModal();
     };
 
-    const handleDeleteCategory = (id: string) => {
-        setCategories(categories.filter(c => c.id !== id));
+    const handleDeleteCategory = async (id: string) => {
+        if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) {
+            await onDeleteCategory(id);
+        }
     };
-    
+
     return (
         <>
-        {isModalOpen && <CategoryModal category={editingCategory} onClose={handleCloseModal} onSave={handleSaveCategory} />}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-xl font-bold text-dark-blue">Kategorileri Yönet</h2>
-                 <button onClick={() => handleOpenModal()} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus transition-colors text-sm">
-                    Yeni Kategori Ekle
-                </button>
-            </div>
-            
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-slate-500">
-                    <thead className="text-xs text-slate-700 uppercase bg-slate-50">
-                        <tr>
-                            <th className="px-6 py-3">Kategori Adı</th>
-                            <th className="px-6 py-3">Alt Kategoriler</th>
-                            <th className="px-6 py-3">Ürün Sayısı</th>
-                            <th className="px-6 py-3 text-right">İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                        {categories.map(category => (
-                            <tr key={category.id}>
-                                <td className="px-6 py-4 font-medium text-dark-blue">{category.name}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex flex-wrap gap-1">
-                                        {category.subcategories.map(sub => (
-                                            <span key={sub.id} className="bg-slate-200 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">{sub.name}</span>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">{category.productCount}</td>
-                                <td className="px-6 py-4 text-right space-x-2">
-                                     <button onClick={() => handleOpenModal(category)} className="p-2 text-primary hover:bg-primary/10 rounded-md transition-colors" title="Düzenle">
-                                        <PencilIcon className="w-5 h-5"/>
-                                     </button>
-                                     <button onClick={() => handleDeleteCategory(category.id)} className="p-2 text-red-600 hover:bg-red-500/10 rounded-md transition-colors" title="Sil">
-                                        <TrashIcon className="w-5 h-5"/>
-                                     </button>
-                                </td>
+            {isModalOpen && <CategoryModal category={editingCategory} onClose={handleCloseModal} onSave={handleSaveCategory} />}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-dark-blue">Kategorileri Yönet</h2>
+                    <button onClick={() => handleOpenModal()} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus transition-colors text-sm">
+                        Yeni Kategori Ekle
+                    </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-slate-500">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+                            <tr>
+                                <th className="px-6 py-3">Kategori Adı</th>
+                                <th className="px-6 py-3">Alt Kategoriler</th>
+                                <th className="px-6 py-3">Ürün Sayısı</th>
+                                <th className="px-6 py-3 text-right">İşlemler</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                            {categories.map(category => (
+                                <tr key={category.id}>
+                                    <td className="px-6 py-4 font-medium text-dark-blue">{category.name}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-1">
+                                            {category.subcategories.map(sub => (
+                                                <span key={sub.id} className="bg-slate-200 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">{sub.name}</span>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">{category.productCount}</td>
+                                    <td className="px-6 py-4 text-right space-x-2">
+                                        <button onClick={() => handleOpenModal(category)} className="p-2 text-primary hover:bg-primary/10 rounded-md transition-colors" title="Düzenle">
+                                            <PencilIcon className="w-5 h-5" />
+                                        </button>
+                                        <button onClick={() => handleDeleteCategory(category.id)} className="p-2 text-red-600 hover:bg-red-500/10 rounded-md transition-colors" title="Sil">
+                                            <TrashIcon className="w-5 h-5" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         </>
     );
 };

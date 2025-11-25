@@ -10,9 +10,10 @@ const XPiece: React.FC<{ style: React.CSSProperties }> = ({ style }) => {
 
 interface PaymentFailureModalProps {
     onClose: () => void;
+    message?: string;
 }
 
-const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({ onClose }) => {
+const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({ onClose, message }) => {
     const xPieces = Array.from({ length: 60 }).map((_, i) => {
         const style: React.CSSProperties = {
             left: `${Math.random() * 100}%`,
@@ -42,9 +43,11 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({ onClose }) =>
             <div className="relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-2xl animate-scale-in w-full max-w-md">
                 <img src="/logo.png" alt="Supplyix Logo" className="h-16 w-auto mx-auto mb-6" />
                 <h1 className="text-3xl font-bold text-red-600 dark:text-red-500">Ödeme Başarısız</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">Ödeme alınamadı. Lütfen bilgilerinizi kontrol edip tekrar deneyin.</p>
-                <button 
-                    onClick={onClose} 
+                <p className="text-slate-600 dark:text-slate-300 mt-2">
+                    {message || 'Ödeme alınamadı. Lütfen bilgilerinizi kontrol edip tekrar deneyin.'}
+                </p>
+                <button
+                    onClick={onClose}
                     className="mt-8 bg-primary text-white font-bold py-2.5 px-8 rounded-lg hover:bg-primary-focus transition-colors"
                 >
                     Tekrar Dene

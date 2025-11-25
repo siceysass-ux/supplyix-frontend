@@ -1,10 +1,11 @@
 import React from 'react';
 
-type StatusType = 
-  | 'Beklemede' | 'Hazırlanıyor' | 'Kargoda' | 'Teslim Edildi' | 'İptal' 
+type StatusType =
+  | 'Beklemede' | 'Hazırlanıyor' | 'Kargoda' | 'Teslim Edildi' | 'İptal'
   | 'Bekliyor' | 'Tamamlandı'
   | 'Ödendi' | 'Aktif' | 'Sona Eriyor' | 'Süresi Doldu'
-  | 'Başarılı' | 'Başarısız';
+  | 'Başarılı' | 'Başarısız'
+  | 'Açık' | 'Yanıt Bekleniyor' | 'Çözüldü';
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -29,6 +30,10 @@ const statusStyles: Record<StatusType, string> = {
   // Result Statuses
   'Başarılı': 'bg-green-100 text-green-800',
   'Başarısız': 'bg-red-100 text-red-800',
+  // Ticket Statuses
+  'Açık': 'bg-green-100 text-green-800',
+  'Yanıt Bekleniyor': 'bg-yellow-100 text-yellow-800',
+  'Çözüldü': 'bg-gray-100 text-gray-800',
 };
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
