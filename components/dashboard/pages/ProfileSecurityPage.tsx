@@ -250,7 +250,7 @@ const ProfileSecurityPage: React.FC = () => {
 
             <div className="space-y-8">
                 {/* Profile Picture */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                {/* <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <h3 className="text-lg font-semibold text-dark-blue dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">Profil Fotoğrafı</h3>
                     <div className="flex items-center gap-6">
                         <img
@@ -268,7 +268,7 @@ const ProfileSecurityPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Referral Program */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
