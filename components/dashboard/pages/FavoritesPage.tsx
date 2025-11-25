@@ -158,7 +158,7 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                             ))}
                         </div>
                     </nav>
-                    <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+                    {/* <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
                         {isCreating ? (
                             <div className="space-y-2">
                                 <input
@@ -180,7 +180,7 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                                 Yeni Kategori
                             </button>
                         )}
-                    </div>
+                    </div> */}
                 </aside>
 
                 {/* Main Content: Favorite Products Grid */}
@@ -200,7 +200,7 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                                             <div className="mt-auto flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-700">
                                                 <p className="text-lg font-bold text-dark-blue dark:text-slate-100">{formatPrice(product.price)}</p>
                                                 <div className="flex items-center gap-1" ref={movingProduct === product.name ? popoverRef : null}>
-                                                    <div className="relative">
+                                                    {/* <div className="relative">
                                                         <button onClick={() => setMovingProduct(product.name === movingProduct ? null : product.name)} className="p-2 text-slate-500 hover:text-primary rounded-md hover:bg-slate-100 dark:hover:bg-slate-700" title="Taşı">
                                                             <Squares2X2Icon className="w-5 h-5" />
                                                         </button>
@@ -216,7 +216,7 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                                                                 </ul>
                                                             </div>
                                                         )}
-                                                    </div>
+                                                    </div> */}
                                                     <button
                                                         onClick={() => toggleFavorite(product.name)}
                                                         className="p-2 text-red-500 hover:bg-red-500/10 rounded-md"
