@@ -44,9 +44,7 @@ import SEOHead from './components/shared/SEOHead';
 import { getSEOConfig, ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA, FAQ_SCHEMA, generateBreadcrumbSchema } from './src/seo-config';
 import "./src/libs/globals.ts";
 
-declare global {
-    locale: LOCALE
-}
+
 
 const App: React.FC = () => {
     // A simple hash-based router
