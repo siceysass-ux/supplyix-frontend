@@ -42,7 +42,7 @@ import * as api from './src/services/api';
 // SEO imports
 import SEOHead from './components/shared/SEOHead';
 import { getSEOConfig, ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA, FAQ_SCHEMA, generateBreadcrumbSchema } from './src/seo-config';
-
+import "./src/libs/globals.ts";
 
 const App: React.FC = () => {
     // A simple hash-based router
@@ -152,6 +152,7 @@ const App: React.FC = () => {
     const [mainNavItems, setMainNavItems] = useState<NavItem[]>(initialMainNavItems);
     const [adminNavItems, setAdminNavItems] = useState<NavItem[]>(initialAdminNavItems);
 
+
     // Fetch initial data from API
     useEffect(() => {
         const fetchData = async () => {
@@ -182,8 +183,6 @@ const App: React.FC = () => {
                     api.getCategories().catch(e => { console.error('Categories failed:', e); return []; })
                 ]);
 
-                console.log('✅ Data fetched successfully');
-                console.log('Fees:', fetchedExtraFees);
 
                 setProducts(fetchedProducts);
                 setOrders(fetchedOrders);
@@ -196,7 +195,7 @@ const App: React.FC = () => {
 
                 // Settings
                 if (fetchedPlans && fetchedPlans.length > 0) {
-                    setPlans(fetchedPlans);
+                    setPlans(fetchedPlans );
                 }
                 if (fetchedEventPopup) {
                     setEventPopup(fetchedEventPopup);
@@ -468,7 +467,11 @@ const App: React.FC = () => {
 
     const handleUpdateEventPopup = async (updatedPopup: EventPopupType) => {
         try {
-            await api.updateEventPopup(updatedPopup);
+            await api.updateEventPopup({
+                isActive: updatedPopup.enabled,
+                imageUrl: updatedPopup.imageUrl,
+                link: updatedPopup.ctaLink
+            });
             setEventPopup(updatedPopup);
         } catch (error) {
             console.error("Failed to update event popup:", error);
@@ -608,7 +611,6 @@ const App: React.FC = () => {
             }
 
             const createdUser = await response.json();
-            console.log('✅ User created successfully:', createdUser);
 
             // Update local state with the created user
             setUsers(prev => [createdUser, ...prev].sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()));
@@ -651,7 +653,6 @@ const App: React.FC = () => {
 
                     // If we found the user by email but ID was different, update localStorage
                     if (currentUser.id !== storedUserData.id) {
-                        console.log('🔄 User ID changed (DB reset?), updating session...');
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     }
                 } else {
@@ -687,9 +688,7 @@ const App: React.FC = () => {
                         announcements={announcements}
                         extraFees={(() => {
                             const userFees = extraFees.filter(f => f.userId === currentUser.id);
-                            console.log('👤 Current User:', currentUser);
-                            console.log('💰 All Fees:', extraFees);
-                            console.log('🔍 Filtered Fees for User:', userFees);
+                         
                             return userFees;
                         })()}
                         supportTickets={supportTickets.filter(t => t.userId === currentUser.id)}

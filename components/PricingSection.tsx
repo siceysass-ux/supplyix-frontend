@@ -6,8 +6,14 @@ interface PricingSectionProps {
     plans: Plan[];
 }
 
-const PricingSection: React.FC<PricingSectionProps> = ({ navigate, plans }) => {
-    const [selectedPlanName, setSelectedPlanName] = useState<string>(plans.find(p => p.popular)?.name || plans[0].name);
+const PricingSection: React.FC<PricingSectionProps> = ({ navigate, plans  }) => {
+
+    if(!Array.isArray(plans))
+    {
+        plans = [];
+    }
+
+    const [selectedPlanName, setSelectedPlanName] = useState<string>(plans.find(p => p.popular)?.name || plans?.[0]?.name || '');
 
     const handleProceed = () => {
         const plan = plans.find(p => p.name === selectedPlanName);

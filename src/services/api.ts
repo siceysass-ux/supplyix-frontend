@@ -3,9 +3,9 @@ import { Product, Order } from '../../components/dashboard/types';
 import { User } from '../../components/admin/types';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3002/api',
 });
-
+4
 // Products
 export const getProducts = async () => {
     const response = await api.get<Product[]>('/products');
