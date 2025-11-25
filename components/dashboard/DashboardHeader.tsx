@@ -362,14 +362,14 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ pageTitle, navigate, 
                         className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
                         aria-label="Kullanıcı menüsü"
                     >
-                        <img className="h-8 w-8 rounded-full object-cover" src={userProfile.avatar} alt="Profil Avatar" />
+                        {/* <img className="h-8 w-8 rounded-full object-cover" src={userProfile.avatar} alt="Profil Avatar" /> */}
                         <span className="hidden sm:inline text-sm font-semibold text-dark-blue dark:text-slate-200">{userProfile.name}</span>
                         <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isProfileOpen && (
                         <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black dark:ring-slate-700 ring-opacity-5 focus:outline-none z-20">
                             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
-                                <img className="h-12 w-12 rounded-full object-cover" src={userProfile.avatar} alt="Profil Avatar" />
+                                {/* <img className="h-12 w-12 rounded-full object-cover" src={userProfile.avatar} alt="Profil Avatar" /> */}
                                 <div>
                                     <p className="text-sm font-semibold text-dark-blue dark:text-slate-100 truncate">{userProfile.name}</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userProfile.email}</p>

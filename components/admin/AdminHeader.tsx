@@ -19,7 +19,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ pageTitle, navigate }) => {
         <ThemeToggle />
         {/* Profile Display */}
         <div className="flex items-center space-x-2 p-1">
-          <img className="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/150?u=admin" alt="Admin avatar" />
+          {/* <img className="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/150?u=admin" alt="Admin avatar" /> */}
           <span className="hidden sm:inline text-sm font-semibold text-dark-blue dark:text-slate-200">Admin</span>
         </div>
       </div>
