@@ -543,23 +543,52 @@ const App: React.FC = () => {
         }
     };
 
-    const handleCreateAdminUser = (newUser: { email: string; password?: string; role: UserRole; }) => {
-        const finalUser: User = {
-            id: `user-${Date.now()}`,
-            name: newUser.email.split('@')[0],
-            email: newUser.email,
-            password: newUser.password,
-            role: newUser.role,
-            plan: '1 Ay',
-            status: 'Aktif',
-            totalSpent: 0,
-            lastLogin: new Date().toISOString(),
-            registrationDate: new Date().toISOString().split('T')[0],
-            subscriptionStartDate: new Date().toISOString().split('T')[0],
-            subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            platforms: [],
-        };
-        setUsers(prev => [finalUser, ...prev]);
+    const handleCreateAdminUser = async (newUser: { email: string; password?: string; role: UserRole; }) => {
+        try {
+            console.log('📝 Frontend: Creating admin user:', newUser);
+
+            const requestBody = {
+                name: newUser.email.split('@')[0],
+                email: newUser.email,
+                password: newUser.password || 'defaultPassword123',  // Should require password
+                role: newUser.role,
+                plan: '1 Ay',
+                status: 'Aktif',
+                registrationDate: new Date().toISOString().split('T')[0],
+                subscriptionStartDate: new Date().toISOString().split('T')[0],
+                subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                totalSpent: 0,
+                lastLogin: new Date().toISOString(),
+                platforms: [],  // Empty array for admin users
+                phone: null,
+                tcKimlik: null,
+                vergiKimlik: null,
+                referralCode: null,
+            };
+
+            console.log('📤 Frontend: Sending admin user to backend:', requestBody);
+
+            const response = await fetch('http://localhost:3002/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+                console.error('❌ Frontend: Backend error:', errorData);
+                throw new Error(errorData.details || errorData.error || 'Admin kullanıcı oluşturulamadı');
+            }
+
+            const createdUser = await response.json();
+            console.log('✅ Frontend: Admin user created successfully:', createdUser);
+
+            setUsers(prev => [createdUser, ...prev]);
+            alert('Admin kullanıcı başarıyla oluşturuldu!');
+        } catch (error: any) {
+            console.error('❌ Frontend: Failed to create admin user:', error);
+            alert(`Admin kullanıcı oluşturulamadı: ${error.message}`);
+        }
     };
 
     const calculateEndDate = (planName: string) => {
@@ -584,41 +613,57 @@ const App: React.FC = () => {
         price: number;
     }) => {
         try {
+            console.log('📝 Frontend: Starting user registration...');
+            console.log('📝 Frontend: User data:', userData);
+
+            const requestBody = {
+                name: userData.fullName,
+                email: userData.email,
+                password: userData.password,
+                phone: userData.phone || null,
+                tcKimlik: userData.tcKimlik || null,
+                vergiKimlik: userData.vergiKimlik || null,
+                referralCode: userData.referans || null,  // FIXED: This is the referral code FROM another user
+                platforms: userData.platforms,
+                plan: userData.plan || null,
+                role: 'member',
+                status: 'Aktif',
+                registrationDate: new Date().toISOString().split('T')[0],
+                subscriptionStartDate: new Date().toISOString().split('T')[0],
+                subscriptionEndDate: calculateEndDate(userData.plan),
+                totalSpent: userData.price || 0,
+                lastLogin: new Date().toISOString(),
+            };
+
+            console.log('📤 Frontend: Sending request to backend:', requestBody);
+
             // Call backend to register user
             const response = await fetch('http://localhost:3002/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: userData.fullName,
-                    email: userData.email,
-                    password: userData.password,
-                    phone: userData.phone,
-                    tcKimlik: userData.tcKimlik,
-                    vergiKimlik: userData.vergiKimlik,
-                    referralCode: userData.referans,
-                    platforms: userData.platforms,
-                    plan: userData.plan,
-                    role: 'member',
-                    status: 'Aktif',
-                    registrationDate: new Date().toISOString().split('T')[0],
-                    subscriptionStartDate: new Date().toISOString().split('T')[0],
-                    subscriptionEndDate: calculateEndDate(userData.plan),
-                    totalSpent: userData.price,
-                    lastLogin: new Date().toISOString(),
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('📥 Frontend: Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Kayıt başarısız oldu');
+                const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+                console.error('❌ Frontend: Backend error:', errorData);
+                throw new Error(errorData.details || errorData.error || 'Kayıt başarısız oldu');
             }
 
             const createdUser = await response.json();
+            console.log('✅ Frontend: User created successfully:', createdUser);
 
             // Update local state with the created user
             setUsers(prev => [createdUser, ...prev].sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()));
-        } catch (error) {
-            console.error('Failed to create user:', error);
-            alert('Kullanıcı kaydedilemedi. Lütfen tekrar deneyin.');
+
+            console.log('✅ Frontend: Registration completed successfully!');
+            alert('Kayıt başarılı! Lütfen email adresinizi doğrulayın.');
+        } catch (error: any) {
+            console.error('❌ Frontend: Failed to create user:', error);
+            console.error('❌ Frontend: Error message:', error.message);
+            alert(`Kullanıcı kaydedilemedi: ${error.message}\n\nLütfen console'u kontrol edin.`);
         }
     };
 
