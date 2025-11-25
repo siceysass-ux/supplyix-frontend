@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String             @id @default(uuid())
+  name                     String
+  email                    String             @unique
+  password                 String
+  role                     String
+  phone                    String?
+  tcKimlik                 String?
+  vergiKimlik              String?
+  referans                 String?
+  plan                     String?
+  status                   String
+  registrationDate         String
+  subscriptionStartDate    String
+  subscriptionEndDate      String
+  totalSpent               Float              @default(0)
+  lastLogin                String
+  platforms                String
+  avatar                   String?
+  referralCode             String             @unique @default(uuid())
+  referredBy               String?
+  referralCount            Int                @default(0)
+  referralRewards          Int                @default(0)
+  autoRenew                Boolean            @default(true)
+  cart                     Cart?
+  favorites                Favorite[]
+  favoriteCategories       FavoriteCategory[]
+  notifications            Notification[]
+  referralRewardRecords    ReferralReward[]
+  requests                 Request[]
+  resetPasswordToken       String?
+  resetPasswordExpires     DateTime?
+  emailVerified            Boolean            @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+}
+
+model Product {
+  id            String       @id @default(uuid())
+  name          String       @unique
+  sku           String?
+  categoryId    String?
+  subcategoryId String?
+  images        String
+  price         String
+  tags          String?
+  description   String
+  status        String
+  minOrder      Int          @default(1)
+  isPOD         Boolean      @default(false)
+  variations    String?
+  variants      String?
+  shippingInfo  String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  cartItems     CartItem[]
+  favoritedBy   Favorite[]
+  subcategory   SubCategory? @relation(fields: [subcategoryId], references: [id])
+  category      Category?    @relation(fields: [categoryId], references: [id])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id              String  @id @default(uuid())
+  cartId          String
+  productId       String
+  variantSku      String
+  quantity        Int
+  destination     String
+  podFileUrl      String?
+  priceAtAddition Float?
+  product         Product @relation(fields: [productId], references: [id])
+  cart            Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id        String  @id @default(uuid())
+  userId    String
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Request {
+  id            String   @id @default(uuid())
+  type          String
+  userId        String
+  explanation   String
+  status        String
+  result        String?
+  response      String?
+  title         String?
+  productName   String?
+  imageUrls     String?
+  referenceLink String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  displayId     String?  @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id      String @id @default(uuid())
+  title   String
+  content String
+  date    String
+  type    String
+}
+
+model SupportTicket {
+  id            String  @id @default(uuid())
+  ticketNumber  Int     @default(0)
+  userId        String
+  userName      String
+  userEmail     String
+  subject       String
+  status        String
+  isReadByAdmin Boolean @default(false)
+  isReadByUser  Boolean @default(true)
+  lastUpdate    String
+  messages      String
+}
+
+model ExtraFee {
+  id          String   @id @default(uuid())
+  userId      String
+  item        String
+  description String?
+  amount      String
+  date        String
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Plan {
+  id           String  @id @default(uuid())
+  name         String  @unique
+  price        Float
+  durationText String  @default("/ aylık")
+  popular      Boolean @default(false)
+  buttonText   String  @default("Planı Seç")
+  order        Int     @default(0)
+}
+
+model EventPopup {
+  id          String  @id @default(uuid())
+  enabled     Boolean @default(false)
+  title       String
+  description String
+  imageUrl    String
+  ctaText     String
+  ctaLink     String
+}
+
+model InfluencerCode {
+  id            String  @id @default(uuid())
+  code          String  @unique
+  discountRate  Float
+  affiliateRate Float
+  usageCount    Int     @default(0)
+  totalEarnings Float   @default(0)
+  validPlans    String?
+}
+
+model NavItem {
+  id    String @id @default(uuid())
+  label String
+  path  String
+  type  String
+  order Int
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  productCount  Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  products      Product[]
+  subcategories SubCategory[]
+}
+
+model SubCategory {
+  id         String    @id @default(uuid())
+  name       String
+  categoryId String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  products   Product[]
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model ReferralReward {
+  id         String   @id @default(uuid())
+  userId     String
+  rewardType String
+  seen       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String
+  creationDate    String
+  status          String
+  shippingAddress String
+  products        String
+  subtotal        String
+  shippingTotal   String
+  total           String
+  trackingNumber  String?
+  shippingCarrier String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  displayId       String?  @unique
+}
+
+model FavoriteCategory {
+  id         String   @id @default(uuid())
+  userId     String
+  name       String
+  productIds String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BlogPost {
+  id           String  @id @default(uuid())
+  title        String
+  slug         String  @unique
+  excerpt      String
+  content      String
+  coverImage   String?
+  author       String
+  authorAvatar String?
+  categoryId   String
+  tags         String // JSON array as string
+  published    Boolean @default(false)
+  featured     Boolean @default(false)
+  views        Int     @default(0)
+  readingTime  Int     @default(5)
+
+  // SEO Fields
+  metaTitle       String?
+  metaDescription String?
+  keywords        String? // JSON array as string
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  category BlogCategory @relation(fields: [categoryId], references: [id])
+}
+
+model BlogCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?  @default("#FF6B35")
+  icon        String?
+  postCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts BlogPost[]
+}
