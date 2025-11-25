@@ -127,7 +127,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ item, buyer, onClose, onSuc
 
         try {
             // Call backend to initialize payment
-            const response = await axios.post('/api/payment/initialize', {
+            const response = await axios.post('http://localhost:3002/api/payment/initialize', {
                 item: {
                     id: `item_${Date.now()}`,
                     name: item.name,

@@ -372,7 +372,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ navigate, plan, price, influenc
         // Track influencer code usage if applied
         if (appliedDiscount) {
             try {
-                await fetch('/api/settings/influencer-codes/use/' + appliedDiscount.code, {
+                await fetch('http://localhost:3002/api/settings/influencer-codes/use/' + appliedDiscount.code, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: finalPrice })

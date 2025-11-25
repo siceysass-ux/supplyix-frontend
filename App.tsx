@@ -44,6 +44,10 @@ import SEOHead from './components/shared/SEOHead';
 import { getSEOConfig, ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA, FAQ_SCHEMA, generateBreadcrumbSchema } from './src/seo-config';
 import "./src/libs/globals.ts";
 
+declare global {
+    locale: LOCALE
+}
+
 const App: React.FC = () => {
     // A simple hash-based router
     const [currentPath, setCurrentPath] = useState(window.location.hash.substring(1) || '/');
@@ -126,7 +130,7 @@ const App: React.FC = () => {
                     ? 'dashboard'
                     : 'landing';
 
-                await fetch('/api/heartbeat', {
+                await fetch('http://localhost:3002/api/heartbeat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, socketId: sessionId })
@@ -195,7 +199,7 @@ const App: React.FC = () => {
 
                 // Settings
                 if (fetchedPlans && fetchedPlans.length > 0) {
-                    setPlans(fetchedPlans );
+                    setPlans(fetchedPlans);
                 }
                 if (fetchedEventPopup) {
                     setEventPopup(fetchedEventPopup);
@@ -583,7 +587,7 @@ const App: React.FC = () => {
     }) => {
         try {
             // Call backend to register user
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch('http://localhost:3002/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -688,7 +692,7 @@ const App: React.FC = () => {
                         announcements={announcements}
                         extraFees={(() => {
                             const userFees = extraFees.filter(f => f.userId === currentUser.id);
-                         
+
                             return userFees;
                         })()}
                         supportTickets={supportTickets.filter(t => t.userId === currentUser.id)}

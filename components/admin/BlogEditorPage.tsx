@@ -41,7 +41,7 @@ const BlogEditorPage: React.FC<BlogEditorPageProps> = ({ navigate, postId }) => 
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('/api/blog/categories');
+            const response = await fetch('http://localhost:3002/api/blog/categories');
             const data = await response.json();
             setCategories(data);
             if (data.length > 0 && !categoryId) {
@@ -83,7 +83,7 @@ const BlogEditorPage: React.FC<BlogEditorPageProps> = ({ navigate, postId }) => 
         formData.append('image', file);
 
         try {
-            const response = await fetch('/api/blog/upload', {
+            const response = await fetch('http://localhost:3002/api/blog/upload', {
                 method: 'POST',
                 body: formData
             });

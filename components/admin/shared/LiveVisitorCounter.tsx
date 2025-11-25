@@ -6,7 +6,7 @@ const LiveVisitorCounter: React.FC = () => {
     useEffect(() => {
         const fetchCounts = async () => {
             try {
-                const response = await fetch('/api/analytics/active-users');
+                const response = await fetch('http://localhost:3002/api/analytics/active-users');
                 if (response.ok) {
                     const data = await response.json();
                     setCounts({ landing: data.landing, dashboard: data.dashboard });

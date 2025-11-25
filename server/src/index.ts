@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 });
 
 // Image Proxy to bypass CORS
-app.get('/api/proxy-image', async (req, res) => {
+app.get('http://localhost:3002/api/proxy-image', async (req, res) => {
     const { url } = req.query;
     if (!url || typeof url !== 'string') {
         return res.status(400).send('URL is required');
@@ -68,33 +68,33 @@ app.get('/api/proxy-image', async (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/extra-fees', extraFeesRoutes);
-app.use('/api/announcements', announcementsRoutes);
-app.use('/api/notifications', notificationsRoutes);
-app.use('/api/support-tickets', supportTicketsRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/categories', categoriesRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/favorites', favoritesRoutes);
-app.use('/api/favorite-categories', favoriteCategoriesRoutes);
-app.use('/api/referral', referralRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/blog', blogRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use('http://localhost:3002/api/auth', authRoutes);
+app.use('http://localhost:3002/api/products', productRoutes);
+app.use('http://localhost:3002/api/orders', orderRoutes);
+app.use('http://localhost:3002/api/users', userRoutes);
+app.use('http://localhost:3002/api/profile', profileRoutes);
+app.use('http://localhost:3002/api/requests', requestRoutes);
+app.use('http://localhost:3002/api/extra-fees', extraFeesRoutes);
+app.use('http://localhost:3002/api/announcements', announcementsRoutes);
+app.use('http://localhost:3002/api/notifications', notificationsRoutes);
+app.use('http://localhost:3002/api/support-tickets', supportTicketsRoutes);
+app.use('http://localhost:3002/api/settings', settingsRoutes);
+app.use('http://localhost:3002/api/upload', uploadRoutes);
+app.use('http://localhost:3002/api/categories', categoriesRoutes);
+app.use('http://localhost:3002/api/cart', cartRoutes);
+app.use('http://localhost:3002/api/favorites', favoritesRoutes);
+app.use('http://localhost:3002/api/favorite-categories', favoriteCategoriesRoutes);
+app.use('http://localhost:3002/api/referral', referralRoutes);
+app.use('http://localhost:3002/api/admin', adminRoutes);
+app.use('http://localhost:3002/api/blog', blogRoutes);
+app.use('http://localhost:3002/api/payment', paymentRoutes);
 
 // In-memory store for active sessions
 // Map<sessionId, { timestamp: number, type: 'landing' | 'dashboard' }>
 const activeSessions = new Map<string, { timestamp: number, type: 'landing' | 'dashboard' }>();
 
 // Heartbeat endpoint
-app.post('/api/heartbeat', (req, res) => {
+app.post('http://localhost:3002/api/heartbeat', (req, res) => {
     const { type, socketId } = req.body;
     if (!socketId || !type) {
         return res.status(400).send('Missing socketId or type');
@@ -109,7 +109,7 @@ app.post('/api/heartbeat', (req, res) => {
 });
 
 // Active users analytics endpoint
-app.get('/api/analytics/active-users', (req, res) => {
+app.get('http://localhost:3002/api/analytics/active-users', (req, res) => {
     const now = Date.now();
     const THRESHOLD = 30 * 1000; // 30 seconds
 

@@ -31,7 +31,7 @@ const BlogCategoryManager: React.FC<BlogCategoryManagerProps> = ({ onClose }) =>
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('/api/blog/categories');
+            const response = await fetch('http://localhost:3002/api/blog/categories');
             const data = await response.json();
             setCategories(data);
         } catch (error) {
