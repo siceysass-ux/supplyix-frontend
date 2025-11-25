@@ -4,7 +4,7 @@ import { UserRole } from '../types';
 
 interface CreateUserModalProps {
     onClose: () => void;
-    onSave: (user: { email: string, password?: string, role: UserRole }) => void;
+    onSave: (user: { email: string, password?: string, role: UserRole }) => void | Promise<void>;
 }
 
 const roles: { role: UserRole, name: string, description: string }[] = [
@@ -20,6 +20,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSave }) =>
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleNext = () => {
         setError('');
@@ -31,7 +32,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSave }) =>
         setStep(1);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        // Validation
         if (!email.trim() || !password.trim()) {
             setError('E-posta ve şifre alanları zorunludur.');
             return;
@@ -40,7 +42,25 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSave }) =>
             setError('Geçersiz e-posta adresi.');
             return;
         }
-        onSave({ email, password, role });
+        if (password.length < 8) {
+            setError('Şifre en az 8 karakter olmalıdır.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
+        try {
+            await onSave({ email, password, role });
+            // Success - close modal
+            onClose();
+        } catch (err: any) {
+            // Handle error
+            setError(err?.message || 'Kullanıcı oluşturulurken bir hata oluştu.');
+            console.error('Create user error:', err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -59,9 +79,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSave }) =>
                                 {roles.map(r => (
                                     <label
                                         key={r.role}
-                                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                                            role === r.role ? 'bg-primary/10 border-primary' : 'border-slate-300 hover:border-slate-400'
-                                        }`}
+                                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${role === r.role ? 'bg-primary/10 border-primary' : 'border-slate-300 hover:border-slate-400'
+                                            }`}
                                     >
                                         <input
                                             type="radio"
@@ -103,15 +122,45 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSave }) =>
                 </div>
                 <div className="p-4 bg-slate-50 flex justify-between rounded-b-xl">
                     {step === 1 ? (
-                        <button onClick={onClose} className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300">İptal</button>
+                        <button
+                            onClick={onClose}
+                            disabled={isLoading}
+                            className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            İptal
+                        </button>
                     ) : (
-                        <button onClick={handleBack} className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300">Geri</button>
+                        <button
+                            onClick={handleBack}
+                            disabled={isLoading}
+                            className="bg-slate-200 text-dark-blue font-bold py-2 px-4 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Geri
+                        </button>
                     )}
-                    
+
                     {step === 1 ? (
-                        <button onClick={handleNext} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus">Devam</button>
+                        <button
+                            onClick={handleNext}
+                            disabled={isLoading}
+                            className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Devam
+                        </button>
                     ) : (
-                        <button onClick={handleSave} className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus">Kullanıcıyı Oluştur</button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isLoading}
+                            className="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-focus disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {isLoading && (
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            )}
+                            {isLoading ? 'Oluşturuluyor...' : 'Kullanıcıyı Oluştur'}
+                        </button>
                     )}
                 </div>
             </div>
