@@ -581,9 +581,10 @@ const App: React.FC = () => {
             }
 
             const createdUser = await response.json();
-            console.log('✅ Frontend: Admin user created successfully:', createdUser);
+            console.log('✅ Frontend: Admin; ' + newUser.role + ' user created successfully:', createdUser);
 
             setUsers(prev => [createdUser, ...prev]);
+
             alert('Admin kullanıcı başarıyla oluşturuldu!');
         } catch (error: any) {
             console.error('❌ Frontend: Failed to create admin user:', error);
