@@ -66,7 +66,7 @@ const ManageProductsPage: React.FC<ManageProductsPageProps> = ({ products, navig
                                         <td className="px-6 py-4">{totalStock}</td>
                                         <td className="px-6 py-4">${product.price?.min || 0} - ${product.price?.max || 0}</td>
                                         <td className="px-6 py-4 text-right space-x-2">
-                                            <button onClick={() => navigate(`/admin/product-edit/${encodeURIComponent(product.name)}`)} className="font-medium text-primary hover:underline">Düzenle</button>
+                                            <button onClick={() => navigate(`/admin/product-edit/${product.id}`)} className="font-medium text-primary hover:underline">Düzenle</button>
                                             <button onClick={() => setProductToDelete(product)} className="font-medium text-red-600 hover:underline">Sil</button>
                                         </td>
                                     </tr>

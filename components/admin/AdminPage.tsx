@@ -178,7 +178,7 @@ const AdminPage: React.FC<AdminPageProps> = (props) => {
             return <UserDetailPage user={user} navigate={navigate} onUpdateUserStatus={onUpdateUserStatus} onUpdateSubscriptionEndDate={onUpdateSubscriptionEndDate} />;
         }
         if (page === 'product-edit' && param) {
-            const product = products.find(p => p.name === param);
+            const product = products.find(p => p.id === param);
             return <ProductEditPage product={product} onSave={handleSaveProductAndNavigate} navigate={navigate} categories={categories} />;
         }
         if (page === 'product-add') {
