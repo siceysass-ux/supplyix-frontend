@@ -53,6 +53,8 @@ async function main() {
 
     console.log('✅ Admin user created\n');
 
+    // Create User
+    console.log('👤 Creating user...');
     const user = await prisma.user.create({
         data: {
             name: 'User',
