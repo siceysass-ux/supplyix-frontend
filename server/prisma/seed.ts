@@ -1,4 +1,5 @@
 // @ts-nocheck
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
@@ -49,11 +50,33 @@ async function main() {
             emailVerified: true
         }
     });
-    console.log('✅ Admin created\n');
+
+    console.log('✅ Admin user created\n');
+
+    const user = await prisma.user.create({
+        data: {
+            name: 'User',
+            email: 'user@supplyix.com',
+            password: '12345678',
+            role: 'user',
+            phone: '+905551234567',
+            plan: '1 Sene',
+            status: 'Aktif',
+            registrationDate: '2025-01-01',
+            subscriptionStartDate: '2025-01-01',
+            subscriptionEndDate: '2026-01-01',
+            totalSpent: 0,
+            lastLogin: new Date().toISOString(),
+            platforms: JSON.stringify([]),
+            referralCode: 'SUPPLYIX-USER',
+            emailVerified: true
+        }
+    });
+    console.log('✅ User created\n');
 
     // Create 100 Users
     console.log('👥 Creating 100 users...');
-    const users = [admin];
+    const users = [admin, user];
     for (let i = 0; i < 100; i++) {
         const user = await prisma.user.create({
             data: {

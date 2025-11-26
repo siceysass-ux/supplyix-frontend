@@ -190,11 +190,11 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ navigate, products, toggl
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {currentProducts.map(product => (
                                     <div key={product.name} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                                        <div className="relative cursor-pointer" onClick={() => navigate(`/dashboard/product/${encodeURIComponent(product.name)}`)}>
+                                        <div className="relative cursor-pointer" onClick={() => navigate(`/dashboard/product/${product.id}`)}>
                                             <img className="h-48 w-full object-cover rounded-t-xl" src={product.images[0]} alt={product.name} />
                                         </div>
                                         <div className="p-4 flex flex-col flex-grow">
-                                            <h3 className="font-semibold text-dark-blue dark:text-slate-100 truncate cursor-pointer group-hover:text-primary transition-colors" onClick={() => navigate(`/dashboard/product/${encodeURIComponent(product.name)}`)}>{product.name}</h3>
+                                            <h3 className="font-semibold text-dark-blue dark:text-slate-100 truncate cursor-pointer group-hover:text-primary transition-colors" onClick={() => navigate(`/dashboard/product/${product.id}`)}>{product.name}</h3>
                                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{product.category}</p>
 
                                             <div className="mt-auto flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-700">

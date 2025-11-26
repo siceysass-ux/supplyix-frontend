@@ -574,7 +574,6 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
         }
     };
 
-
     useEffect(() => {
         const handleHashChange = () => {
             setRouteInfo(getRouteInfo());
@@ -586,7 +585,8 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
 
     const renderActivePage = () => {
         if (routeInfo.page === 'product' && routeInfo.param) {
-            const product = products.find(p => p.name === routeInfo.param);
+            // Find product by ID instead of name (supports Turkish chars & whitespace)
+            const product = products.find(p => p.id === routeInfo.param);
             return (
                 <ProductDetailPage
                     product={product}
@@ -611,8 +611,8 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
             orders,
             requests,
             onAddRequest,
-            fees: extraFees, // Pass down from props
-            onSaveFee: onSaveFee, // Pass down from props
+            fees: extraFees,
+            onSaveFee: onSaveFee,
             announcements,
             favoriteCategories,
             onAddCategory: handleAddCategory,
@@ -621,9 +621,9 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
             subscription,
             onToggleRenewal: handleToggleRenewal,
             onUpdatePlan: handleUpdatePlan,
-            isSubscriptionExpired, // Pass to pages for access control
-            categories, // Pass categories for SourcingPoolPage
-            currentUser: { // Pass currentUser with required fields for payment
+            isSubscriptionExpired,
+            categories,
+            currentUser: {
                 id: currentUser.id,
                 name: (props.currentUser as any).name || 'User',
                 email: (props.currentUser as any).email || '',

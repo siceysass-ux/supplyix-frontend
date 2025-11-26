@@ -5,10 +5,37 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Helper to parse ticket messages
-const parseTicket = (ticket: any) => ({
-    ...ticket,
-    messages: JSON.parse(ticket.messages as string)
-});
+const parseTicket = (ticket: any) => {
+    try {
+        // Handle messages - could be string, already parsed, null, or undefined
+        let messages = [];
+
+        if (!ticket) {
+            return null;
+        }
+
+        if (ticket.messages === null || ticket.messages === undefined) {
+            messages = [];
+        } else if (typeof ticket.messages === 'string') {
+            try {
+                messages = JSON.parse(ticket.messages);
+            } catch (e) {
+                console.error('Failed to parse ticket messages:', e);
+                messages = [];
+            }
+        } else if (Array.isArray(ticket.messages)) {
+            messages = ticket.messages;
+        }
+
+        return {
+            ...ticket,
+            messages
+        };
+    } catch (error) {
+        console.error('Error in parseTicket:', error);
+        return null;
+    }
+};
 
 // Get all support tickets
 router.get('/', async (req, res) => {
@@ -16,7 +43,8 @@ router.get('/', async (req, res) => {
         const tickets = await prisma.supportTicket.findMany({
             orderBy: { lastUpdate: 'desc' }
         });
-        res.json(tickets.map(parseTicket));
+        const parsedTickets = tickets.map(parseTicket).filter(t => t !== null);
+        res.json(parsedTickets);
     } catch (error) {
         console.error('Error fetching support tickets:', error);
         res.status(500).json({ error: 'Failed to fetch support tickets' });
@@ -30,7 +58,8 @@ router.get('/user/:userId', async (req, res) => {
             where: { userId: req.params.userId },
             orderBy: { lastUpdate: 'desc' }
         });
-        res.json(tickets.map(parseTicket));
+        const parsedTickets = tickets.map(parseTicket).filter(t => t !== null);
+        res.json(parsedTickets);
     } catch (error) {
         console.error('Error fetching user tickets:', error);
         res.status(500).json({ error: 'Failed to fetch user tickets' });

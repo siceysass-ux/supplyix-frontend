@@ -267,7 +267,7 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
                                 className={`h-48 w-full object-cover rounded-t-xl ${!isSubscriptionExpired ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                                 src={product.images[0]}
                                 alt={product.name}
-                                onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${encodeURIComponent(product.name)}`)}
+                                onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${product.id}`)}
                             />
                             <button
                                 onClick={() => toggleFavorite(product.name)}
@@ -281,7 +281,7 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{product.category}{product.subcategory ? ` > ${product.subcategory}` : ''}</p>
                             <h3
                                 className={`font-semibold text-dark-blue dark:text-slate-100 truncate group-hover:text-primary transition-colors duration-200 ${!isSubscriptionExpired ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-                                onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${encodeURIComponent(product.name)}`)}
+                                onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${product.id}`)}
                             >
                                 {product.name}
                             </h3>
@@ -289,7 +289,7 @@ const SourcingPoolPage: React.FC<SourcingPoolPageProps> = ({ navigate, products,
                             <div className="mt-auto flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-700 mt-3">
                                 <p className="text-lg font-bold text-dark-blue dark:text-slate-100">{formatPrice(product.price)}</p>
                                 <button
-                                    onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${encodeURIComponent(product.name)}`)}
+                                    onClick={() => !isSubscriptionExpired && navigate(`/dashboard/product/${product.id}`)}
                                     disabled={isSubscriptionExpired}
                                     className={`text-sm font-semibold ${isSubscriptionExpired ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:underline'}`}
                                 >
