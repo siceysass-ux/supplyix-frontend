@@ -218,21 +218,24 @@ async function main() {
         await prisma.request.create({
             data: {
                 type: faker.helpers.arrayElement(['Ürün Talebi', 'Teknik Destek', 'Fiyat Teklifi', 'Diğer']),
-                userId: user.id,
-                userName: user.name,
-                userEmail: user.email,
                 title: faker.lorem.sentence(),
-                productName: faker.datatype.boolean() ? faker.commerce.productName() : '',
+                productName: faker.commerce.productName(),
                 explanation: faker.lorem.paragraphs(2),
-                imageUrls: JSON.stringify(faker.datatype.boolean() ? [
+                imageUrls: JSON.stringify([
                     `https://picsum.photos/seed/${faker.string.alphanumeric(8)}/600/400`
-                ] : []),
-                referenceLink: faker.datatype.boolean() ? faker.internet.url() : '',
+                ]),
+                referenceLink: faker.internet.url(),
                 status: faker.helpers.arrayElement(['Beklemede', 'İşlemde', 'Tamamlandı', 'İptal']),
                 result: faker.helpers.arrayElement(['Onaylandı', 'Reddedildi', 'Beklemede']),
-                response: faker.datatype.boolean() ? faker.lorem.paragraph() : '',
-                created: faker.date.past({ years: 1 }).toISOString(),
-                updated: faker.date.recent({ days: 30 }).toISOString()
+                response: faker.lorem.paragraph(),
+                createdAt: faker.date.past({ years: 1 }).toISOString(),
+                updatedAt: faker.date.recent({ days: 30 }).toISOString(),
+                displayId: faker.string.alphanumeric(10).toUpperCase(),
+                user: {
+                    connect: {
+                        id: user.id
+                    }
+                }
             }
         });
         if ((i + 1) % 30 === 0) console.log(`  ✓ ${i + 1}/120 requests created`);
@@ -281,7 +284,7 @@ async function main() {
                 title: faker.lorem.sentence(),
                 message: faker.lorem.paragraph(),
                 type: faker.helpers.arrayElement(['info', 'success', 'warning', 'error']),
-                isRead: faker.datatype.boolean(),
+                read: faker.datatype.boolean(),
                 createdAt: faker.date.recent({ days: 60 }).toISOString()
             }
         });
@@ -317,10 +320,11 @@ async function main() {
         await prisma.favoriteCategory.create({
             data: {
                 userId: user.id,
-                name: faker.commerce.department(),
+                name: `${faker.commerce.department()} ${i}`, // Ensure unique name per user
                 productIds: JSON.stringify(categoryProducts.map(p => p.id))
             }
         });
+        if ((i + 1) % 10 === 0) console.log(`  ✓ ${i + 1}/50 favorite categories created`);
     }
     console.log('✅ 50 favorite categories created\n');
 
@@ -329,10 +333,10 @@ async function main() {
 
     await prisma.plan.createMany({
         data: [
-            { name: '7 Gün Deneme', price: '0', duration: '7 gün', features: JSON.stringify(['Temel Özellikler', 'Email Destek']) },
-            { name: '1 Ay', price: '299', duration: '1 ay', features: JSON.stringify(['Tüm Özellikler', 'Öncelikli Destek']) },
-            { name: '6 Ay', price: '1499', duration: '6 ay', features: JSON.stringify(['Tüm Özellikler', '7/24 Destek', '%15 İndirim']) },
-            { name: '1 Sene', price: '2499', duration: '1 yıl', features: JSON.stringify(['Tüm Özellikler', '7/24 Destek', '%30 İndirim', 'Özel Danışman']) }
+            { name: '7 Gün Deneme', price: 0, durationText: '7 gün', buttonText: '7 Gün Deneme', popular: false },
+            { name: '1 Ay', price: 299, durationText: '1 ay', buttonText: '1 Ay', popular: false },
+            { name: '6 Ay', price: 1499, durationText: '6 ay', buttonText: '6 Ay', popular: true },
+            { name: '1 Sene', price: 2499, durationText: '1 yıl', buttonText: '1 Sene', popular: false }
         ]
     });
 

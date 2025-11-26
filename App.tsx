@@ -469,11 +469,7 @@ const App: React.FC = () => {
 
     const handleUpdateEventPopup = async (updatedPopup: EventPopupType) => {
         try {
-            await api.updateEventPopup({
-                isActive: updatedPopup.enabled,
-                imageUrl: updatedPopup.imageUrl,
-                link: updatedPopup.ctaLink
-            });
+            await api.updateEventPopup(updatedPopup);
             setEventPopup(updatedPopup);
         } catch (error) {
             console.error("Failed to update event popup:", error);

@@ -242,9 +242,12 @@ export const getEventPopup = async () => {
 };
 
 export const updateEventPopup = async (popup: {
-    isActive: boolean;
+    enabled: boolean;
+    title: string;
+    description: string;
     imageUrl: string;
-    link: string;
+    ctaText: string;
+    ctaLink: string;
 }) => {
     const response = await api.put('/settings/event-popup', popup);
     return response.data;
